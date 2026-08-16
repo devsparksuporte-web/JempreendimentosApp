@@ -31,7 +31,7 @@ import {
   STATUS_LIVE,
   STATUS_TONE,
 } from '@/lib/format';
-import { fetchClienteHome, seedDemoData, type ClienteHome } from '@/services/client';
+import { fetchClienteHome, type ClienteHome } from '@/services/client';
 import { colors, layout, radius, spacing } from '@/theme/tokens';
 
 export default function ClienteHomeScreen() {
@@ -43,7 +43,6 @@ export default function ClienteHomeScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -60,18 +59,6 @@ export default function ClienteHomeScreen() {
   useEffect(() => {
     load();
   }, [load]);
-
-  async function handleSeed() {
-    setSeeding(true);
-    try {
-      await seedDemoData();
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Erro ao criar os dados de exemplo.');
-    } finally {
-      setSeeding(false);
-    }
-  }
 
   const nome = firstName(profile?.full_name) || 'cliente';
 
@@ -121,9 +108,7 @@ export default function ClienteHomeScreen() {
             <EmptyState
               icon={AirVent}
               title="Nenhum cadastro encontrado"
-              description="Seu cadastro de cliente ainda não foi criado. Para testar o app agora, gere dados de exemplo."
-              actionLabel={seeding ? 'Criando…' : 'Criar dados de exemplo'}
-              onAction={handleSeed}
+              description="Seu cadastro ainda está sendo preparado. Se o problema persistir, saia da conta e entre novamente ou fale com a equipe."
             />
           ) : (
             <>

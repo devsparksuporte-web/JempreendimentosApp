@@ -49,11 +49,10 @@ Rode, uma vez cada, na ordem:
   duplicados (as primeiras versões do seed não eram idempotentes), cria o
   `profiles` de quem se cadastrou antes do trigger existir, e imprime uma
   conferência com os totais esperados (3 checklists, 29 itens, 10 peças).
-- `migrations/0004_corrige_demo.sql` — substitui
-  `seed_demo_for_current_user()`. A versão anterior criava o chamado já em
-  "a caminho", e o trigger de histórico registrava só essa transição: a
-  etapa "Aberto" ficava sem horário na timeline. Agora o chamado nasce
-  aberto e percorre os status, deixando o trigger montar o histórico real.
+- `migrations/0005_regras_producao.sql` — remove o RPC de demonstração,
+  cria automaticamente o cadastro real de cliente no primeiro acesso,
+  valida vínculos entre cliente, endereço e equipamento e impede transições
+  inválidas de chamados.
 
 Alternativa por CLI, se você tiver o token de acesso e a senha do banco:
 
@@ -65,16 +64,12 @@ npx supabase db push
 
 ### Primeiro acesso
 
-1. Abra o app e toque em **Criar agora** para registrar uma conta
-2. Na Home, toque em **Criar dados de exemplo** — isso gera cliente,
-   endereço, dois equipamentos, manutenção programada e um chamado em
-   andamento vinculados à sua conta
+1. Abra o app e toque em **Criar agora** para registrar uma conta.
+2. Confirme o e-mail, entre com suas credenciais e complete os dados reais do cadastro.
+3. Cadastre seus endereços e equipamentos reais; chamados só podem ser abertos para registros pertencentes à sua conta.
+4. A equipe autorizada atribui o técnico e movimenta o chamado conforme as transições permitidas pelo banco.
 
-Para desativar o atalho de demonstração em produção:
-
-```sql
-drop function public.seed_demo_for_current_user();
-```
+O aplicativo não possui modo demo nem cria clientes, equipamentos, técnicos ou chamados fictícios. O cadastro de cliente é criado automaticamente pelo trigger de autenticação e as regras de produção estão em `migrations/0005_regras_producao.sql`.
 
 ---
 
@@ -100,7 +95,7 @@ src/
     format.ts              rótulos de status, datas e nomes em pt-BR
   theme/tokens.ts          design tokens — única fonte de cor/tipografia
   types/database.ts        tipos das tabelas
-supabase/migrations/       schema e dados iniciais
+supabase/migrations/       schema, dados iniciais e regras de produção
 .superdesign/              design system e referência dos drafts (fora do git)
 ```
 
@@ -112,8 +107,7 @@ supabase/migrations/       schema e dados iniciais
   marcado; nunca é usado como enfeite.
 - **A chave da IA nunca entra no app.** O caminho é APP → BACKEND → IA.
   Ver a seam em `src/services/ai.ts`.
-- **RLS é a segurança real.** A anon key é pública por design; quem isola
-  cliente de cliente são as policies em `0001_init.sql`.
+- **RLS e triggers são a segurança real.** A anon key é pública por design; o isolamento entre clientes, as permissões por perfil e as transições de chamados são aplicados no banco em `0001_init.sql` e `0005_regras_producao.sql`.
 
 ---
 
@@ -122,8 +116,8 @@ supabase/migrations/       schema e dados iniciais
 | Perfil | Situação |
 |---|---|
 | **Cliente** | Implementado: Início, Equipamentos, Chamados, IA, Perfil |
-| **Técnico** | Schema e RLS prontos; telas pendentes |
-| **Administrador** | Schema e RLS prontos; telas pendentes |
+| **Técnico** | Regras de acesso e atualização de chamados implementadas; painel operacional em evolução |
+| **Administrador** | Controle de cadastros, atribuições, agenda e regras de status no banco; painel administrativo em evolução |
 
 O perfil vem de `profiles.role` (`cliente` / `tecnico` / `admin`). Contas
 criadas pelo app nascem como `cliente`.

@@ -226,12 +226,7 @@ export type Database = {
       notifications: Table<NotificationRow>;
     };
     Views: Record<string, never>;
-    Functions: {
-      seed_demo_for_current_user: {
-        Args: Record<string, never>;
-        Returns: string;
-      };
-    };
+    Functions: Record<string, never>;
     Enums: {
       user_role: UserRole;
       service_status: ServiceStatus;

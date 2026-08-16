@@ -155,8 +155,3 @@ export async function createServiceCallFromTriage(input: {
   return data as ServiceCall;
 }
 
-/** Cria cliente, equipamentos e um chamado de exemplo para o usuário logado. */
-export async function seedDemoData(): Promise<void> {
-  const { error } = await supabase.rpc('seed_demo_for_current_user');
-  if (error) throw new Error(error.message);
-}
