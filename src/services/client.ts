@@ -47,13 +47,23 @@ const CALL_SELECT = `
 
 /**
  * Carrega tudo que a Home do Cliente precisa.
- * As policies de RLS já limitam ao cliente autenticado — não é preciso
- * filtrar por client_id manualmente.
+ * Mesmo com RLS, o filtro explícito por profile_id evita que perfis
+ * administrativos recebam múltiplos clientes no carregamento da Home.
  */
 export async function fetchClienteHome(): Promise<ClienteHome> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) throw new Error(userError.message);
+  if (!user) throw new Error('Sessão expirada. Entre novamente para continuar.');
+
   const { data: client, error: clientError } = await supabase
     .from('clients')
     .select('*')
+    .eq('profile_id', user.id)
+    .limit(1)
     .maybeSingle();
 
   if (clientError) throw new Error(clientError.message);
