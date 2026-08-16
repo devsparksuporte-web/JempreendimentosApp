@@ -33,9 +33,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#2563EB",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#041326",
+          "image": "./assets/images/brand/jempreendimentos-logo.png",
+          "imageWidth": 260
         }
       ]
     ],

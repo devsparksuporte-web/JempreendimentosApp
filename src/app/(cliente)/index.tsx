@@ -100,7 +100,7 @@ export default function ClienteHomeScreen() {
 
           <View style={styles.hero}>
             <Image
-              source={require('../../../assets/images/brand/clima-hero.png')}
+              source={require('../../../assets/images/brand/jempreendimentos-logo.png')}
               style={styles.heroImage}
               resizeMode="cover"
             />
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.bgSurface,
   },
-  heroImage: { width: '100%', height: '100%' },
+  heroImage: { width: '100%', height: '100%', backgroundColor: '#041326' },
   heroCopy: {
     position: 'absolute',
     left: spacing.lg,

@@ -67,7 +67,7 @@ export default function LoginScreen() {
         <View style={styles.container}>
           <View style={styles.brand}>
             <Image
-              source={require('../../../assets/images/brand/clima-hero.png')}
+              source={require('../../../assets/images/brand/jempreendimentos-logo.png')}
               style={styles.brandImage}
               resizeMode="cover"
             />
