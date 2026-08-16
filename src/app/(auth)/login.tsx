@@ -1,6 +1,7 @@
 import { LogIn, Lock, Mail, User } from 'lucide-react-native';
 import { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -65,9 +66,14 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled">
         <View style={styles.container}>
           <View style={styles.brand}>
+            <Image
+              source={require('../../../assets/images/brand/clima-hero.png')}
+              style={styles.brandImage}
+              resizeMode="cover"
+            />
             <Text variant="screenTitle">JEmpreendimentos</Text>
             <Text variant="meta" color={colors.brand}>
-              Soluções Técnicas
+              Climatização e assistência técnica
             </Text>
           </View>
 
@@ -168,6 +174,14 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   brand: { alignItems: 'center', gap: spacing.xs },
+  brandImage: {
+    width: '100%',
+    height: 132,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
+  },
   form: { gap: spacing.lg },
   field: {
     flexDirection: 'row',

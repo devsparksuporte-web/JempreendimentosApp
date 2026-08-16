@@ -7,21 +7,21 @@
 
 export const colors = {
   // Base
-  bgApp: '#f9fafb',
+  bgApp: '#f4f9fc',
   bgSurface: '#ffffff',
-  border: '#e5e7eb',
-  borderStrong: '#cbd5e1',
+  border: '#dce8f0',
+  borderStrong: '#bed2df',
 
-  textPrimary: '#0f172a',
-  textSecondary: '#64748b',
-  textMuted: '#94a3b8',
+  textPrimary: '#123047',
+  textSecondary: '#5e7a8b',
+  textMuted: '#8da5b3',
   textOnBrand: '#ffffff',
 
-  // Marca
-  brand: '#2563eb',
-  brandStrong: '#1e40af',
-  brandSoft: '#dbeafe',
-  brandTint: '#eff6ff',
+  // Marca técnica — azul-gelo inspirado em climatização
+  brand: '#2588c4',
+  brandStrong: '#12628e',
+  brandSoft: '#d9effa',
+  brandTint: '#edf8fd',
 
   // Semânticas
   success: '#059669',
@@ -36,9 +36,9 @@ export const colors = {
   dangerSoft: '#fee2e2',
   dangerStrong: '#b91c1c',
 
-  info: '#2563eb',
-  infoSoft: '#dbeafe',
-  infoStrong: '#1e40af',
+  info: '#2588c4',
+  infoSoft: '#d9effa',
+  infoStrong: '#12628e',
 
   /** Exclusivo de conteúdo gerado por IA. Nunca decorativo. */
   ai: '#7c3aed',
@@ -47,10 +47,10 @@ export const colors = {
   aiStrong: '#5b21b6',
 
   // Neutros de apoio
-  slate50: '#f8fafc',
-  slate100: '#f1f5f9',
-  slate200: '#e2e8f0',
-  slate300: '#cbd5e1',
+  slate50: '#f5f9fc',
+  slate100: '#edf4f8',
+  slate200: '#dce8f0',
+  slate300: '#bed2df',
 } as const;
 
 /** Escala de 4px. */
@@ -65,10 +65,10 @@ export const spacing = {
 
 export const radius = {
   pill: 999,
-  sm: 6,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 22,
 } as const;
 
 export const fonts = {
@@ -118,11 +118,11 @@ export const type = {
  */
 export const elevation = {
   card: {
-    shadowColor: '#000000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
-    elevation: 1,
+    shadowColor: '#79a8be',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 3,
   },
 } as const;
 

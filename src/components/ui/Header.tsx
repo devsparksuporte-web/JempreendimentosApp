@@ -50,7 +50,7 @@ export function Header({ title, eyebrow, onBack, trailing }: HeaderProps) {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: colors.bgSurface,
+    backgroundColor: colors.brandTint,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     paddingBottom: spacing.lg,
@@ -68,10 +68,10 @@ const styles = StyleSheet.create({
   iconButton: {
     width: touch.minTarget - 8,
     height: touch.minTarget - 8,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.slate50,
+    backgroundColor: colors.bgSurface,
     alignItems: 'center',
     justifyContent: 'center',
   },

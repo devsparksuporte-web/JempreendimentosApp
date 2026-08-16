@@ -65,8 +65,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgSurface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-    height: 76,
-    paddingTop: spacing.sm,
+    height: 82,
+    paddingTop: spacing.md,
+    shadowColor: '#79a8be',
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 8,
   },
   tabItem: { paddingVertical: spacing.xs },
   tabLabel: {
@@ -74,5 +79,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
+    color: colors.textSecondary,
   },
 });

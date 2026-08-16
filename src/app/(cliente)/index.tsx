@@ -9,7 +9,7 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -92,12 +92,26 @@ export default function ClienteHomeScreen() {
         }>
         <View style={[styles.container, { paddingBottom: spacing.xxl + insets.bottom }]}>
           <View style={styles.greeting}>
-            <Text variant="screenTitle">
-              Olá, {nome} <Text variant="screenTitle">👋</Text>
-            </Text>
+            <Text variant="screenTitle">Olá, {nome}</Text>
             <Text variant="meta" color={colors.textSecondary}>
               Cliente
             </Text>
+          </View>
+
+          <View style={styles.hero}>
+            <Image
+              source={require('../../../assets/images/brand/clima-hero.png')}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+            <View style={styles.heroCopy}>
+              <Text variant="microLabel" color={colors.brandStrong}>
+                Climatização inteligente
+              </Text>
+              <Text variant="bodyStrong" color={colors.textPrimary}>
+                Seus equipamentos, sempre sob controle.
+              </Text>
+            </View>
           </View>
 
           {loading ? (
@@ -217,6 +231,26 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   greeting: { gap: 2 },
+  hero: {
+    height: 184,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgSurface,
+  },
+  heroImage: { width: '100%', height: '100%' },
+  heroCopy: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+    gap: spacing.xs,
+    backgroundColor: 'rgba(255,255,255,0.86)',
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
   activeCall: { gap: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
