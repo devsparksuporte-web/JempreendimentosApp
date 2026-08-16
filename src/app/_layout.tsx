@@ -22,7 +22,7 @@ SplashScreen.preventAutoHideAsync();
  * com login, o app do perfil.
  */
 function AuthGate() {
-  const { session, initializing } = useAuth();
+  const { session, initializing, role } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -30,13 +30,15 @@ function AuthGate() {
     if (initializing) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inAdminGroup = segments[0] === '(admin)';
+    const destination = role === 'admin' ? '/(admin)' : '/(cliente)';
 
     if (!session && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (session && inAuthGroup) {
-      router.replace('/(cliente)');
+    } else if (session && (inAuthGroup || (role === 'admin' && !inAdminGroup) || (role !== 'admin' && inAdminGroup))) {
+      router.replace(destination);
     }
-  }, [session, initializing, segments, router]);
+  }, [session, initializing, role, segments, router]);
 
   useEffect(() => {
     if (!initializing) SplashScreen.hideAsync();
@@ -48,6 +50,7 @@ function AuthGate() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }}>
       <Stack.Screen name="(auth)/login" />
       <Stack.Screen name="(cliente)" />
+      <Stack.Screen name="(admin)" />
       <Stack.Screen name="chamado/novo" options={{ presentation: 'modal' }} />
       <Stack.Screen name="chamado/[id]" />
     </Stack>
