@@ -31,11 +31,12 @@ function AuthGate() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inAdminGroup = segments[0] === '(admin)';
-    const destination = role === 'admin' ? '/(admin)' : '/(cliente)';
+    const inTechnicianGroup = segments[0] === '(tecnico)';
+    const destination = role === 'admin' ? '/(admin)' : role === 'tecnico' ? '/(tecnico)' : '/(cliente)';
 
     if (!session && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (session && (inAuthGroup || (role === 'admin' && !inAdminGroup) || (role !== 'admin' && inAdminGroup))) {
+    } else if (session && (inAuthGroup || (role === 'admin' && !inAdminGroup) || (role === 'tecnico' && !inTechnicianGroup) || (role === 'cliente' && (inAdminGroup || inTechnicianGroup)))) {
       router.replace(destination);
     }
   }, [session, initializing, role, segments, router]);
@@ -51,6 +52,7 @@ function AuthGate() {
       <Stack.Screen name="(auth)/login" />
       <Stack.Screen name="(cliente)" />
       <Stack.Screen name="(admin)" />
+      <Stack.Screen name="(tecnico)" />
       <Stack.Screen name="chamado/novo" options={{ presentation: 'modal' }} />
       <Stack.Screen name="chamado/[id]" />
     </Stack>

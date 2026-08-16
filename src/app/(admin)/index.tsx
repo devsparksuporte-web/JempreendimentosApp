@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { AlertCircle, CalendarClock, CheckCircle2, ChevronRight, ClipboardList, HardHat, RefreshCw } from 'lucide-react-native';
+import { AlertCircle, CalendarClock, CheckCircle2, ChevronRight, ClipboardList, FileCheck2, HardHat, PackageSearch, RefreshCw } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -67,6 +67,11 @@ export default function AdminHomeScreen() {
                 </View>
               </Card>
 
+              <View style={styles.operationLinks}>
+                <Pressable onPress={() => router.push('/(admin)/pmoc' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><FileCheck2 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">PMOC e conformidade</Text><Text variant="meta" color={colors.textSecondary}>Rotinas e próximas execuções</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/estoque' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><PackageSearch size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Controle de estoque</Text><Text variant="meta" color={colors.textSecondary}>Saldo mínimo e reposição</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+              </View>
+
               <View style={styles.sectionHeader}><Text variant="microLabel" color={colors.textSecondary}>Fila de atendimento</Text><Badge label={`${data.calls.length} ativos`} tone={data.calls.length ? 'info' : 'success'} /></View>
               {data.calls.length === 0 ? (
                 <Card><View style={styles.empty}><CheckCircle2 size={28} color={colors.success} /><Text variant="bodyStrong">Nenhum chamado pendente</Text><Text variant="body" color={colors.textSecondary}>A operação está em dia.</Text></View></Card>
@@ -117,6 +122,10 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.sm },
   callRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   callMain: { flex: 1, gap: spacing.xs },
+  flex: { flex: 1, gap: spacing.xs },
+  operationLinks: { gap: spacing.sm },
+  operationLink: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.xl, padding: spacing.lg },
+  pressed: { opacity: 0.82, transform: [{ scale: 0.99 }] },
   empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.lg },
   refresh: { width: 36, height: 36, borderRadius: radius.pill, backgroundColor: colors.bgSurface, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: colors.border },
 });

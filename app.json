@@ -31,6 +31,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Permita o acesso à câmera para ler QR Codes e registrar fotos do atendimento."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#041326",
