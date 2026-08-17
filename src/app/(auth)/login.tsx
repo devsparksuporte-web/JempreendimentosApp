@@ -66,11 +66,13 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled">
         <View style={styles.container}>
           <View style={styles.brand}>
-            <Image
-              source={require('../../../assets/images/brand/jempreendimentos-logo.png')}
-              style={styles.brandImage}
-              resizeMode="cover"
-            />
+            <View style={styles.brandBanner}>
+              <Image
+                source={require('../../../assets/images/brand/jempreendimentos-logo.png')}
+                style={styles.brandImage}
+                resizeMode="contain"
+              />
+            </View>
             <Text variant="screenTitle">JEmpreendimentos</Text>
             <Text variant="meta" color={colors.brand}>
               Climatização e assistência técnica
@@ -174,13 +176,19 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   brand: { alignItems: 'center', gap: spacing.xs },
-  brandImage: {
+  brandBanner: {
     width: '100%',
-    height: 132,
+    height: 164,
     borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
+    backgroundColor: colors.brandStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
     marginBottom: spacing.sm,
+  },
+  brandImage: {
+    width: '92%',
+    height: 142,
   },
   form: { gap: spacing.lg },
   field: {

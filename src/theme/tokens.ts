@@ -7,21 +7,21 @@
 
 export const colors = {
   // Base
-  bgApp: '#f4f9fc',
+  bgApp: '#F8FAFC',
   bgSurface: '#ffffff',
-  border: '#dce8f0',
-  borderStrong: '#bed2df',
+  border: '#E8E8E8',
+  borderStrong: '#CBD5E1',
 
-  textPrimary: '#123047',
-  textSecondary: '#5e7a8b',
-  textMuted: '#8da5b3',
+  textPrimary: '#001F3F',
+  textSecondary: '#64748B',
+  textMuted: '#94A3B8',
   textOnBrand: '#ffffff',
 
   // Marca técnica — azul-gelo inspirado em climatização
-  brand: '#2588c4',
-  brandStrong: '#12628e',
-  brandSoft: '#d9effa',
-  brandTint: '#edf8fd',
+  brand: '#0047AB',
+  brandStrong: '#001F3F',
+  brandSoft: '#BFDBFE',
+  brandTint: '#EFF6FF',
 
   // Semânticas
   success: '#059669',
@@ -47,10 +47,10 @@ export const colors = {
   aiStrong: '#5b21b6',
 
   // Neutros de apoio
-  slate50: '#f5f9fc',
-  slate100: '#edf4f8',
-  slate200: '#dce8f0',
-  slate300: '#bed2df',
+  slate50: '#F8FAFC',
+  slate100: '#F1F5F9',
+  slate200: '#E2E8F0',
+  slate300: '#CBD5E1',
 } as const;
 
 /** Escala de 4px. */
@@ -68,7 +68,7 @@ export const radius = {
   sm: 8,
   md: 12,
   lg: 16,
-  xl: 22,
+  xl: 28,
 } as const;
 
 export const fonts = {
@@ -118,8 +118,8 @@ export const type = {
  */
 export const elevation = {
   card: {
-    shadowColor: '#79a8be',
-    shadowOpacity: 0.12,
+    shadowColor: '#001F3F',
+    shadowOpacity: 0.08,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 5 },
     elevation: 3,
