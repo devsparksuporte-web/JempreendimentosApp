@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { MapboxRouteMap } from '@/components/MapboxRouteMap';
 import { ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
 import { fetchTechnicianCalls, type TechnicianCall } from '@/services/technician';
@@ -46,10 +47,8 @@ export default function TechnicianRouteScreen() {
 
   return <View style={styles.root}>
     <View style={styles.mapArea}>
-      <View style={styles.mapGrid} />
-      <View style={styles.mapRoute}><View style={styles.routeLine} /><Route size={18} color={colors.brand} style={styles.routeIcon} /></View>
-      <View style={styles.topBar}><Pressable onPress={() => router.back()} style={styles.iconButton}><ArrowLeft size={20} color={colors.textPrimary} /></Pressable><View style={styles.live}><View style={styles.liveDot} /><Text variant="meta" color={colors.textPrimary}>Em tempo real</Text></View></View>
-      <View style={styles.mapLegend}><Navigation size={16} color={colors.brand} /><Text variant="meta" color={colors.textSecondary}>Rota operacional baseada nos chamados atribuídos</Text></View>
+      <MapboxRouteMap calls={calls} selectedId={selected?.id ?? null} onSelect={setSelectedId} />
+      <View style={styles.topBar}><Pressable onPress={() => router.back()} style={styles.iconButton}><ArrowLeft size={20} color={colors.textPrimary} /></Pressable><View style={styles.live}><View style={styles.liveDot} /><Text variant="meta" color={colors.textPrimary}>Mapbox em tempo real</Text></View></View>
     </View>
     <ScrollView contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing.xxl }]} showsVerticalScrollIndicator={false} refreshControl={undefined}>
       <View style={styles.panel}>
@@ -67,15 +66,12 @@ export default function TechnicianRouteScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgApp },
   mapArea: { height: 310, backgroundColor: '#E6EEF5', overflow: 'hidden', position: 'relative' },
-  mapGrid: { ...StyleSheet.absoluteFill, opacity: 0.55, backgroundColor: '#E6EEF5', borderBottomWidth: 1, borderBottomColor: colors.border },
-  mapRoute: { position: 'absolute', left: '30%', top: 74, width: 150, height: 170, transform: [{ rotate: '-28deg' }] },
-  routeLine: { position: 'absolute', left: 72, top: 4, width: 5, height: 166, borderRadius: radius.pill, backgroundColor: colors.brand, opacity: 0.78 },
-  routeIcon: { position: 'absolute', bottom: -3, left: 65, backgroundColor: colors.bgSurface, borderRadius: radius.pill, padding: 3 },
+
   topBar: { position: 'absolute', top: 54, left: layout.screenPadding, right: layout.screenPadding, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   iconButton: { width: 44, height: 44, borderRadius: radius.lg, backgroundColor: colors.bgSurface, alignItems: 'center', justifyContent: 'center', ...elevation.card },
   live: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.bgSurface, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.md, ...elevation.card },
   liveDot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: colors.success },
-  mapLegend: { position: 'absolute', bottom: spacing.lg, left: layout.screenPadding, right: layout.screenPadding, flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: 'rgba(255,255,255,0.92)', padding: spacing.md, borderRadius: radius.lg },
+
   scroll: { flexGrow: 1, alignItems: 'center' },
   panel: { width: '100%', maxWidth: layout.maxContentWidth, marginTop: -24, backgroundColor: colors.bgSurface, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: layout.screenPadding, gap: spacing.lg, minHeight: 420 },
   panelHandle: { alignSelf: 'center', width: 42, height: 5, borderRadius: radius.pill, backgroundColor: colors.slate300, marginTop: -8 },
