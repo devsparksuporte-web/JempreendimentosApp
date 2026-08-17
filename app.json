@@ -10,14 +10,14 @@
     "userInterfaceStyle": "light",
     "locales": {},
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon.png",
       "supportsTablet": true,
       "bundleIdentifier": "br.com.jempreendimentos.app"
     },
     "android": {
       "package": "br.com.jempreendimentos.app",
       "adaptiveIcon": {
-        "backgroundColor": "#2563EB",
+        "backgroundColor": "#06152E",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -26,7 +26,9 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "themeColor": "#06152E",
+      "backgroundColor": "#F4F8FF"
     },
     "plugins": [
       "expo-router",
@@ -39,9 +41,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#041326",
+          "backgroundColor": "#06152E",
           "image": "./assets/images/brand/jempreendimentos-logo.png",
-          "imageWidth": 260
+          "imageWidth": 280
         }
       ]
     ],

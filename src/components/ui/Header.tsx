@@ -1,6 +1,6 @@
 import { ChevronLeft } from 'lucide-react-native';
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/Text';
@@ -31,6 +31,7 @@ export function Header({ title, eyebrow, onBack, trailing }: HeaderProps) {
           </Pressable>
         ) : null}
 
+        <Image source={require('../../../assets/images/brand/jempreendimentos-logo.png')} style={styles.logo} resizeMode="contain" />
         <View style={styles.titles}>
           <Text variant="screenTitle" numberOfLines={1}>
             {title}
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  logo: { width: 34, height: 34, borderRadius: radius.md },
   titles: { flex: 1, gap: 2 },
   iconButton: {
     width: touch.minTarget - 8,

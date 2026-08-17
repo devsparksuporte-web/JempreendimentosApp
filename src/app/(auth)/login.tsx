@@ -68,7 +68,7 @@ export default function LoginScreen() {
           <View style={styles.brand}>
             <View style={styles.brandBanner}>
               <Image
-                source={require('../../../assets/images/brand/jempreendimentos-logo.png')}
+                source={require('../../../assets/images/brand/jempreendimentos-logo-full.png')}
                 style={styles.brandImage}
                 resizeMode="contain"
               />
