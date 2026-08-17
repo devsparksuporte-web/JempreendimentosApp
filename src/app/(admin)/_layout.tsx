@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { ClipboardList, FileCheck2, PackageSearch, Settings } from 'lucide-react-native';
+import { BrainCircuit, ClipboardList, FileCheck2, PackageSearch, Settings } from 'lucide-react-native';
 import { StyleSheet } from 'react-native';
 
 import { colors, fonts, spacing } from '@/theme/tokens';
@@ -19,6 +19,7 @@ export default function AdminLayout() {
       <Tabs.Screen name="index" options={{ title: 'Painel', tabBarIcon: ({ color }) => <ClipboardList size={21} color={color} /> }} />
       <Tabs.Screen name="pmoc" options={{ title: 'PMOC', tabBarIcon: ({ color }) => <FileCheck2 size={21} color={color} /> }} />
       <Tabs.Screen name="estoque" options={{ title: 'Estoque', tabBarIcon: ({ color }) => <PackageSearch size={21} color={color} /> }} />
+      <Tabs.Screen name="distribuicao" options={{ title: 'Distribuição', tabBarIcon: ({ color }) => <BrainCircuit size={21} color={color} /> }} />
       <Tabs.Screen name="configuracoes" options={{ title: 'Configurações', tabBarIcon: ({ color }) => <Settings size={21} color={color} /> }} />
     </Tabs>
   );
