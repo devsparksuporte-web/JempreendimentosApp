@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ClipboardList, QrCode, RefreshCw } from 'lucide-react-native';
+import { ClipboardList, QrCode, RefreshCw, Route } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,7 +31,7 @@ export default function TechnicianHomeScreen() {
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing.xxl }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.brand} />}>
       <View style={styles.container}>
         <View style={styles.intro}><Text variant="screenTitle">Atendimentos de hoje</Text><Text variant="body" color={colors.textSecondary}>Abra o chamado, confira o equipamento e registre cada evidência.</Text></View>
-        <Pressable onPress={() => router.push('/(tecnico)/qr')} style={({ pressed }) => [styles.qrAction, pressed && styles.pressed]}><QrCode size={22} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong" color={colors.brandStrong}>Ler QR Code do equipamento</Text><Text variant="body" color={colors.textSecondary}>Iniciar atendimento pelo código da etiqueta</Text></View></Pressable>
+        <View style={styles.quickActions}><Pressable onPress={() => router.push('/(tecnico)/qr')} style={({ pressed }) => [styles.quickAction, pressed && styles.pressed]}><QrCode size={22} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong" color={colors.brandStrong}>Ler QR Code</Text><Text variant="body" color={colors.textSecondary}>Abrir equipamento</Text></View></Pressable><Pressable onPress={() => router.push('/(tecnico)/rota' as never)} style={({ pressed }) => [styles.quickAction, pressed && styles.pressed]}><Route size={22} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong" color={colors.brandStrong}>Minha rota</Text><Text variant="body" color={colors.textSecondary}>Mapa e visitas</Text></View></Pressable></View>
         {loading ? <LoadingState /> : error ? <ErrorState message={error} onRetry={load} /> : calls.length === 0 ? <Card><View style={styles.empty}><ClipboardList size={28} color={colors.textMuted} /><Text variant="bodyStrong">Nenhum chamado atribuído</Text><Text variant="body" color={colors.textSecondary}>Quando a equipe atribuir um atendimento, ele aparecerá aqui.</Text></View></Card> : calls.map((call) => <Card key={call.id} onPress={() => router.push(`/(tecnico)/chamado/${call.id}`)} padded="md"><View style={styles.call}><View style={styles.flex}><View style={styles.rowBetween}><Text variant="cardTitle">#{call.code} · {call.client?.name ?? 'Cliente'}</Text><Badge label={call.priority} tone={call.priority === 'urgente' ? 'danger' : 'info'} /></View><Text variant="body">{call.title}</Text><Text variant="meta" color={colors.textSecondary}>{call.equipment?.brand ?? 'Equipamento'} {call.equipment?.model ?? ''} · {call.equipment?.environment ?? 'Ambiente não informado'}</Text></View></View></Card>)}
       </View>
     </ScrollView>
@@ -43,7 +43,8 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, alignItems: 'center' },
   container: { width: '100%', maxWidth: layout.maxContentWidth, paddingHorizontal: layout.screenPadding, paddingTop: spacing.xl, gap: spacing.lg },
   intro: { gap: spacing.xs },
-  qrAction: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.brandTint, borderWidth: 1, borderColor: colors.brandSoft, borderRadius: radius.xl, padding: spacing.lg },
+  quickActions: { flexDirection: 'row', gap: spacing.sm },
+  quickAction: { flex: 1, minHeight: 92, flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: spacing.xs, backgroundColor: colors.brandTint, borderWidth: 1, borderColor: colors.brandSoft, borderRadius: radius.xl, padding: spacing.md },
   call: { flexDirection: 'row', gap: spacing.md },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   flex: { flex: 1, gap: spacing.xs },
