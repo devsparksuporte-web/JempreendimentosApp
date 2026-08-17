@@ -1,10 +1,10 @@
 import { Tabs } from 'expo-router';
-import { ClipboardList, FileCheck2, PackageSearch, Settings } from 'lucide-react-native';
+import { ClipboardList, MapPinned, QrCode, Settings } from 'lucide-react-native';
 import { StyleSheet } from 'react-native';
 
 import { colors, fonts, spacing } from '@/theme/tokens';
 
-export default function AdminLayout() {
+export default function TechnicianLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -16,9 +16,9 @@ export default function AdminLayout() {
         tabBarLabelStyle: styles.tabLabel,
         sceneStyle: { backgroundColor: colors.bgApp },
       }}>
-      <Tabs.Screen name="index" options={{ title: 'Painel', tabBarIcon: ({ color }) => <ClipboardList size={21} color={color} /> }} />
-      <Tabs.Screen name="pmoc" options={{ title: 'PMOC', tabBarIcon: ({ color }) => <FileCheck2 size={21} color={color} /> }} />
-      <Tabs.Screen name="estoque" options={{ title: 'Estoque', tabBarIcon: ({ color }) => <PackageSearch size={21} color={color} /> }} />
+      <Tabs.Screen name="index" options={{ title: 'Atendimentos', tabBarIcon: ({ color }) => <ClipboardList size={21} color={color} /> }} />
+      <Tabs.Screen name="rota" options={{ title: 'Rota', tabBarIcon: ({ color }) => <MapPinned size={21} color={color} /> }} />
+      <Tabs.Screen name="qr" options={{ title: 'Ler QR', tabBarIcon: ({ color }) => <QrCode size={21} color={color} /> }} />
       <Tabs.Screen name="configuracoes" options={{ title: 'Configurações', tabBarIcon: ({ color }) => <Settings size={21} color={color} /> }} />
     </Tabs>
   );
