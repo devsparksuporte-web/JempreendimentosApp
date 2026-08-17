@@ -82,7 +82,7 @@ export default function ChamadosScreen() {
               <Button label="Abrir chamado" icon={Plus} onPress={() => router.push('/chamado/novo')} />
 
               {calls.map((c) => (
-                <Card key={c.id} onPress={() => router.push(`/chamado/${c.id}`)} padded="md">
+                <Card key={c.id} onPress={() => router.push(`/(cliente)/chamado/${c.id}` as never)} padded="md">
                   <View style={styles.card}>
                     <View style={styles.row}>
                       <IconTile icon={Wrench} size="md" />

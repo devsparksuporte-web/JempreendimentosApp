@@ -76,7 +76,7 @@ export default function AdminHomeScreen() {
               {data.calls.length === 0 ? (
                 <Card><View style={styles.empty}><CheckCircle2 size={28} color={colors.success} /><Text variant="bodyStrong">Nenhum chamado pendente</Text><Text variant="body" color={colors.textSecondary}>A operação está em dia.</Text></View></Card>
               ) : data.calls.slice(0, 12).map((call) => (
-                <Card key={call.id} onPress={() => router.push(`/chamado/${call.id}`)} padded="md">
+                <Card key={call.id} onPress={() => router.push(`/(admin)/chamado/${call.id}` as never)} padded="md">
                   <View style={styles.callRow}>
                     <View style={styles.callMain}>
                       <View style={styles.rowBetween}><Text variant="cardTitle">#{call.code} · {call.client?.name ?? 'Cliente'}</Text><Badge label={call.priority} tone={call.priority === 'urgente' ? 'danger' : 'neutral'} /></View>
