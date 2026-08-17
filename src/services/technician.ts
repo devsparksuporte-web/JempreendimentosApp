@@ -100,3 +100,20 @@ export async function technicianUpdateServiceCall(input: { callId: string; title
   });
   if (error) throw new Error(error.message);
 }
+
+export async function pickAndUploadPhoto(serviceCall: TechnicianCall, stage: TechnicianPhoto['stage']) {
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) throw new Error('Permissão da galeria necessária para selecionar a evidência.');
+  const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.78, allowsMultipleSelection: false });
+  if (result.canceled || !result.assets[0]) return null;
+  const asset = result.assets[0];
+  const extension = asset.mimeType?.split('/')[1] ?? 'jpg';
+  const path = `service/${serviceCall.client_id}/${serviceCall.id}/${stage}/${Date.now()}.${extension}`;
+  const body = await fetch(asset.uri).then((response) => response.arrayBuffer());
+  const { error: uploadError } = await supabase.storage.from('service-photos').upload(path, body, { contentType: asset.mimeType ?? 'image/jpeg', upsert: false });
+  if (uploadError) throw new Error(uploadError.message);
+  const { data: auth } = await supabase.auth.getUser();
+  const { data, error } = await (supabase as any).from('service_photos').insert({ service_call_id: serviceCall.id, equipment_id: serviceCall.equipment_id, stage, storage_path: path, taken_by: auth.user?.id ?? null }).select('id, stage, storage_path, caption, taken_at').limit(1).single();
+  if (error) throw new Error(error.message);
+  return data as TechnicianPhoto;
+}
