@@ -9,7 +9,8 @@ import {
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -23,33 +24,44 @@ SplashScreen.preventAutoHideAsync();
  */
 function AuthGate() {
   const { session, initializing, role } = useAuth();
+  const [onboardingReady, setOnboardingReady] = useState(false);
+  const [onboardingDone, setOnboardingDone] = useState(false);
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (initializing) return;
+    AsyncStorage.getItem('jempreendimentos.onboarding.completed').then((value) => { setOnboardingDone(value === '1'); setOnboardingReady(true); }).catch(() => setOnboardingReady(true));
+  }, []);
+
+  useEffect(() => {
+    if (initializing || !onboardingReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inOnboarding = inAuthGroup && (segments as string[])[1] === 'onboarding';
     const inAdminGroup = segments[0] === '(admin)';
     const inTechnicianGroup = segments[0] === '(tecnico)';
     const destination = role === 'admin' ? '/(admin)' : role === 'tecnico' ? '/(tecnico)' : '/(cliente)';
 
-    if (!session && !inAuthGroup) {
+    if (!onboardingDone && !inOnboarding) {
+      router.replace('/(auth)/onboarding' as never);
+    } else if (onboardingDone && !session && (!inAuthGroup || inOnboarding)) {
       router.replace('/(auth)/login');
     } else if (session && (inAuthGroup || (role === 'admin' && !inAdminGroup) || (role === 'tecnico' && !inTechnicianGroup) || (role === 'cliente' && (inAdminGroup || inTechnicianGroup)))) {
       router.replace(destination);
     }
-  }, [session, initializing, role, segments, router]);
+  }, [session, initializing, role, segments, router, onboardingReady, onboardingDone]);
 
   useEffect(() => {
     if (!initializing) SplashScreen.hideAsync();
   }, [initializing]);
 
-  if (initializing) return null;
+  if (initializing || !onboardingReady) return null;
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }}>
       <Stack.Screen name="(auth)/login" />
+      <Stack.Screen name="(auth)/onboarding" />
+      <Stack.Screen name="(auth)/recuperar-senha" />
       <Stack.Screen name="(cliente)" />
       <Stack.Screen name="(admin)" />
       <Stack.Screen name="(tecnico)" />

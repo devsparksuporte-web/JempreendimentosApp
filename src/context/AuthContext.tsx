@@ -20,6 +20,7 @@ type AuthState = {
   role: UserRole | null;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -90,6 +91,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw new Error(traduzErroAuth(error.message));
   }, []);
 
+  const resetPassword = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
+    if (error) throw new Error(traduzErroAuth(error.message));
+  }, []);
+
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setProfile(null);
@@ -107,10 +113,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: profile?.role ?? null,
       signIn,
       signUp,
+      resetPassword,
       signOut,
       refreshProfile,
     }),
-    [session, profile, initializing, signIn, signUp, signOut, refreshProfile],
+    [session, profile, initializing, signIn, signUp, resetPassword, signOut, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
