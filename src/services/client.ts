@@ -165,3 +165,35 @@ export async function createServiceCallFromTriage(input: {
   return data as ServiceCall;
 }
 
+
+export async function cancelMyServiceCall(callId: string, reason?: string) {
+  const { error } = await (supabase as any).rpc('client_cancel_service_call', { p_call_id: callId, p_reason: reason ?? null });
+  if (error) throw new Error(error.message);
+}
+
+export async function adminUpdateServiceCall(input: {
+  callId: string;
+  title?: string;
+  description?: string | null;
+  priority?: ServiceCall['priority'];
+  diagnosis?: string | null;
+  solution?: string | null;
+  scheduledFor?: string | null;
+  technicianId?: string | null;
+  setTechnician?: boolean;
+  status?: ServiceCall['status'];
+}) {
+  const { error } = await (supabase as any).rpc('admin_update_service_call', {
+    p_call_id: input.callId,
+    p_title: input.title ?? null,
+    p_description: input.description ?? null,
+    p_priority: input.priority ?? null,
+    p_diagnosis: input.diagnosis ?? null,
+    p_solution: input.solution ?? null,
+    p_scheduled_for: input.scheduledFor ?? null,
+    p_technician_id: input.technicianId ?? null,
+    p_set_technician: input.setTechnician ?? false,
+    p_status: input.status ?? null,
+  });
+  if (error) throw new Error(error.message);
+}

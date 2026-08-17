@@ -89,3 +89,14 @@ export async function fetchHistory(callId: string): Promise<ServiceCallStatusHis
   if (error) throw new Error(error.message);
   return data ?? [];
 }
+
+export async function technicianUpdateServiceCall(input: { callId: string; title?: string; description?: string | null; diagnosis?: string | null; solution?: string | null }) {
+  const { error } = await (supabase as any).rpc('technician_update_service_call', {
+    p_call_id: input.callId,
+    p_title: input.title ?? null,
+    p_description: input.description ?? null,
+    p_diagnosis: input.diagnosis ?? null,
+    p_solution: input.solution ?? null,
+  });
+  if (error) throw new Error(error.message);
+}

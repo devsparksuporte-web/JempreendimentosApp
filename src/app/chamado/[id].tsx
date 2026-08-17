@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AirVent, HardHat, MapPin, MessageCircle, Phone, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Linking, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -19,12 +19,10 @@ import {
   STATUS_LIVE,
   STATUS_TONE,
 } from '@/lib/format';
-import {
-  fetchServiceCall,
-  fetchStatusHistory,
-  type ServiceCallDetailed,
-} from '@/services/client';
-import { colors, layout, radius, spacing } from '@/theme/tokens';
+import { adminUpdateServiceCall, cancelMyServiceCall, fetchServiceCall, fetchStatusHistory, type ServiceCallDetailed } from '@/services/client';
+import { fetchDistributionTechnicians, type DistributionTechnician } from '@/services/distribution';
+import { useAuth } from '@/context/AuthContext';
+import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 import type { ServiceCallStatusHistory, ServiceStatus } from '@/types/database';
 
 /** Etapas exibidas na timeline, na ordem do fluxo normal. */
@@ -41,12 +39,22 @@ export default function AcompanharChamadoScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { role } = useAuth();
 
   const [call, setCall] = useState<ServiceCallDetailed | null>(null);
   const [history, setHistory] = useState<ServiceCallStatusHistory[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [titleDraft, setTitleDraft] = useState('');
+  const [descriptionDraft, setDescriptionDraft] = useState('');
+  const [diagnosisDraft, setDiagnosisDraft] = useState('');
+  const [solutionDraft, setSolutionDraft] = useState('');
+  const [priorityDraft, setPriorityDraft] = useState<ServiceCallDetailed['priority']>('normal');
+  const [statusDraft, setStatusDraft] = useState<ServiceCallDetailed['status']>('aberto');
+  const [technicianDraft, setTechnicianDraft] = useState<string | null>(null);
+  const [technicians, setTechnicians] = useState<DistributionTechnician[]>([]);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -55,6 +63,14 @@ export default function AcompanharChamadoScreen() {
       const [c, h] = await Promise.all([fetchServiceCall(id), fetchStatusHistory(id)]);
       setCall(c);
       setHistory(h);
+      setTitleDraft(c.title);
+      setDescriptionDraft(c.description ?? '');
+      setDiagnosisDraft(c.diagnosis ?? '');
+      setSolutionDraft(c.solution ?? '');
+      setPriorityDraft(c.priority);
+      setStatusDraft(c.status);
+      setTechnicianDraft(c.technician_id);
+      if (role === 'admin') { setTechnicians(await fetchDistributionTechnicians()); }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao carregar o chamado.');
     } finally {
@@ -68,6 +84,24 @@ export default function AcompanharChamadoScreen() {
   }, [load]);
 
   const tecnico = call?.technician?.profile?.full_name;
+  const canCancel = role === 'cliente' && call && !['finalizado', 'cancelado'].includes(call.status);
+  const canAdminEdit = role === 'admin';
+
+  async function cancelCall() {
+    if (!call) return;
+    setSaving(true); setError(null);
+    try { await cancelMyServiceCall(call.id, 'Cancelado pelo cliente'); await load(); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível cancelar o chamado.'); }
+    finally { setSaving(false); }
+  }
+
+  async function saveAdminChanges() {
+    if (!call) return;
+    setSaving(true); setError(null);
+    try { await adminUpdateServiceCall({ callId: call.id, title: titleDraft, description: descriptionDraft, diagnosis: diagnosisDraft, solution: solutionDraft, priority: priorityDraft, status: statusDraft, technicianId: technicianDraft, setTechnician: true }); await load(); }
+    catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível salvar os ajustes.'); }
+    finally { setSaving(false); }
+  }
   const whatsapp = null; // preenchido quando o telefone do técnico for exposto ao cliente
 
   return (
@@ -182,8 +216,11 @@ export default function AcompanharChamadoScreen() {
               <Section label="Acompanhamento">
                 <Card>
                   <Timeline current={call.status} history={history} />
+                  {canCancel ? <Button label="Cancelar chamado" variant="danger" loading={saving} onPress={() => Alert.alert('Cancelar chamado', 'Deseja realmente cancelar este chamado?', [{ text: 'Voltar', style: 'cancel' }, { text: 'Cancelar chamado', style: 'destructive', onPress: () => { void cancelCall(); } }])} /> : null}
                 </Card>
               </Section>
+
+              {canAdminEdit ? <Section label="Ajustes administrativos"><Card><Text variant="microLabel" color={colors.textSecondary}>Prioridade</Text><View style={styles.choiceRow}>{(['baixa', 'normal', 'alta', 'urgente'] as const).map((value) => <Pressable key={value} onPress={() => setPriorityDraft(value)} style={[styles.choice, priorityDraft === value && styles.choiceActive]}><Text variant="meta" color={priorityDraft === value ? colors.textOnBrand : colors.textSecondary}>{value}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Status permitido</Text><View style={styles.choiceWrap}>{(['aberto', 'em_analise', 'aguardando_tecnico', 'tecnico_atribuido', 'a_caminho', 'em_atendimento', 'aguardando_peca', 'aguardando_aprovacao', 'finalizado', 'cancelado'] as const).map((value) => <Pressable key={value} onPress={() => setStatusDraft(value)} style={[styles.choice, statusDraft === value && styles.choiceActive]}><Text variant="meta" color={statusDraft === value ? colors.textOnBrand : colors.textSecondary}>{value.replaceAll('_', ' ')}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Técnico responsável</Text><View style={styles.choiceWrap}><Pressable onPress={() => setTechnicianDraft(null)} style={[styles.choice, technicianDraft === null && styles.choiceActive]}><Text variant="meta" color={technicianDraft === null ? colors.textOnBrand : colors.textSecondary}>Sem técnico</Text></Pressable>{technicians.map((tech) => <Pressable key={tech.technician_id} onPress={() => setTechnicianDraft(tech.technician_id)} style={[styles.choice, technicianDraft === tech.technician_id && styles.choiceActive]}><Text variant="meta" color={technicianDraft === tech.technician_id ? colors.textOnBrand : colors.textSecondary}>{tech.profile?.full_name ?? 'Técnico'}</Text></Pressable>)}</View><TextInput value={titleDraft} onChangeText={setTitleDraft} placeholder="Título" placeholderTextColor={colors.textMuted} style={styles.editorInput} /><TextInput value={descriptionDraft} onChangeText={setDescriptionDraft} placeholder="Descrição" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={diagnosisDraft} onChangeText={setDiagnosisDraft} placeholder="Diagnóstico" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={solutionDraft} onChangeText={setSolutionDraft} placeholder="Solução" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><Button label="Salvar ajustes" loading={saving} onPress={() => { void saveAdminChanges(); }} /></Card></Section> : null}
 
               {call.ai_summary?.resumo ? (
                 <Card accentBorder={colors.aiBorder}>
@@ -286,4 +323,10 @@ const styles = StyleSheet.create({
   marcador: { width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
   conector: { width: 2, flex: 1, minHeight: 28, marginVertical: 2 },
   etapaTexto: { flex: 1, paddingBottom: spacing.xl, gap: 2 },
+  choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+  choiceWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+  choice: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.slate50 },
+  choiceActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  editorInput: { minHeight: 46, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, paddingHorizontal: spacing.md, paddingVertical: spacing.md, color: colors.textPrimary, backgroundColor: colors.slate50, fontFamily: fonts.medium, fontSize: 14, marginBottom: spacing.sm },
+  multiline: { minHeight: 92, textAlignVertical: 'top' },
 });
