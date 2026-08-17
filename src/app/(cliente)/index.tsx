@@ -9,7 +9,7 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -99,11 +99,7 @@ export default function ClienteHomeScreen() {
           </View>
 
           <View style={styles.hero}>
-            <Image
-              source={require('../../../assets/images/brand/jempreendimentos-logo.png')}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
+            <View style={styles.heroMark}><Text variant="screenTitle" color={colors.textOnBrand}>J</Text></View>
             <View style={styles.heroCopy}>
               <Text variant="microLabel" color={colors.brandStrong}>
                 Climatização inteligente
@@ -239,7 +235,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.bgSurface,
   },
-  heroImage: { width: '100%', height: '100%', backgroundColor: '#041326' },
+  heroMark: { width: 68, height: 68, borderRadius: radius.xl, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
   heroCopy: {
     position: 'absolute',
     left: spacing.lg,
