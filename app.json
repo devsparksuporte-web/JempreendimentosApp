@@ -9,15 +9,22 @@
     "userInterfaceStyle": "light",
     "locales": {},
     "ios": {
-        "supportsTablet": true,
-      "bundleIdentifier": "br.com.jempreendimentos.app"
+      "supportsTablet": true,
+      "bundleIdentifier": "br.com.jempreendimentos.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "br.com.jempreendimentos.app",
       "adaptiveIcon": {
         "backgroundColor": "#06152E"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
