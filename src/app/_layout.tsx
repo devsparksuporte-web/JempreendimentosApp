@@ -10,7 +10,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Vibration } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text as NativeText, Vibration, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -65,7 +65,7 @@ function AuthGate() {
     if (!initializing) SplashScreen.hideAsync();
   }, [initializing]);
 
-  if (initializing || !onboardingReady) return null;
+  if (initializing || !onboardingReady) return <StartupLoader />;
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }}>
@@ -80,6 +80,12 @@ function AuthGate() {
     </Stack>
   );
 }
+
+function StartupLoader() {
+  return <View style={loaderStyles.root}><View style={loaderStyles.mark}><View style={loaderStyles.markBar} /><View style={[loaderStyles.markBar, loaderStyles.markBarShort]} /><View style={loaderStyles.markBar} /></View><NativeText style={loaderStyles.title}>JEMPREENDIMENTOS</NativeText><NativeText style={loaderStyles.subtitle}>CLIMATIZAÇÃO E SERVIÇOS</NativeText><ActivityIndicator size="small" color="#8FD8FF" style={loaderStyles.indicator} /></View>;
+}
+
+const loaderStyles = StyleSheet.create({ root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.brandStrong }, mark: { height: 42, flexDirection: 'row', alignItems: 'flex-end', gap: 5, marginBottom: 18 }, markBar: { width: 10, height: 42, borderRadius: 5, backgroundColor: colors.brandSoft }, markBarShort: { height: 27, backgroundColor: colors.brand }, title: { color: colors.bgSurface, fontSize: 19, fontWeight: '800', letterSpacing: 2.4 }, subtitle: { marginTop: 7, color: colors.brandSoft, fontSize: 10, fontWeight: '600', letterSpacing: 2.1 }, indicator: { marginTop: 28 } });
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
