@@ -70,6 +70,7 @@ export default function DistributionAdminScreen() {
             <NumberField label="Localização (%)" value={settings.weight_location} onChangeText={(value) => setNumber('weight_location', value)} />
             <NumberField label="Round Robin (%)" value={settings.weight_round_robin} onChangeText={(value) => setNumber('weight_round_robin', value)} />
             <View style={styles.inlineFields}><NumberField label="Tempo padrão (min)" value={settings.default_duration_minutes} onChangeText={(value) => setNumber('default_duration_minutes', value)} /><NumberField label="Máx. simultâneos" value={settings.max_concurrent_calls} onChangeText={(value) => setNumber('max_concurrent_calls', value)} /></View>
+            <ToggleRow label="Distribuir automaticamente ao abrir o chamado" value={settings.auto_distribute} onValueChange={(value) => setSettings({ ...settings, auto_distribute: value })} />
             <ToggleRow label="Permitir técnico sem especialidade" value={settings.allow_without_specialty} onValueChange={(value) => setSettings({ ...settings, allow_without_specialty: value })} />
             <ToggleRow label="Permitir distribuição fora do horário" value={settings.allow_after_hours} onValueChange={(value) => setSettings({ ...settings, allow_after_hours: value })} />
             <Button label="Salvar regras" icon={Save} loading={saving} onPress={() => { void save(); }} />

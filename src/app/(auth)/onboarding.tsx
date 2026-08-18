@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { concluirOnboarding } from '@/lib/onboarding';
 import { BarChart3, Check, ChevronRight, UsersRound, Wind } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -23,7 +23,7 @@ export default function OnboardingScreen() {
   const Icon = slide.icon;
 
   async function finish() {
-    await AsyncStorage.setItem('jempreendimentos.onboarding.completed', '1');
+    await concluirOnboarding();
     router.replace('/(auth)/login');
   }
 

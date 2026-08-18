@@ -1,6 +1,14 @@
 import Mapbox, { Camera, LineLayer, MapView, MarkerView, ShapeSource } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
-import { CornerUpRight, MapPinned, Navigation, Route as RouteIcon, X } from 'lucide-react-native';
+import {
+  AirVent,
+  CornerUpRight,
+  MapPinned,
+  Navigation,
+  Timer,
+  User,
+  X,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -16,19 +24,23 @@ import type { TechnicianCall } from '@/services/technician';
 import { colors, radius, spacing } from '@/theme/tokens';
 
 const TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-/** Centro de fallback: Brasil, usado enquanto nada foi geocodificado. */
 const CENTRO_PADRAO: Coordenada = [-47, -15];
 
 Mapbox.setAccessToken(TOKEN ?? null);
 
 type Props = { calls: TechnicianCall[]; selectedId: string | null; onSelect: (id: string) => void };
-type Ponto = { call: TechnicianCall; coordinates: Coordenada };
+type Ponto = { call: TechnicianCall; coordinates: Coordenada; ordem: number };
+
+/** A cor do pino comunica a urgência sem precisar ler nada. */
+function corDaPrioridade(prioridade: string): string {
+  if (prioridade === 'urgente') return colors.danger;
+  if (prioridade === 'alta') return colors.warning;
+  return colors.brand;
+}
 
 /**
  * O endereço precisa ir completo para a geocodificação. Sem estado e CEP o
- * Mapbox escolhe ruas homônimas em outra parte do país — o que já aconteceu
- * aqui, com um chamado de São Paulo caindo no Mato Grosso do Sul.
+ * Mapbox escolhe ruas homônimas em outra parte do país.
  */
 function enderecoDe(call: TechnicianCall): string | null {
   const a = call.address;
@@ -36,6 +48,12 @@ function enderecoDe(call: TechnicianCall): string | null {
   return [a.street, a.number, a.district, a.city, a.state, a.zip_code, 'Brasil']
     .filter(Boolean)
     .join(', ');
+}
+
+function enderecoCurto(call: TechnicianCall): string {
+  const a = call.address;
+  if (!a) return 'Endereço não informado';
+  return `${a.street}${a.number ? `, ${a.number}` : ''} — ${a.city}`;
 }
 
 export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
@@ -58,7 +76,7 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
         });
         if (ativo) setOrigem([pos.coords.longitude, pos.coords.latitude]);
       } catch {
-        // Sem localização a rota simplesmente parte do primeiro atendimento.
+        // Sem localização a rota parte do primeiro atendimento.
       }
     })();
     return () => {
@@ -76,7 +94,7 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
       }
       setGeocodificando(true);
       const resultado = await Promise.all(
-        calls.slice(0, 20).map(async (call) => {
+        calls.slice(0, 20).map(async (call, indice) => {
           const query = enderecoDe(call);
           if (!query) return null;
           try {
@@ -87,7 +105,7 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
             if (!resposta.ok) return null;
             const dados = (await resposta.json()) as { features?: { center?: Coordenada }[] };
             const centro = dados.features?.[0]?.center;
-            return centro ? { call, coordinates: centro } : null;
+            return centro ? { call, coordinates: centro, ordem: indice + 1 } : null;
           } catch {
             return null;
           }
@@ -110,7 +128,18 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
     [pontos, selectedId],
   );
 
-  /** Traça o trajeto real, pelas ruas, da posição atual até o atendimento. */
+  /** Enquadra tudo — técnico e paradas — em vez de focar num ponto só. */
+  const limites = useMemo(() => {
+    const todos = [...pontos.map((p) => p.coordinates), ...(origem ? [origem] : [])];
+    if (todos.length < 2) return null;
+    const lngs = todos.map((c) => c[0]);
+    const lats = todos.map((c) => c[1]);
+    return {
+      ne: [Math.max(...lngs), Math.max(...lats)] as Coordenada,
+      sw: [Math.min(...lngs), Math.min(...lats)] as Coordenada,
+    };
+  }, [pontos, origem]);
+
   const navegar = useCallback(async () => {
     if (!selecionado) return;
     setCalculando(true);
@@ -130,7 +159,6 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
     setTrajeto(null);
   }
 
-  // Enquanto não há navegação ativa, mostra a sequência das visitas do dia.
   const linhaVisitas = useMemo(() => {
     if (navegando || pontos.length < 2) return null;
     return {
@@ -164,11 +192,25 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
   return (
     <View style={styles.container}>
       <MapView style={styles.map} styleURL={Mapbox.StyleURL.Street} scaleBarEnabled={false}>
-        <Camera
-          zoomLevel={navegando ? 14 : selecionado ? 13 : 3}
-          centerCoordinate={selecionado?.coordinates ?? origem ?? CENTRO_PADRAO}
-          animationDuration={700}
-        />
+        {navegando || !limites ? (
+          <Camera
+            zoomLevel={navegando ? 14 : selecionado ? 13 : 3}
+            centerCoordinate={selecionado?.coordinates ?? origem ?? CENTRO_PADRAO}
+            animationDuration={700}
+          />
+        ) : (
+          <Camera
+            bounds={{
+              ne: limites.ne,
+              sw: limites.sw,
+              paddingTop: 90,
+              paddingBottom: 190,
+              paddingLeft: 70,
+              paddingRight: 70,
+            }}
+            animationDuration={700}
+          />
+        )}
 
         {linhaVisitas ? (
           <ShapeSource id="visitas" shape={linhaVisitas}>
@@ -193,22 +235,42 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
           </ShapeSource>
         ) : null}
 
+        {/* Técnico: identificado, não um ponto anônimo. */}
         {origem ? (
-          <MarkerView coordinate={origem}>
-            <View style={styles.origem} />
+          <MarkerView coordinate={origem} anchor={{ x: 0.5, y: 0.5 }}>
+            <View style={styles.tecnico}>
+              <View style={styles.tecnicoPonto}>
+                <User size={13} color={colors.textOnBrand} />
+              </View>
+              <View style={styles.tecnicoEtiqueta}>
+                <Text variant="meta" color={colors.textOnBrand}>
+                  VOCÊ
+                </Text>
+              </View>
+            </View>
           </MarkerView>
         ) : null}
 
         {pontos.map((ponto) => {
           const ativo = ponto.call.id === selecionado?.call.id;
+          const cor = corDaPrioridade(ponto.call.priority);
           return (
-            <MarkerView key={ponto.call.id} coordinate={ponto.coordinates}>
-              <Pressable
-                onPress={() => onSelect(ponto.call.id)}
-                style={[styles.marcador, ativo && styles.marcadorAtivo]}>
-                <Text variant="meta" color={ativo ? colors.textOnBrand : colors.brandStrong}>
-                  #{ponto.call.code}
-                </Text>
+            <MarkerView
+              key={ponto.call.id}
+              coordinate={ponto.coordinates}
+              anchor={{ x: 0.5, y: 1 }}>
+              <Pressable onPress={() => onSelect(ponto.call.id)} style={styles.pinoArea}>
+                <View
+                  style={[
+                    styles.pino,
+                    { backgroundColor: cor },
+                    ativo && styles.pinoAtivo,
+                  ]}>
+                  <Text variant="meta" color={colors.textOnBrand}>
+                    {ponto.ordem}
+                  </Text>
+                </View>
+                <View style={[styles.pinoBico, { borderTopColor: cor }]} />
               </Pressable>
             </MarkerView>
           );
@@ -221,13 +283,36 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
         </View>
       ) : null}
 
-      {/* Painel de navegação: fica sobre o mapa, dentro do app. */}
+      {/* Legenda: explica a cor dos pinos sem ocupar espaço. */}
+      {!navegando && pontos.length > 0 ? (
+        <View style={styles.legenda}>
+          <View style={styles.legendaItem}>
+            <View style={[styles.legendaCor, { backgroundColor: colors.danger }]} />
+            <Text variant="meta" color={colors.textSecondary}>
+              Urgente
+            </Text>
+          </View>
+          <View style={styles.legendaItem}>
+            <View style={[styles.legendaCor, { backgroundColor: colors.warning }]} />
+            <Text variant="meta" color={colors.textSecondary}>
+              Alta
+            </Text>
+          </View>
+          <View style={styles.legendaItem}>
+            <View style={[styles.legendaCor, { backgroundColor: colors.brand }]} />
+            <Text variant="meta" color={colors.textSecondary}>
+              Normal
+            </Text>
+          </View>
+        </View>
+      ) : null}
+
       {navegando && trajeto ? (
         <View style={styles.painel}>
           <View style={styles.painelTopo}>
             <View style={styles.flex}>
               <Text variant="microLabel" color={colors.textSecondary}>
-                Navegando até #{selecionado?.call.code}
+                Navegando até a parada {selecionado?.ordem}
               </Text>
               <Text variant="cardTitle">
                 {formatarDistancia(trajeto.distancia)} · {formatarDuracao(trajeto.duracao)}
@@ -261,27 +346,68 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
           </ScrollView>
         </View>
       ) : selecionado ? (
-        <Pressable
-          onPress={navegar}
-          disabled={calculando}
-          style={({ pressed }) => [styles.botao, pressed && styles.pressed]}>
-          {calculando ? (
-            <ActivityIndicator color={colors.textOnBrand} size="small" />
-          ) : (
-            <Navigation size={16} color={colors.textOnBrand} />
-          )}
-          <Text variant="meta" color={colors.textOnBrand}>
-            {calculando ? 'Traçando rota…' : 'Navegar até aqui'}
-          </Text>
-        </Pressable>
-      ) : null}
+        /* Cartão da parada selecionada: quem é, onde, o quê. */
+        <View style={styles.cartao}>
+          <View style={styles.cartaoTopo}>
+            <View
+              style={[
+                styles.cartaoOrdem,
+                { backgroundColor: corDaPrioridade(selecionado.call.priority) },
+              ]}>
+              <Text variant="meta" color={colors.textOnBrand}>
+                {selecionado.ordem}
+              </Text>
+            </View>
+            <View style={styles.flex}>
+              <Text variant="cardTitle" numberOfLines={1}>
+                {selecionado.call.client?.name ?? 'Cliente'}
+              </Text>
+              <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+                #{selecionado.call.code} · {selecionado.call.title}
+              </Text>
+            </View>
+          </View>
 
-      {!navegando && pontos.length > 1 ? (
-        <View style={styles.selo}>
-          <RouteIcon size={13} color={colors.brandStrong} />
-          <Text variant="meta" color={colors.brandStrong}>
-            {pontos.length} paradas
-          </Text>
+          <View style={styles.cartaoLinha}>
+            <MapPinned size={13} color={colors.warning} />
+            <Text variant="meta" color={colors.textSecondary} numberOfLines={1} style={styles.flex}>
+              {enderecoCurto(selecionado.call)}
+            </Text>
+          </View>
+
+          {selecionado.call.equipment ? (
+            <View style={styles.cartaoLinha}>
+              <AirVent size={13} color={colors.brand} />
+              <Text variant="meta" color={colors.textSecondary} numberOfLines={1} style={styles.flex}>
+                {[selecionado.call.equipment.brand ?? 'Equipamento', selecionado.call.equipment.environment]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Text>
+            </View>
+          ) : null}
+
+          <Pressable
+            onPress={navegar}
+            disabled={calculando}
+            style={({ pressed }) => [styles.botao, pressed && styles.pressed]}>
+            {calculando ? (
+              <ActivityIndicator color={colors.textOnBrand} size="small" />
+            ) : (
+              <Navigation size={16} color={colors.textOnBrand} />
+            )}
+            <Text variant="meta" color={colors.textOnBrand}>
+              {calculando ? 'Traçando rota…' : 'Navegar até aqui'}
+            </Text>
+          </Pressable>
+        </View>
+      ) : pontos.length === 0 && !geocodificando ? (
+        <View style={styles.cartao}>
+          <View style={styles.cartaoLinha}>
+            <Timer size={14} color={colors.textMuted} />
+            <Text variant="meta" color={colors.textSecondary} style={styles.flex}>
+              Nenhum endereço localizado para os atendimentos de hoje.
+            </Text>
+          </View>
         </View>
       ) : null}
     </View>
@@ -289,10 +415,10 @@ export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { minHeight: 310, borderRadius: radius.xl, overflow: 'hidden', position: 'relative' },
-  map: { flex: 1, minHeight: 310 },
+  container: { minHeight: 460, borderRadius: radius.xl, overflow: 'hidden', position: 'relative' },
+  map: { flex: 1, minHeight: 460 },
   aviso: {
-    minHeight: 310,
+    minHeight: 460,
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
@@ -303,51 +429,99 @@ const styles = StyleSheet.create({
   centro: { textAlign: 'center', maxWidth: 280 },
   flex: { flex: 1, gap: 2 },
 
-  marcador: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.brand,
-    backgroundColor: colors.bgSurface,
+  // Pino numerado com bico, colorido pela prioridade.
+  pinoArea: { alignItems: 'center' },
+  pino: {
+    minWidth: 30,
+    height: 30,
+    borderRadius: 15,
+    paddingHorizontal: spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.bgSurface,
   },
-  marcadorAtivo: { backgroundColor: colors.brand },
-  origem: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.brand,
+  pinoAtivo: { transform: [{ scale: 1.25 }] },
+  pinoBico: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderTopWidth: 7,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    marginTop: -1,
+  },
+
+  // Marcador do técnico.
+  tecnico: { alignItems: 'center', gap: 3 },
+  tecnicoPonto: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.brandStrong,
     borderWidth: 3,
     borderColor: colors.bgSurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tecnicoEtiqueta: {
+    backgroundColor: colors.brandStrong,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
   },
 
   carregando: { position: 'absolute', top: spacing.md, right: spacing.md },
 
-  botao: {
+  legenda: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    flexDirection: 'row',
+    gap: spacing.md,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+  },
+  legendaItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  legendaCor: { width: 8, height: 8, borderRadius: 4 },
+
+  cartao: {
     position: 'absolute',
     left: spacing.md,
+    right: spacing.md,
     bottom: spacing.md,
+    backgroundColor: colors.bgSurface,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: spacing.sm,
+  },
+  cartaoTopo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  cartaoOrdem: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cartaoLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+
+  botao: {
+    marginTop: spacing.xs,
     minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.lg,
     backgroundColor: colors.brand,
-  },
-  selo: {
-    position: 'absolute',
-    right: spacing.md,
-    bottom: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.bgSurface,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
 
   painel: {

@@ -9,12 +9,12 @@ import {
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ActivityIndicator, StyleSheet, Text as NativeText, Vibration, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { carregarOnboarding, useOnboarding } from '@/lib/onboarding';
 import { subscribeToNotifications } from '@/services/notifications';
 import { colors } from '@/theme/tokens';
 
@@ -26,13 +26,12 @@ SplashScreen.preventAutoHideAsync();
  */
 function AuthGate() {
   const { session, initializing, role } = useAuth();
-  const [onboardingReady, setOnboardingReady] = useState(false);
-  const [onboardingDone, setOnboardingDone] = useState(false);
+  const { carregado: onboardingReady, concluido: onboardingDone } = useOnboarding();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    AsyncStorage.getItem('jempreendimentos.onboarding.completed').then((value) => { setOnboardingDone(value === '1'); setOnboardingReady(true); }).catch(() => setOnboardingReady(true));
+    void carregarOnboarding();
   }, []);
 
   useEffect(() => {

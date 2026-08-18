@@ -69,7 +69,7 @@ export default function TechnicianRouteScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgApp },
-  mapArea: { height: 310, backgroundColor: '#E6EEF5', overflow: 'hidden', position: 'relative' },
+  mapArea: { height: 460, backgroundColor: '#E6EEF5', overflow: 'hidden', position: 'relative' },
 
   topBar: { position: 'absolute', top: 54, left: layout.screenPadding, right: layout.screenPadding, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   iconButton: { width: 44, height: 44, borderRadius: radius.lg, backgroundColor: colors.bgSurface, alignItems: 'center', justifyContent: 'center', ...elevation.card },

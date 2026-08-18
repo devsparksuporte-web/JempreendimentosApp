@@ -1,10 +1,25 @@
 import { Tabs } from 'expo-router';
+import { useEffect } from 'react';
 import { ClipboardList, MapPinned, QrCode, Settings } from 'lucide-react-native';
 import { StyleSheet } from 'react-native';
 
+import { reportarMinhaLocalizacao } from '@/services/equipe';
 import { colors, fonts, spacing } from '@/theme/tokens';
 
+/** De quanto em quanto tempo a posição do técnico é enviada. */
+const INTERVALO_LOCALIZACAO_MS = 2 * 60 * 1000;
+
 export default function TechnicianLayout() {
+  // Enquanto o técnico estiver no app, a operação vê onde ele está. Falha em
+  // silêncio: sem permissão ou sem sinal, o trabalho em campo segue igual.
+  useEffect(() => {
+    void reportarMinhaLocalizacao();
+    const timer = setInterval(() => {
+      void reportarMinhaLocalizacao();
+    }, INTERVALO_LOCALIZACAO_MS);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <Tabs
       screenOptions={{

@@ -12,6 +12,8 @@ export type DistributionSettings = {
   weight_location: number;
   weight_round_robin: number;
   max_concurrent_calls: number;
+  /** Chamado novo já sai atribuído, sem o admin acionar. */
+  auto_distribute: boolean;
   allow_without_specialty: boolean;
   allow_after_hours: boolean;
   timezone: string;

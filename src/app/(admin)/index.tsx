@@ -69,6 +69,7 @@ export default function AdminHomeScreen() {
               </Card>
 
               <View style={styles.operationLinks}>
+                <Pressable onPress={() => router.push('/(admin)/tecnicos' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><HardHat size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Técnicos em tempo real</Text><Text variant="meta" color={colors.textSecondary}>Equipe no mapa e status</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
                 <Pressable onPress={() => router.push('/(admin)/pmoc' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><FileCheck2 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">PMOC e conformidade</Text><Text variant="meta" color={colors.textSecondary}>Rotinas e próximas execuções</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
                 <Pressable onPress={() => router.push('/(admin)/estoque' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><PackageSearch size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Controle de estoque</Text><Text variant="meta" color={colors.textSecondary}>Saldo mínimo e reposição</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
               </View>
