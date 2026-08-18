@@ -5,6 +5,8 @@
  * Nenhuma cor, fonte ou raio deve ser escrito solto nas telas — sempre daqui.
  */
 
+import { FORM_WIDTH, staticContentWidth } from '@/theme/responsive';
+
 export const colors = {
   // Base
   // Identidade JEmpreendimentos: navy profundo, azul elétrico e branco-gelo.
@@ -136,6 +138,14 @@ export const touch = {
 
 /** Container mobile centralizado (não estica em tablet). */
 export const layout = {
-  maxContentWidth: 448,
+  /**
+   * Largura máxima do conteúdo, já adaptada ao tamanho da tela:
+   * 448 no celular, 880 no tablet, 1040 no tablet grande.
+   * Ver `src/theme/responsive.ts`. Para reagir a rotação/split-screen,
+   * use o hook `useResponsive()` em vez deste valor.
+   */
+  maxContentWidth: staticContentWidth,
+  /** Telas de formulário — ver FORM_WIDTH em responsive.ts. */
+  maxFormWidth: FORM_WIDTH,
   screenPadding: spacing.xl,
 } as const;

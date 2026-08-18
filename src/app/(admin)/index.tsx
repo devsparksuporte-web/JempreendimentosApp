@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { CardGrid } from '@/components/ui/CardGrid';
 import { Header } from '@/components/ui/Header';
 import { LoadingState, ErrorState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
@@ -75,7 +76,9 @@ export default function AdminHomeScreen() {
               <View style={styles.sectionHeader}><Text variant="microLabel" color={colors.textSecondary}>Fila de atendimento</Text><Badge label={`${data.calls.length} ativos`} tone={data.calls.length ? 'info' : 'success'} /></View>
               {data.calls.length === 0 ? (
                 <Card><View style={styles.empty}><CheckCircle2 size={28} color={colors.success} /><Text variant="bodyStrong">Nenhum chamado pendente</Text><Text variant="body" color={colors.textSecondary}>A operação está em dia.</Text></View></Card>
-              ) : data.calls.slice(0, 12).map((call) => (
+              ) : (
+              <CardGrid>
+              {data.calls.slice(0, 12).map((call) => (
                 <Card key={call.id} onPress={() => router.push(`/(admin)/chamado/${call.id}` as never)} padded="md">
                   <View style={styles.callRow}>
                     <View style={styles.callMain}>
@@ -87,13 +90,17 @@ export default function AdminHomeScreen() {
                   </View>
                 </Card>
               ))}
+              </CardGrid>
+              )}
 
               <View style={styles.sectionHeader}><Text variant="microLabel" color={colors.textSecondary}>Equipe técnica</Text><Badge label={`${data.technicians.length} ativos`} tone="neutral" /></View>
+              <CardGrid>
               {data.technicians.map((technician) => (
                 <Card key={technician.id} padded="md">
                   <View style={styles.rowBetween}><View style={styles.row}><View style={styles.iconCircle}><HardHat size={18} color={colors.brandStrong} /></View><View><Text variant="bodyStrong">{technician.profile?.full_name ?? 'Técnico sem nome'}</Text><Text variant="meta" color={colors.textSecondary}>{technicianStatusLabel(technician.status)}</Text></View></View><Badge label={technician.status === 'disponivel' ? 'Livre' : 'Ocupado'} tone={technician.status === 'disponivel' ? 'success' : 'neutral'} /></View>
                 </Card>
               ))}
+              </CardGrid>
             </>
           ) : null}
         </View>

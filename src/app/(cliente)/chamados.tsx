@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { CardGrid } from '@/components/ui/CardGrid';
 import { Header } from '@/components/ui/Header';
 import { IconTile } from '@/components/ui/IconTile';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
@@ -81,6 +82,7 @@ export default function ChamadosScreen() {
             <>
               <Button label="Abrir chamado" icon={Plus} onPress={() => router.push('/chamado/novo')} />
 
+              <CardGrid>
               {calls.map((c) => (
                 <Card key={c.id} onPress={() => router.push(`/(cliente)/chamado/${c.id}` as never)} padded="md">
                   <View style={styles.card}>
@@ -110,6 +112,7 @@ export default function ChamadosScreen() {
                   </View>
                 </Card>
               ))}
+              </CardGrid>
             </>
           )}
         </View>

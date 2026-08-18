@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { CardGrid } from '@/components/ui/CardGrid';
 import { Header } from '@/components/ui/Header';
 import { IconTile } from '@/components/ui/IconTile';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
@@ -66,7 +67,8 @@ export default function EquipamentosScreen() {
               description="Assim que a equipe cadastrar seus aparelhos, eles aparecem aqui com todo o histórico."
             />
           ) : (
-            items.map((e) => (
+            <CardGrid>
+            {items.map((e) => (
               <Card key={e.id}>
                 <View style={styles.card}>
                   <View style={styles.row}>
@@ -90,7 +92,8 @@ export default function EquipamentosScreen() {
                   </View>
                 </View>
               </Card>
-            ))
+            ))}
+            </CardGrid>
           )}
         </View>
       </ScrollView>
