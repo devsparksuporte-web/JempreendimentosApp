@@ -10,10 +10,12 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Vibration } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { subscribeToNotifications } from '@/services/notifications';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
@@ -32,6 +34,14 @@ function AuthGate() {
   useEffect(() => {
     AsyncStorage.getItem('jempreendimentos.onboarding.completed').then((value) => { setOnboardingDone(value === '1'); setOnboardingReady(true); }).catch(() => setOnboardingReady(true));
   }, []);
+
+  useEffect(() => {
+    if (!session?.user.id) return;
+    return subscribeToNotifications(session.user.id, () => {
+      Vibration.vibrate([0, 180, 80, 180]);
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate?.([180, 80, 180]);
+    });
+  }, [session?.user.id]);
 
   useEffect(() => {
     if (initializing || !onboardingReady) return;

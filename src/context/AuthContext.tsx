@@ -98,8 +98,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+    // Limpa o estado primeiro para o AuthGate retirar o usuário das rotas protegidas,
+    // mesmo se a rede estiver instável durante a revogação remota.
+    setSession(null);
     setProfile(null);
+    const { error } = await supabase.auth.signOut({ scope: 'local' });
+    if (error) throw new Error(traduzErroAuth(error.message));
   }, []);
 
   const refreshProfile = useCallback(async () => {

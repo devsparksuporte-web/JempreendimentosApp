@@ -18,3 +18,14 @@ export async function markAllNotificationsRead() {
   const { error } = await (supabase as any).from('notifications').update({ read_at: new Date().toISOString() }).is('read_at', null);
   if (error) throw new Error(error.message);
 }
+
+export function subscribeToNotifications(profileId: string, onNotification: (notification: AppNotification) => void) {
+  const channel = supabase
+    .channel(`notifications:${profileId}`)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `profile_id=eq.${profileId}` }, (payload) => {
+      onNotification(payload.new as AppNotification);
+    })
+    .subscribe();
+
+  return () => { void supabase.removeChannel(channel); };
+}
