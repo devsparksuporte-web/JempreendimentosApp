@@ -12,7 +12,8 @@
       },
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://gahbxnjgldmosowgiksc.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaGJ4bmpnbGRtb3Nvd2dpa3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTczMjUsImV4cCI6MjEwMjM5MzMyNX0.YLham4utscM1hrJ4L2MVuZ3_v-mPKyGE-TTTnokYBT4"
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaGJ4bmpnbGRtb3Nvd2dpa3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTczMjUsImV4cCI6MjEwMjM5MzMyNX0.YLham4utscM1hrJ4L2MVuZ3_v-mPKyGE-TTTnokYBT4",
+        "EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN": "pk.eyJ1Ijoid2VzbGV5Z3VlaXJvcyIsImEiOiJjbXBsbnFoNXMyN2VzMnhwdGE5Y3NzbG03In0.FqxaE5dNvyumej0aX4jTIA"
       }
     },
     "preview": {
@@ -22,14 +23,16 @@
       },
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://gahbxnjgldmosowgiksc.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaGJ4bmpnbGRtb3Nvd2dpa3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTczMjUsImV4cCI6MjEwMjM5MzMyNX0.YLham4utscM1hrJ4L2MVuZ3_v-mPKyGE-TTTnokYBT4"
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaGJ4bmpnbGRtb3Nvd2dpa3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTczMjUsImV4cCI6MjEwMjM5MzMyNX0.YLham4utscM1hrJ4L2MVuZ3_v-mPKyGE-TTTnokYBT4",
+        "EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN": "pk.eyJ1Ijoid2VzbGV5Z3VlaXJvcyIsImEiOiJjbXBsbnFoNXMyN2VzMnhwdGE5Y3NzbG03In0.FqxaE5dNvyumej0aX4jTIA"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://gahbxnjgldmosowgiksc.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaGJ4bmpnbGRtb3Nvd2dpa3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTczMjUsImV4cCI6MjEwMjM5MzMyNX0.YLham4utscM1hrJ4L2MVuZ3_v-mPKyGE-TTTnokYBT4"
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdhaGJ4bmpnbGRtb3Nvd2dpa3NjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4MTczMjUsImV4cCI6MjEwMjM5MzMyNX0.YLham4utscM1hrJ4L2MVuZ3_v-mPKyGE-TTTnokYBT4",
+        "EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN": "pk.eyJ1Ijoid2VzbGV5Z3VlaXJvcyIsImEiOiJjbXBsbnFoNXMyN2VzMnhwdGE5Y3NzbG03In0.FqxaE5dNvyumej0aX4jTIA"
       }
     }
   },

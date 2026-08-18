@@ -27,7 +27,7 @@ export default function TechnicianHomeScreen() {
   useEffect(() => { load(); }, [load]);
 
   return <View style={styles.root}>
-    <Header title="Minha rota" eyebrow="JEmpreendimentos · Técnico" trailing={<Pressable onPress={load} style={styles.refresh}><RefreshCw size={18} color={colors.brand} /></Pressable>} />
+    <Header title="Atendimentos" eyebrow="JEmpreendimentos · Técnico" trailing={<Pressable onPress={load} style={styles.refresh}><RefreshCw size={18} color={colors.brand} /></Pressable>} />
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing.xxl }]} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.brand} />}>
       <View style={styles.container}>
         <View style={styles.intro}><Text variant="screenTitle">Atendimentos de hoje</Text><Text variant="body" color={colors.textSecondary}>Abra o chamado, confira o equipamento e registre cada evidência.</Text></View>

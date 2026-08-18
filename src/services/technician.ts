@@ -5,7 +5,7 @@ import type { ServiceCall, ServiceCallStatusHistory } from '@/types/database';
 export type TechnicianCall = ServiceCall & {
   client: { name: string; phone: string | null } | null;
   equipment: { id: string; brand: string | null; model: string | null; environment: string | null; gas_type: string | null; btu_capacity: number | null } | null;
-  address: { street: string; number: string | null; city: string } | null;
+  address: { street: string; number: string | null; district: string | null; city: string; state: string | null; zip_code: string | null } | null;
 };
 
 export type ChecklistItem = { id: string; label: string; help_text: string | null; input_type: 'boolean' | 'text' | 'number' | 'photo'; required: boolean; order_index: number };
@@ -16,7 +16,7 @@ const OPEN_STATUSES: ServiceCall['status'][] = ['aberto', 'em_analise', 'aguarda
 export async function fetchTechnicianCalls(): Promise<TechnicianCall[]> {
   const { data, error } = await supabase
     .from('service_calls')
-    .select(`*, client:client_id ( name, phone ), equipment:equipment_id ( id, brand, model, environment, gas_type, btu_capacity ), address:address_id ( street, number, city )`)
+    .select(`*, client:client_id ( name, phone ), equipment:equipment_id ( id, brand, model, environment, gas_type, btu_capacity ), address:address_id ( street, number, district, city, state, zip_code )`)
     .in('status', OPEN_STATUSES)
     .order('scheduled_for', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: true })
@@ -26,14 +26,14 @@ export async function fetchTechnicianCalls(): Promise<TechnicianCall[]> {
 }
 
 export async function findTechnicianCallByEquipment(equipmentId: string): Promise<TechnicianCall> {
-  const { data, error } = await supabase.from('service_calls').select(`*, client:client_id ( name, phone ), equipment:equipment_id ( id, brand, model, environment, gas_type, btu_capacity ), address:address_id ( street, number, city )`).eq('equipment_id', equipmentId).in('status', OPEN_STATUSES).order('created_at', { ascending: false }).limit(1).maybeSingle();
+  const { data, error } = await supabase.from('service_calls').select(`*, client:client_id ( name, phone ), equipment:equipment_id ( id, brand, model, environment, gas_type, btu_capacity ), address:address_id ( street, number, district, city, state, zip_code )`).eq('equipment_id', equipmentId).in('status', OPEN_STATUSES).order('created_at', { ascending: false }).limit(1).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) throw new Error('Nenhum chamado aberto está atribuído a este equipamento.');
   return data as TechnicianCall;
 }
 
 export async function fetchTechnicianCall(id: string): Promise<TechnicianCall> {
-  const { data, error } = await supabase.from('service_calls').select(`*, client:client_id ( name, phone ), equipment:equipment_id ( id, brand, model, environment, gas_type, btu_capacity ), address:address_id ( street, number, city )`).eq('id', id).limit(1).single();
+  const { data, error } = await supabase.from('service_calls').select(`*, client:client_id ( name, phone ), equipment:equipment_id ( id, brand, model, environment, gas_type, btu_capacity ), address:address_id ( street, number, district, city, state, zip_code )`).eq('id', id).limit(1).single();
   if (error) throw new Error(error.message);
   return data as TechnicianCall;
 }
