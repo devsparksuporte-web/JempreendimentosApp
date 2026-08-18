@@ -200,6 +200,35 @@ export type NotificationRow = {
   created_at: string;
 };
 
+/** PMOC — uma linha por rotina executada, base do certificado. */
+export type PmocExecutionRow = {
+  id: string;
+  pmoc_item_id: string;
+  technician_id: string | null;
+  executed_at: string;
+  conforme: boolean;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+/** PMOC — documento numerado, com o responsável técnico congelado. */
+export type PmocCertificateRow = {
+  id: string;
+  pmoc_id: string;
+  number: string;
+  period_start: string;
+  period_end: string;
+  responsible_name: string;
+  responsible_registration: string | null;
+  signer_name: string | null;
+  signature_path: string | null;
+  storage_path: string | null;
+  issued_by: string | null;
+  issued_at: string;
+  created_at: string;
+};
+
 type Table<Row, Insert = Partial<Row>, Update = Partial<Row>> = {
   Row: Row;
   Insert: Insert;
@@ -211,6 +240,15 @@ export type Database = {
   public: {
     Tables: {
       profiles: Table<Profile>;
+      pmoc_executions: Table<
+        PmocExecutionRow,
+        Pick<PmocExecutionRow, 'pmoc_item_id'> & Partial<PmocExecutionRow>
+      >;
+      pmoc_certificates: Table<
+        PmocCertificateRow,
+        Pick<PmocCertificateRow, 'pmoc_id' | 'number' | 'period_start' | 'period_end' | 'responsible_name'> &
+          Partial<PmocCertificateRow>
+      >;
       clients: Table<Client>;
       client_addresses: Table<ClientAddress>;
       equipment: Table<Equipment>;

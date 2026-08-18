@@ -56,6 +56,10 @@ export default function ClienteLayout() {
           tabBarIcon: ({ color }) => <User size={22} color={color} strokeWidth={2} />,
         }}
       />
+      {/* Telas de detalhe: acessadas por navegacao, nunca como aba.
+          Sem href:null o Expo Router cria uma aba para cada arquivo de
+          rota do grupo, e elas aparecem sem icone nem rotulo. */}
+      <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -20,6 +20,14 @@ export default function TechnicianLayout() {
       <Tabs.Screen name="rota" options={{ title: 'Rota', tabBarIcon: ({ color }) => <MapPinned size={21} color={color} /> }} />
       <Tabs.Screen name="qr" options={{ title: 'Ler QR', tabBarIcon: ({ color }) => <QrCode size={21} color={color} /> }} />
       <Tabs.Screen name="configuracoes" options={{ title: 'Configurações', tabBarIcon: ({ color }) => <Settings size={21} color={color} /> }} />
+      {/* Telas de detalhe: acessadas por navegacao, nunca como aba.
+          Sem href:null o Expo Router cria uma aba para cada arquivo de
+          rota do grupo, e elas aparecem sem icone nem rotulo. */}
+      <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
+      <Tabs.Screen name="checklist/[id]" options={{ href: null }} />
+      <Tabs.Screen name="fotos/[id]" options={{ href: null }} />
+      <Tabs.Screen name="assinatura/[id]" options={{ href: null }} />
+      <Tabs.Screen name="equipamento/[id]" options={{ href: null }} />
     </Tabs>
   );
 }

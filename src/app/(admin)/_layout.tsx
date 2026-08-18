@@ -21,6 +21,11 @@ export default function AdminLayout() {
       <Tabs.Screen name="estoque" options={{ title: 'Estoque', tabBarIcon: ({ color }) => <PackageSearch size={21} color={color} /> }} />
       <Tabs.Screen name="distribuicao" options={{ title: 'Distribuição', tabBarIcon: ({ color }) => <BrainCircuit size={21} color={color} /> }} />
       <Tabs.Screen name="configuracoes" options={{ title: 'Configurações', tabBarIcon: ({ color }) => <Settings size={21} color={color} /> }} />
+      {/* Telas de detalhe: acessadas por navegacao, nunca como aba.
+          Sem href:null o Expo Router cria uma aba para cada arquivo de
+          rota do grupo, e elas aparecem sem icone nem rotulo. */}
+      <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
+      <Tabs.Screen name="pmoc/[id]" options={{ href: null }} />
     </Tabs>
   );
 }
