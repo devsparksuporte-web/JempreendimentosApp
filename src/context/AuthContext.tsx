@@ -33,30 +33,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initializing, setInitializing] = useState(true);
 
   const loadProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
+    // Nunca propaga: uma falha de rede aqui não pode derrubar a
+    // inicialização do app (o resultado seria splash infinito).
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (error) {
-      console.warn('[auth] falha ao carregar profile:', error.message);
-      return;
+      if (error) {
+        console.warn('[auth] falha ao carregar profile:', error.message);
+        return;
+      }
+      setProfile(data);
+    } catch (e) {
+      console.warn('[auth] erro de rede ao carregar profile:', e);
     }
-    setProfile(data);
   }, []);
 
   useEffect(() => {
     let active = true;
 
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!active) return;
-      setSession(data.session);
-      if (data.session?.user) {
-        await loadProfile(data.session.user.id);
+    // O `finally` é essencial: `initializing` PRECISA terminar em qualquer
+    // cenário. Sem ele, uma rejeição deixa o app preso na splash screen
+    // para sempre, sem mensagem nenhuma.
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!active) return;
+        setSession(data.session);
+        if (data.session?.user) {
+          await loadProfile(data.session.user.id);
+        }
+      } catch (e) {
+        console.warn('[auth] falha ao restaurar a sessão:', e);
+      } finally {
+        if (active) setInitializing(false);
       }
-      if (active) setInitializing(false);
-    });
+    })();
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
       if (!active) return;

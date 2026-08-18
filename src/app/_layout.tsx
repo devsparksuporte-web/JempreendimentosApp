@@ -61,10 +61,6 @@ function AuthGate() {
     }
   }, [session, initializing, role, segments, router, onboardingReady, onboardingDone]);
 
-  useEffect(() => {
-    if (!initializing) SplashScreen.hideAsync();
-  }, [initializing]);
-
   if (initializing || !onboardingReady) return <StartupLoader />;
 
   return (
@@ -87,16 +83,43 @@ function StartupLoader() {
 
 const loaderStyles = StyleSheet.create({ root: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.brandStrong }, mark: { height: 42, flexDirection: 'row', alignItems: 'flex-end', gap: 5, marginBottom: 18 }, markBar: { width: 10, height: 42, borderRadius: 5, backgroundColor: colors.brandSoft }, markBarShort: { height: 27, backgroundColor: colors.brand }, title: { color: colors.bgSurface, fontSize: 19, fontWeight: '800', letterSpacing: 2.4 }, subtitle: { marginTop: 7, color: colors.brandSoft, fontSize: 10, fontWeight: '600', letterSpacing: 2.1 }, indicator: { marginTop: 28 } });
 
+/**
+ * Prazo máximo de espera pelas fontes. Passado isso o app abre com a fonte
+ * do sistema — tipografia é cosmético, travar na splash não é.
+ */
+const FONT_TIMEOUT_MS = 5000;
+
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     PlusJakartaSans_400Regular,
     PlusJakartaSans_500Medium,
     PlusJakartaSans_600SemiBold,
     PlusJakartaSans_700Bold,
     PlusJakartaSans_800ExtraBold,
   });
+  const [fontTimedOut, setFontTimedOut] = useState(false);
 
-  if (!fontsLoaded) return null;
+  useEffect(() => {
+    const timer = setTimeout(() => setFontTimedOut(true), FONT_TIMEOUT_MS);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (fontError) console.warn('[fontes] falha ao carregar, seguindo com a do sistema:', fontError);
+  }, [fontError]);
+
+  // Nunca depender só de `fontsLoaded`: um erro ou uma pendência eterna
+  // deixaria o app preso na splash screen sem nenhuma mensagem.
+  const ready = fontsLoaded || Boolean(fontError) || fontTimedOut;
+
+  // A splash sai daqui, o ponto mais alto da árvore. Antes isso vivia dentro
+  // do AuthGate, que só monta depois das fontes — se elas falhassem, ninguém
+  // escondia a splash.
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
+
+  if (!ready) return <StartupLoader />;
 
   return (
     <SafeAreaProvider>
