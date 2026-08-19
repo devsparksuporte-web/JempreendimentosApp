@@ -28,7 +28,16 @@ const CENTRO_PADRAO: Coordenada = [-47, -15];
 
 Mapbox.setAccessToken(TOKEN ?? null);
 
-type Props = { calls: TechnicianCall[]; selectedId: string | null; onSelect: (id: string) => void };
+type Props = {
+  calls: TechnicianCall[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  /**
+   * Avisa a tela sobre o trajeto calculado. A rota do técnico usa isso para
+   * mostrar ETA e distância num cartão flutuante sobre o mapa.
+   */
+  onTrajeto?: (t: Trajeto | null) => void;
+};
 type Ponto = { call: TechnicianCall; coordinates: Coordenada; ordem: number };
 
 /** A cor do pino comunica a urgência sem precisar ler nada. */
@@ -56,11 +65,15 @@ function enderecoCurto(call: TechnicianCall): string {
   return `${a.street}${a.number ? `, ${a.number}` : ''} — ${a.city}`;
 }
 
-export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {
+export function MapboxRouteMap({ calls, selectedId, onSelect, onTrajeto }: Props) {
   const [pontos, setPontos] = useState<Ponto[]>([]);
   const [geocodificando, setGeocodificando] = useState(false);
   const [origem, setOrigem] = useState<Coordenada | null>(null);
   const [trajeto, setTrajeto] = useState<Trajeto | null>(null);
+
+  useEffect(() => {
+    onTrajeto?.(trajeto);
+  }, [trajeto, onTrajeto]);
   const [navegando, setNavegando] = useState(false);
   const [calculando, setCalculando] = useState(false);
 

@@ -10,7 +10,13 @@ import { colors, radius, spacing } from '@/theme/tokens';
 const TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const DEFAULT_CENTER: [number, number] = [-47, -15];
 
-type Props = { calls: TechnicianCall[]; selectedId: string | null; onSelect: (id: string) => void };
+type Props = {
+  calls: TechnicianCall[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  /** Sem rota calculada no web; a prop existe só para a assinatura bater. */
+  onTrajeto?: (t: unknown) => void;
+};
 type GeocodedCall = { call: TechnicianCall; coordinates: [number, number] };
 
 export function MapboxRouteMap({ calls, selectedId, onSelect }: Props) {

@@ -264,7 +264,24 @@ export type Database = {
       notifications: Table<NotificationRow>;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    // Funções chamadas com o cliente tipado. As demais RPCs do banco passam
+    // por `(supabase as any).rpc(...)` nos serviços e não entram aqui.
+    Functions: {
+      next_pmoc_certificate_number: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      report_technician_location: {
+        Args: {
+          p_latitude: number;
+          p_longitude: number;
+          p_accuracy?: number | null;
+          p_heading?: number | null;
+          p_speed?: number | null;
+        };
+        Returns: undefined;
+      };
+    };
     Enums: {
       user_role: UserRole;
       service_status: ServiceStatus;

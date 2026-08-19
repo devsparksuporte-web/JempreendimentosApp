@@ -17,6 +17,11 @@ export type ServiceCallDetailed = ServiceCall & {
   > | null;
   technician: (Pick<Technician, 'id' | 'status'> & { profile: { full_name: string } | null }) | null;
   address: { street: string; number: string | null; complement: string | null } | null;
+  /**
+   * Avaliação do cliente. O PostgREST devolve array ou objeto conforme detecte
+   * a unicidade da FK, então os dois formatos são aceitos aqui.
+   */
+  rating: { rating: number } | { rating: number }[] | null;
 };
 
 export type ClienteHome = {
@@ -42,7 +47,8 @@ const CALL_SELECT = `
   *,
   equipment:equipment_id ( id, brand, model, btu_capacity, environment, kind ),
   technician:technician_id ( id, status, profile:profile_id ( full_name ) ),
-  address:address_id ( street, number, complement )
+  address:address_id ( street, number, complement ),
+  rating:service_ratings ( rating )
 `;
 
 /**
@@ -124,6 +130,14 @@ export async function fetchStatusHistory(callId: string): Promise<ServiceCallSta
 
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+/** Normaliza a avaliação, que vem como objeto ou lista dependendo do embed. */
+export function notaDoChamado(call: ServiceCallDetailed): number | null {
+  const r = call.rating;
+  if (!r) return null;
+  const item = Array.isArray(r) ? r[0] : r;
+  return item?.rating ?? null;
 }
 
 export async function fetchMyServiceCalls(): Promise<ServiceCallDetailed[]> {

@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { AlertCircle, CalendarClock, CheckCircle2, ChevronRight, ClipboardList, FileCheck2, HardHat, PackageSearch, RefreshCw } from 'lucide-react-native';
+import { AlertCircle, BarChart3, CalendarClock, CheckCircle2, ChevronRight, ClipboardList, FileCheck2, HardHat, LayoutGrid, MessageCircle, MonitorPlay, PackageSearch, RefreshCw } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +10,7 @@ import { CardGrid } from '@/components/ui/CardGrid';
 import { Header } from '@/components/ui/Header';
 import { LoadingState, ErrorState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
+import { formatTime } from '@/lib/format';
 import { fetchAdminDashboard, technicianStatusLabel, type AdminDashboard } from '@/services/admin';
 import { colors, layout, radius, spacing } from '@/theme/tokens';
 
@@ -37,9 +38,30 @@ export default function AdminHomeScreen() {
     load();
   }, [load]);
 
+  /** Primeiro chamado com horário marcado — o "próximo serviço" do design. */
+  const proximo = data?.calls
+    .filter((c) => c.scheduled_for)
+    .sort((a, b) => (a.scheduled_for ?? '').localeCompare(b.scheduled_for ?? ''))[0]
+    ?? data?.calls[0]
+    ?? null;
+
   return (
     <View style={styles.root}>
-      <Header title="Painel operacional" eyebrow="JEmpreendimentos · Admin" trailing={<Pressable onPress={load} style={styles.refresh}><RefreshCw size={18} color={colors.brand} /></Pressable>} />
+      <Header
+        title="Painel operacional"
+        eyebrow="JEmpreendimentos · Admin"
+        trailing={
+          <View style={styles.headerAcoes}>
+            <View style={styles.operacao}>
+              <View style={styles.operacaoPonto} />
+              <Text variant="meta" color={colors.brandStrong}>Operação ativa</Text>
+            </View>
+            <Pressable accessibilityRole="button" accessibilityLabel="Atualizar" onPress={load} style={styles.refresh}>
+              <RefreshCw size={18} color={colors.brand} />
+            </Pressable>
+          </View>
+        }
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing.xxl }]}
@@ -52,10 +74,39 @@ export default function AdminHomeScreen() {
 
           {loading ? <LoadingState /> : error ? <ErrorState message={error} onRetry={load} /> : data ? (
             <>
-              <View style={styles.metrics}>
-                <Metric icon={ClipboardList} label="Chamados abertos" value={String(data.totals.open)} tone="brand" />
-                <Metric icon={AlertCircle} label="Urgentes" value={String(data.totals.urgent)} tone="danger" />
-                <Metric icon={HardHat} label="Técnicos livres" value={String(data.totals.techniciansAvailable)} tone="success" />
+              <View style={styles.destaques}>
+                <Destaque
+                  icon={LayoutGrid}
+                  rotulo="Chamados abertos"
+                  valor={String(data.totals.open)}
+                  apoio={
+                    data.totals.urgent > 0
+                      ? `${data.totals.urgent} urgente(s) na fila`
+                      : 'Aguardando alocação técnica'
+                  }
+                  destaqueApoio={data.totals.urgent > 0 ? colors.dangerStrong : colors.textMuted}
+                />
+
+                <Destaque
+                  icon={CalendarClock}
+                  rotulo="Próximo serviço"
+                  valor={proximo?.client?.name ?? 'Nada agendado'}
+                  valorPequeno
+                  apoio={
+                    proximo?.scheduled_for
+                      ? `Agendamento: ${formatTime(proximo.scheduled_for)}`
+                      : 'Sem horário definido'
+                  }
+                  destaqueApoio={colors.brand}
+                />
+
+                <Destaque
+                  icon={HardHat}
+                  rotulo="Equipe disponível"
+                  valor={String(data.totals.techniciansAvailable)}
+                  apoio={`${data.technicians.length} técnico(s) ativos`}
+                  destaqueApoio={colors.successStrong}
+                />
               </View>
 
               <Card style={styles.maintenanceCard}>
@@ -72,6 +123,9 @@ export default function AdminHomeScreen() {
                 <Pressable onPress={() => router.push('/(admin)/tecnicos' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><HardHat size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Técnicos em tempo real</Text><Text variant="meta" color={colors.textSecondary}>Equipe no mapa e status</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
                 <Pressable onPress={() => router.push('/(admin)/pmoc' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><FileCheck2 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">PMOC e conformidade</Text><Text variant="meta" color={colors.textSecondary}>Rotinas e próximas execuções</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
                 <Pressable onPress={() => router.push('/(admin)/estoque' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><PackageSearch size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Controle de estoque</Text><Text variant="meta" color={colors.textSecondary}>Saldo mínimo e reposição</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/relatorios' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><BarChart3 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Relatórios</Text><Text variant="meta" color={colors.textSecondary}>Performance e analytics</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/whatsapp' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><MessageCircle size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Central WhatsApp</Text><Text variant="meta" color={colors.textSecondary}>Triagem de conversas</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/painel' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><MonitorPlay size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Painel de operação</Text><Text variant="meta" color={colors.textSecondary}>Modo TV, leitura à distância</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
               </View>
 
               <View style={styles.sectionHeader}><Text variant="microLabel" color={colors.textSecondary}>Fila de atendimento</Text><Badge label={`${data.calls.length} ativos`} tone={data.calls.length ? 'info' : 'success'} /></View>
@@ -110,9 +164,39 @@ export default function AdminHomeScreen() {
   );
 }
 
-function Metric({ icon: Icon, label, value, tone }: { icon: typeof ClipboardList; label: string; value: string; tone: 'brand' | 'danger' | 'success' }) {
-  const palette = { brand: [colors.brandTint, colors.brandStrong], danger: [colors.dangerSoft, colors.dangerStrong], success: [colors.successSoft, colors.successStrong] }[tone];
-  return <Card padded="md" style={styles.metric}><View style={[styles.metricIcon, { backgroundColor: palette[0] }]}><Icon size={18} color={palette[1]} /></View><Text variant="kpi" color={palette[1]}>{value}</Text><Text variant="meta" color={colors.textSecondary}>{label}</Text></Card>;
+/**
+ * Cartão grande do painel: rótulo pequeno, número gigante e uma linha de
+ * apoio. É a unidade de leitura do design do dashboard.
+ */
+function Destaque({
+  icon: Icon,
+  rotulo,
+  valor,
+  apoio,
+  destaqueApoio,
+  valorPequeno = false,
+}: {
+  icon: typeof ClipboardList;
+  rotulo: string;
+  valor: string;
+  apoio: string;
+  destaqueApoio: string;
+  valorPequeno?: boolean;
+}) {
+  return (
+    <Card>
+      <View style={styles.rowBetween}>
+        <View style={styles.destaqueTextos}>
+          <Text variant="microLabel" color={colors.textSecondary}>{rotulo}</Text>
+          <Text variant={valorPequeno ? 'cardTitle' : 'kpi'} numberOfLines={1}>{valor}</Text>
+          <Text variant="meta" color={destaqueApoio}>{apoio}</Text>
+        </View>
+        <View style={styles.destaqueIcone}>
+          <Icon size={26} color={colors.brand} />
+        </View>
+      </View>
+    </Card>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -120,9 +204,29 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, alignItems: 'center' },
   container: { width: '100%', maxWidth: layout.maxContentWidth, paddingHorizontal: layout.screenPadding, paddingTop: spacing.xl, gap: spacing.lg },
   intro: { gap: spacing.xs },
-  metrics: { flexDirection: 'row', gap: spacing.sm },
-  metric: { flex: 1, alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.sm, paddingVertical: spacing.md },
-  metricIcon: { width: 34, height: 34, borderRadius: radius.pill, alignItems: 'center', justifyContent: 'center' },
+  destaques: { gap: spacing.md },
+  destaqueTextos: { flex: 1, gap: 2 },
+  destaqueIcone: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.lg,
+    backgroundColor: colors.brandTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAcoes: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  operacao: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+    backgroundColor: colors.brandTint,
+    borderWidth: 1,
+    borderColor: colors.brandSoft,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  operacaoPonto: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.brand },
   maintenanceCard: { backgroundColor: colors.brandTint, borderColor: colors.brandSoft },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },

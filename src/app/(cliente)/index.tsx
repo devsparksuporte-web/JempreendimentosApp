@@ -6,7 +6,6 @@ import {
   ChevronRight,
   HardHat,
   Plus,
-  Sparkles,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
@@ -92,22 +91,10 @@ export default function ClienteHomeScreen() {
         }>
         <View style={[styles.container, { paddingBottom: spacing.xxl + insets.bottom }]}>
           <View style={styles.greeting}>
-            <Text variant="screenTitle">Olá, {nome}</Text>
-            <Text variant="meta" color={colors.textSecondary}>
+            <Text variant="microLabel" color={colors.textSecondary}>
               Cliente
             </Text>
-          </View>
-
-          <View style={styles.hero}>
-            <View style={styles.heroMark}><Text variant="screenTitle" color={colors.textOnBrand}>J</Text></View>
-            <View style={styles.heroCopy}>
-              <Text variant="microLabel" color={colors.brandStrong}>
-                Climatização inteligente
-              </Text>
-              <Text variant="bodyStrong" color={colors.textPrimary}>
-                Seus equipamentos, sempre sob controle.
-              </Text>
-            </View>
+            <Text variant="screenTitle">Olá, {nome}</Text>
           </View>
 
           {loading ? (
@@ -123,37 +110,27 @@ export default function ClienteHomeScreen() {
           ) : (
             <>
               {data.activeCall ? (
-                <Card
-                  accentBorder={colors.brandSoft}
-                  onPress={() => router.push(`/chamado/${data.activeCall!.id}`)}>
-                  <View style={styles.activeCall}>
-                    <View style={styles.rowBetween}>
-                      <Text variant="microLabel" color={colors.textSecondary}>
-                        Atendimento em andamento
-                      </Text>
-                      <Badge
-                        label={STATUS_LABEL[data.activeCall.status]}
-                        tone={STATUS_TONE[data.activeCall.status]}
-                        live={STATUS_LIVE.includes(data.activeCall.status)}
-                      />
-                    </View>
-
+                <Section label="Atendimento em andamento">
+                  <Card
+                    accentBorder={colors.brandSoft}
+                    style={styles.activeCard}
+                    onPress={() => router.push(`/chamado/${data.activeCall!.id}`)}>
                     <View style={styles.row}>
                       <IconTile icon={HardHat} size="md" />
                       <View style={styles.flex}>
-                        <Text variant="cardTitle">
+                        <Text variant="cardTitle" numberOfLines={1}>
                           {data.activeCall.technician?.profile?.full_name ?? 'Técnico a definir'}
                         </Text>
-                        <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
-                          {data.activeCall.equipment
-                            ? equipmentName(data.activeCall.equipment)
-                            : data.activeCall.title}
-                        </Text>
+                        <Badge
+                          label={STATUS_LABEL[data.activeCall.status]}
+                          tone={STATUS_TONE[data.activeCall.status]}
+                          live={STATUS_LIVE.includes(data.activeCall.status)}
+                        />
                       </View>
                       <ChevronRight size={20} color={colors.slate300} />
                     </View>
-                  </View>
-                </Card>
+                  </Card>
+                </Section>
               ) : null}
 
               <Section label="Seus equipamentos">
@@ -178,20 +155,19 @@ export default function ClienteHomeScreen() {
               </Section>
 
               {data.nextMaintenance ? (
-                <Card>
-                  <View style={styles.row}>
-                    <IconTile icon={CalendarClock} />
-                    <View style={styles.flex}>
-                      <Text variant="microLabel" color={colors.textSecondary}>
-                        Próxima manutenção
-                      </Text>
-                      <Text variant="kpi">{formatDate(data.nextMaintenance.next_due_at)}</Text>
-                      <Text variant="meta" color={colors.textMuted}>
-                        {daysUntilLabel(data.nextMaintenance.next_due_at)}
-                      </Text>
+                <Section label="Próxima manutenção">
+                  <Card>
+                    <View style={styles.row}>
+                      <IconTile icon={CalendarClock} />
+                      <View style={styles.flex}>
+                        <Text variant="kpi">{formatDate(data.nextMaintenance.next_due_at)}</Text>
+                        <Text variant="meta" color={colors.textMuted}>
+                          {daysUntilLabel(data.nextMaintenance.next_due_at)}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                </Card>
+                  </Card>
+                </Section>
               ) : null}
 
               <Button
@@ -200,14 +176,6 @@ export default function ClienteHomeScreen() {
                 onPress={() => router.push('/chamado/novo')}
               />
 
-              <Pressable
-                onPress={() => router.push('/(cliente)/ia')}
-                style={({ pressed }) => [styles.aiHint, pressed && styles.pressed]}>
-                <Sparkles size={18} color={colors.ai} />
-                <Text variant="body" color={colors.aiStrong} style={styles.flex}>
-                  Não sabe descrever o problema? Converse com a assistente.
-                </Text>
-              </Pressable>
             </>
           )}
         </View>
@@ -227,29 +195,9 @@ const styles = StyleSheet.create({
     gap: spacing.xl,
   },
   greeting: { gap: 2 },
-  hero: {
-    height: 184,
-    borderRadius: radius.xl,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.bgSurface,
-  },
-  heroMark: { width: 68, height: 68, borderRadius: radius.xl, backgroundColor: colors.brand, alignItems: 'center', justifyContent: 'center' },
-  heroCopy: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: spacing.lg,
-    gap: spacing.xs,
-    backgroundColor: 'rgba(255,255,255,0.86)',
-    borderRadius: radius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  activeCall: { gap: spacing.lg },
+  // O design destaca o atendimento em curso com fundo e borda da marca.
+  activeCard: { backgroundColor: colors.brandTint },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   flex: { flex: 1, gap: 2 },
   bell: {
     width: 36,
@@ -260,16 +208,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate50,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  aiHint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.aiSoft,
-    borderWidth: 1,
-    borderColor: colors.aiBorder,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
   },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
 });

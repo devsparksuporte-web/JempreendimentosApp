@@ -162,7 +162,7 @@ export function TriagemChat({ bottomInset = 0 }: { bottomInset?: number }) {
             b.author === 'ia' ? (
               <View key={b.id} style={styles.iaRow}>
                 <View style={styles.iaAvatar}>
-                  <Sparkles size={14} color={colors.ai} />
+                  <Sparkles size={16} color={colors.textOnBrand} />
                 </View>
                 <View style={styles.iaBubble}>
                   <Text variant="body" color={colors.textPrimary}>
@@ -208,7 +208,15 @@ export function TriagemChat({ bottomInset = 0 }: { bottomInset?: number }) {
               <ResumoLinha rotulo="Equipamento" valor={result.summary.equipamento} />
               <ResumoLinha rotulo="Sintoma" valor={result.summary.sintoma} />
               <ResumoLinha rotulo="Início" valor={result.summary.inicio} />
-              <ResumoLinha rotulo="Código de erro" valor={result.summary.codigo_erro} />
+              <ResumoLinha rotulo="Código de erro" valor={result.summary.codigo_erro} ultima />
+
+              <View style={styles.resumoAcao}>
+                <Button
+                  label={creating ? 'Criando…' : 'Criar chamado'}
+                  onPress={handleCreate}
+                  loading={creating}
+                />
+              </View>
             </Card>
           ) : null}
 
@@ -220,13 +228,6 @@ export function TriagemChat({ bottomInset = 0 }: { bottomInset?: number }) {
             </View>
           ) : null}
 
-          {result ? (
-            <Button
-              label={creating ? 'Criando…' : 'Criar chamado'}
-              onPress={handleCreate}
-              loading={creating}
-            />
-          ) : null}
         </View>
       </ScrollView>
 
@@ -239,40 +240,51 @@ export function TriagemChat({ bottomInset = 0 }: { bottomInset?: number }) {
             <Camera size={20} color={colors.textSecondary} />
           </Pressable>
 
-          <TextInput
-            style={styles.input}
-            value={draft}
-            onChangeText={setDraft}
-            placeholder={
-              currentStep?.allowFreeText ? 'Descreva com suas palavras' : 'Escolha uma opção acima'
-            }
-            placeholderTextColor={colors.textMuted}
-            selectionColor={colors.brand}
-            editable={Boolean(currentStep?.allowFreeText)}
-            onSubmitEditing={() => draft.trim() && answer(draft.trim(), draft.trim())}
-          />
+          <View style={styles.campo}>
+            <TextInput
+              style={styles.input}
+              value={draft}
+              onChangeText={setDraft}
+              placeholder={
+                currentStep?.allowFreeText ? 'Escreva sua mensagem' : 'Escolha uma opção acima'
+              }
+              placeholderTextColor={colors.textMuted}
+              selectionColor={colors.brand}
+              editable={Boolean(currentStep?.allowFreeText)}
+              onSubmitEditing={() => draft.trim() && answer(draft.trim(), draft.trim())}
+            />
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Enviar"
-            disabled={!draft.trim() || !currentStep?.allowFreeText}
-            onPress={() => draft.trim() && answer(draft.trim(), draft.trim())}
-            style={({ pressed }) => [
-              styles.sendButton,
-              (!draft.trim() || !currentStep?.allowFreeText) && styles.sendDisabled,
-              pressed && styles.chipPressed,
-            ]}>
-            <Send size={18} color={colors.textOnBrand} />
-          </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Enviar"
+              disabled={!draft.trim() || !currentStep?.allowFreeText}
+              onPress={() => draft.trim() && answer(draft.trim(), draft.trim())}
+              style={({ pressed }) => [
+                styles.sendButton,
+                (!draft.trim() || !currentStep?.allowFreeText) && styles.sendDisabled,
+                pressed && styles.chipPressed,
+              ]}>
+              <Send size={18} color={colors.textOnBrand} />
+            </Pressable>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
   );
 }
 
-function ResumoLinha({ rotulo, valor }: { rotulo: string; valor: string }) {
+function ResumoLinha({
+  rotulo,
+  valor,
+  ultima = false,
+}: {
+  rotulo: string;
+  valor: string;
+  /** A ultima linha nao leva filete — o CTA vem logo abaixo. */
+  ultima?: boolean;
+}) {
   return (
-    <View style={styles.resumoLinha}>
+    <View style={[styles.resumoLinha, !ultima && styles.resumoLinhaFilete]}>
       <Text variant="meta" color={colors.textSecondary}>
         {rotulo}
       </Text>
@@ -297,21 +309,22 @@ const styles = StyleSheet.create({
 
   iaRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   iaAvatar: {
-    width: 28,
-    height: 28,
+    width: 32,
+    height: 32,
     borderRadius: radius.md,
-    backgroundColor: colors.aiSoft,
-    borderWidth: 1,
-    borderColor: colors.aiBorder,
+    backgroundColor: colors.ai,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Os baloes tem o canto de cima recortado do lado de quem fala — o da IA
+  // a esquerda, o do cliente a direita. E o que da a direcao da conversa.
   iaBubble: {
     flex: 1,
     backgroundColor: colors.aiSoft,
     borderWidth: 1,
     borderColor: colors.aiBorder,
     borderRadius: radius.lg,
+    borderTopLeftRadius: 0,
     padding: spacing.lg,
   },
   clienteRow: { alignItems: 'flex-end' },
@@ -319,6 +332,7 @@ const styles = StyleSheet.create({
     maxWidth: '85%',
     backgroundColor: colors.brand,
     borderRadius: radius.lg,
+    borderTopRightRadius: 0,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
@@ -328,7 +342,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.bgSurface,
-    borderRadius: radius.lg,
+    borderRadius: radius.pill,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     minHeight: touch.minTarget - 8,
@@ -336,15 +350,18 @@ const styles = StyleSheet.create({
   },
   chipPressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
 
-  resumo: { gap: spacing.md, marginTop: spacing.sm },
+  resumo: { gap: spacing.md, marginTop: spacing.sm, borderRadius: radius.xl },
   resumoHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   resumoLinha: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.lg,
+    paddingBottom: spacing.sm,
   },
+  resumoLinhaFilete: { borderBottomWidth: 1, borderBottomColor: colors.slate100 },
   resumoValor: { flex: 1, textAlign: 'right' },
+  resumoAcao: { marginTop: spacing.sm },
 
   errorBox: {
     backgroundColor: colors.dangerSoft,
@@ -368,32 +385,36 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   composerIcon: {
-    width: touch.minTarget - 8,
-    height: touch.minTarget - 8,
-    borderRadius: radius.md,
+    width: 48,
+    height: 48,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.slate50,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  campo: { flex: 1, justifyContent: 'center' },
   input: {
-    flex: 1,
     fontFamily: fonts.medium,
     fontSize: 14,
     color: colors.textPrimary,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.slate50,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.lg,
+    borderRadius: radius.lg,
+    paddingLeft: spacing.lg,
+    // Espaco para o botao de enviar, que fica sobreposto a direita.
+    paddingRight: 52,
     paddingVertical: spacing.md,
-    minHeight: touch.minTarget - 8,
+    minHeight: 48,
   },
   sendButton: {
-    width: touch.minTarget - 8,
-    height: touch.minTarget - 8,
-    borderRadius: radius.pill,
+    position: 'absolute',
+    right: 4,
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
     backgroundColor: colors.brand,
     alignItems: 'center',
     justifyContent: 'center',

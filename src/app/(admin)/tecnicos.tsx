@@ -1,30 +1,36 @@
 import Mapbox, { Camera, MapView, MarkerView } from '@rnmapbox/maps';
-import { MessageSquare, Phone, Search, Users } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { MessageSquare, Navigation, Phone, Search, Users } from 'lucide-react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Animated,
+  Easing,
+  Image,
   Linking,
   Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
+  Text,
   TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Card } from '@/components/ui/Card';
-import { Header } from '@/components/ui/Header';
-import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
-import { Text } from '@/components/ui/Text';
 import {
   estaAoVivo,
   fetchEquipeEmCampo,
-  iniciais,
-  STATUS_TECNICO,
   type TecnicoEmCampo,
 } from '@/services/equipe';
-import { colors, fonts, layout, radius, spacing, touch } from '@/theme/tokens';
+import { D, elevacaoSuave } from '@/theme/paletaMapa';
 import type { TechnicianStatus } from '@/types/database';
+
+/**
+ * Mapa de Técnicos.
+ *
+ * Implementação fiel ao design entregue: a paleta, os raios, a sombra e os
+ * avatares vêm do HTML de referência, e não dos tokens do app — por decisão
+ * do cliente, que pediu a tela igual ao enviado.
+ */
 
 const TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const CENTRO_PADRAO: [number, number] = [-47, -15];
@@ -34,19 +40,97 @@ type Filtro = 'todos' | TechnicianStatus;
 const FILTROS: { chave: Filtro; rotulo: string }[] = [
   { chave: 'todos', rotulo: 'Todos' },
   { chave: 'disponivel', rotulo: 'Disponíveis' },
-  { chave: 'em_atendimento', rotulo: 'Em campo' },
-  { chave: 'indisponivel', rotulo: 'Em pausa' },
+  { chave: 'em_atendimento', rotulo: 'Em Campo' },
+  { chave: 'indisponivel', rotulo: 'Em Pausa' },
 ];
 
-/** A cor do ponto diz o estado do técnico sem precisar ler. */
-function corDoStatus(status: TechnicianStatus): string {
-  if (status === 'disponivel') return colors.success;
-  if (status === 'indisponivel') return colors.warning;
-  return colors.brand;
+/** Cores de status exatamente como no design. */
+function estilosDoStatus(status: TechnicianStatus) {
+  if (status === 'disponivel') {
+    return {
+      ponto: D.esmeralda500,
+      selo: { backgroundColor: D.esmeralda50, borderColor: D.esmeralda100 },
+      texto: D.esmeralda600,
+      rotulo: 'Disponível',
+      esmaecido: false,
+    };
+  }
+  if (status === 'indisponivel') {
+    return {
+      ponto: D.ambar500,
+      selo: { backgroundColor: D.ambar50, borderColor: D.ambar100 },
+      texto: D.ambar600,
+      rotulo: 'Em Pausa',
+      esmaecido: false,
+    };
+  }
+  return {
+    ponto: D.slate400,
+    selo: { backgroundColor: D.slate100, borderColor: D.slate200 },
+    texto: D.slate600,
+    rotulo: 'Em Campo',
+    esmaecido: true,
+  };
+}
+
+/**
+ * O design usa avatares do dicebear. O endpoint `/svg` não é renderizável
+ * pelo <Image> do React Native, então usamos `/png` do mesmo serviço e com a
+ * mesma semente — o desenho é idêntico.
+ */
+function avatarUrl(nome: string): string {
+  return `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(nome)}`;
+}
+
+/**
+ * Ciclo de 2s com a curva `cubic-bezier(0.4, 0, 0.6, 1)` do design. Serve às
+ * duas animações da tela: o `pin-pulse` dos marcadores e o `animate-pulse`
+ * do ponto "Live" do cabeçalho.
+ */
+function useCicloPulso() {
+  const valor = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const laco = Animated.loop(
+      Animated.sequence([
+        Animated.timing(valor, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.bezier(0.4, 0, 0.6, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(valor, {
+          toValue: 0,
+          duration: 1000,
+          easing: Easing.bezier(0.4, 0, 0.6, 1),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    laco.start();
+    return () => laco.stop();
+  }, [valor]);
+  return valor;
+}
+
+/** Só dígitos: `tel:` e `whatsapp://` não aceitam máscara. */
+function somenteDigitos(valor: string | null): string | null {
+  const limpo = (valor ?? '').replace(/\D/g, '');
+  return limpo.length >= 8 ? limpo : null;
 }
 
 export default function TecnicosScreen() {
   const insets = useSafeAreaInsets();
+  const ciclo = useCicloPulso();
+
+  /** `pin-pulse`: escala 1 -> 1.1 e opacidade 1 -> 0.8. */
+  const pulsoPino = {
+    transform: [{ scale: ciclo.interpolate({ inputRange: [0, 1], outputRange: [1, 1.1] }) }],
+    opacity: ciclo.interpolate({ inputRange: [0, 1], outputRange: [1, 0.8] }),
+  };
+  /** `animate-pulse` do Tailwind: opacidade 1 -> 0.5. */
+  const pulsoLive = {
+    opacity: ciclo.interpolate({ inputRange: [0, 1], outputRange: [1, 0.5] }),
+  };
 
   const [equipe, setEquipe] = useState<TecnicoEmCampo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,22 +184,33 @@ export default function TecnicosScreen() {
   const foco = comPosicao.find((t) => t.id === selecionado) ?? comPosicao[0] ?? null;
 
   return (
-    <View style={styles.root}>
-      <Header
-        title="Técnicos em tempo real"
-        eyebrow="Operação · Equipe"
-        trailing={
+    <View style={styles.raiz}>
+      {/* Cabeçalho fixo com busca */}
+      {/* `pt-14` do design (56px) já contava com a barra de status; aqui o
+          inset entra no lugar dela para o respiro visual ficar igual. */}
+      <View style={[styles.cabecalho, { paddingTop: Math.max(insets.top, 32) + 24 }]}>
+        <View style={styles.cabecalhoTopo}>
+          <Text style={styles.titulo}>Técnicos em Tempo Real</Text>
           <View style={styles.live}>
-            <View style={styles.liveDot} />
-            <Text variant="meta" color={colors.textSecondary}>
-              {aoVivo} ao vivo
-            </Text>
+            <Animated.View style={[styles.liveDot, pulsoLive]} />
+            <Text style={styles.liveTexto}>Live</Text>
           </View>
-        }
-      />
+        </View>
+
+        <View style={styles.busca}>
+          <Search size={18} color={D.slate400} />
+          <TextInput
+            value={busca}
+            onChangeText={setBusca}
+            placeholder="Buscar técnico por nome ou zona..."
+            placeholderTextColor={D.slate400}
+            style={styles.buscaInput}
+          />
+        </View>
+      </View>
 
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        style={styles.principal}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -124,51 +219,44 @@ export default function TecnicosScreen() {
               setRefreshing(true);
               load();
             }}
-            tintColor={colors.brand}
+            tintColor={D.azul900}
           />
         }>
-        <View style={[styles.container, { paddingBottom: spacing.xxl + insets.bottom }]}>
-          <View style={styles.busca}>
-            <Search size={18} color={colors.textMuted} />
-            <TextInput
-              value={busca}
-              onChangeText={setBusca}
-              placeholder="Buscar técnico por nome ou cidade"
-              placeholderTextColor={colors.textMuted}
-              selectionColor={colors.brand}
-              style={styles.buscaInput}
-            />
-          </View>
-
-          {/* Mapa da equipe */}
-          <View style={styles.mapa}>
-            {!TOKEN ? (
-              <View style={styles.mapaAviso}>
-                <Text variant="meta" color={colors.textSecondary}>
-                  Configure o token do Mapbox para ver a equipe no mapa.
-                </Text>
-              </View>
-            ) : comPosicao.length === 0 ? (
-              <View style={styles.mapaAviso}>
-                <Users size={28} color={colors.slate300} />
-                <Text variant="bodyStrong" color={colors.textSecondary}>
-                  Nenhuma posição reportada
-                </Text>
-                <Text variant="meta" color={colors.textMuted} style={styles.centro}>
-                  Os técnicos aparecem aqui assim que o aplicativo deles enviar a localização.
-                </Text>
-              </View>
-            ) : (
-              <MapView style={styles.mapaView} styleURL={Mapbox.StyleURL.Street} scaleBarEnabled={false}>
+        {/* Mapa */}
+        <View style={styles.mapa}>
+          {!TOKEN || comPosicao.length === 0 ? (
+            <View style={styles.mapaVazio}>
+              <Users size={28} color={D.slate300} />
+              <Text style={styles.mapaVazioTitulo}>
+                {TOKEN ? 'Nenhuma posição reportada' : 'Mapa indisponível'}
+              </Text>
+              <Text style={styles.mapaVazioTexto}>
+                {TOKEN
+                  ? 'Os técnicos aparecem aqui assim que o aplicativo deles enviar a localização.'
+                  : 'Configure o token do Mapbox para exibir a equipe.'}
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* O design põe o botão de navegação no canto inferior esquerdo,
+                  que é onde o Mapbox desenha o logo e a atribuição. Como a
+                  atribuição é exigência de licença e não pode sumir, quem se
+                  muda é ela — para a direita, onde não há nada por cima. */}
+              <MapView
+                style={styles.mapaView}
+                styleURL={Mapbox.StyleURL.Street}
+                scaleBarEnabled={false}
+                logoPosition={{ bottom: 8, right: 44 }}
+                attributionPosition={{ bottom: 8, right: 8 }}>
                 {limites ? (
                   <Camera
                     bounds={{
                       ne: limites.ne,
                       sw: limites.sw,
-                      paddingTop: 70,
-                      paddingBottom: 70,
-                      paddingLeft: 70,
-                      paddingRight: 70,
+                      paddingTop: 60,
+                      paddingBottom: 60,
+                      paddingLeft: 60,
+                      paddingRight: 60,
                     }}
                     animationDuration={700}
                   />
@@ -183,122 +271,109 @@ export default function TecnicosScreen() {
                 )}
 
                 {comPosicao.map((t) => {
-                  const ativo = t.id === selecionado;
+                  const s = estilosDoStatus(t.status);
                   return (
                     <MarkerView
                       key={t.id}
                       coordinate={[t.posicao!.longitude, t.posicao!.latitude]}
                       anchor={{ x: 0.5, y: 0.5 }}>
-                      <Pressable
-                        onPress={() => setSelecionado(ativo ? null : t.id)}
-                        style={[styles.marcador, ativo && styles.marcadorAtivo]}>
-                        <Text variant="meta" color={colors.brandStrong}>
-                          {iniciais(t.nome)}
-                        </Text>
-                        <View
-                          style={[styles.marcadorStatus, { backgroundColor: corDoStatus(t.status) }]}
-                        />
-                      </Pressable>
+                      <Animated.View style={pulsoPino}>
+                        <Pressable onPress={() => setSelecionado(t.id)} style={styles.pino}>
+                          <Image source={{ uri: avatarUrl(t.nome) }} style={styles.pinoAvatar} />
+                          <View style={[styles.pinoStatus, { backgroundColor: s.ponto }]} />
+                        </Pressable>
+                      </Animated.View>
                     </MarkerView>
                   );
                 })}
               </MapView>
-            )}
-          </View>
 
-          {/* Filtros */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filtros}>
+              {/* Botão de recentrar, canto inferior esquerdo */}
+              <Pressable
+                onPress={() => setSelecionado(null)}
+                style={({ pressed }) => [styles.botaoMapa, pressed && styles.pressionado]}>
+                <Navigation size={20} color={D.azul900} />
+              </Pressable>
+            </>
+          )}
+        </View>
+
+        {/* Filtros */}
+        <View style={styles.filtrosArea}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtros}>
             {FILTROS.map((f) => {
               const ativo = filtro === f.chave;
               return (
                 <Pressable
                   key={f.chave}
                   onPress={() => setFiltro(f.chave)}
-                  style={[styles.filtro, ativo && styles.filtroAtivo]}>
-                  <Text variant="meta" color={ativo ? colors.textOnBrand : colors.textSecondary}>
+                  style={[styles.filtro, ativo ? styles.filtroAtivo : styles.filtroInativo]}>
+                  <Text style={[styles.filtroTexto, { color: ativo ? D.branco : D.slate400 }]}>
                     {f.rotulo}
                   </Text>
                 </Pressable>
               );
             })}
           </ScrollView>
+        </View>
 
-          {/* Lista */}
+        {/* Lista */}
+        <View style={[styles.lista, { paddingBottom: 128 + insets.bottom }]}>
           {loading ? (
-            <LoadingState />
+            <Text style={styles.aviso}>Carregando equipe…</Text>
           ) : error ? (
-            <ErrorState message={error} onRetry={load} />
+            <Pressable onPress={load}>
+              <Text style={styles.avisoErro}>{error} — toque para tentar novamente.</Text>
+            </Pressable>
           ) : filtrada.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title="Nenhum técnico encontrado"
-              description="Ajuste a busca ou o filtro para ver a equipe."
-            />
+            <Text style={styles.aviso}>Nenhum técnico encontrado.</Text>
           ) : (
             filtrada.map((t) => {
-              const info = STATUS_TECNICO[t.status];
+              const s = estilosDoStatus(t.status);
+              const telefone = somenteDigitos(t.telefone ?? t.whatsapp);
+              const zap = somenteDigitos(t.whatsapp ?? t.telefone);
               return (
-                <Card key={t.id} padded="md" onPress={() => setSelecionado(t.id)}>
-                  <View style={styles.linha}>
-                    <View style={styles.avatarArea}>
-                      <View style={styles.avatar}>
-                        <Text variant="bodyStrong" color={colors.brandStrong}>
-                          {iniciais(t.nome)}
-                        </Text>
-                      </View>
-                      <View
-                        style={[styles.avatarStatus, { backgroundColor: corDoStatus(t.status) }]}
-                      />
-                    </View>
+                <View key={t.id} style={[styles.cartao, s.esmaecido && styles.cartaoEsmaecido]}>
+                  <View style={styles.avatarArea}>
+                    <Image source={{ uri: avatarUrl(t.nome) }} style={styles.avatar} />
+                    <View style={[styles.avatarStatus, { backgroundColor: s.ponto }]} />
+                  </View>
 
-                    <View style={styles.flex}>
-                      <Text variant="cardTitle" numberOfLines={1}>
-                        {t.nome}
-                      </Text>
-                      <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
-                        {t.chamadoAtual
-                          ? `#${t.chamadoAtual.code} · ${t.chamadoAtual.title}`
-                          : t.registration
-                            ? `Registro ${t.registration}`
-                            : 'Sem atendimento no momento'}
-                      </Text>
-                      <View style={styles.selos}>
-                        <View style={[styles.selo, { backgroundColor: corDoStatus(t.status) + '22' }]}>
-                          <Text variant="meta" color={corDoStatus(t.status)}>
-                            {info.rotulo}
-                          </Text>
-                        </View>
-                        {estaAoVivo(t.posicao) ? (
-                          <Text variant="meta" color={colors.textMuted}>
-                            Posição atual
-                          </Text>
-                        ) : (
-                          <Text variant="meta" color={colors.textMuted}>
-                            Sem posição recente
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-
-                    <View style={styles.acoes}>
-                      <Pressable
-                        accessibilityLabel={`Ligar para ${t.nome}`}
-                        onPress={() => Linking.openURL('tel:')}
-                        style={({ pressed }) => [styles.acao, pressed && styles.pressed]}>
-                        <Phone size={16} color={colors.brand} />
-                      </Pressable>
-                      <Pressable
-                        accessibilityLabel={`Mensagem para ${t.nome}`}
-                        onPress={() => Linking.openURL('sms:')}
-                        style={({ pressed }) => [styles.acao, pressed && styles.pressed]}>
-                        <MessageSquare size={16} color={colors.brand} />
-                      </Pressable>
+                  <View style={styles.cartaoTextos}>
+                    <Text style={styles.nome} numberOfLines={1}>
+                      {t.nome}
+                    </Text>
+                    <Text style={styles.subtitulo} numberOfLines={1}>
+                      {t.chamadoAtual
+                        ? `${t.chamadoAtual.cidade ?? 'Em campo'} • OS#${t.chamadoAtual.code}`
+                        : estaAoVivo(t.posicao)
+                          ? 'Posição atual reportada'
+                          : 'Sem posição recente'}
+                    </Text>
+                    <View style={[styles.selo, s.selo]}>
+                      <Text style={[styles.seloTexto, { color: s.texto }]}>{s.rotulo}</Text>
                     </View>
                   </View>
-                </Card>
+
+                  <View style={styles.acoes}>
+                    <Acao
+                      icone={Phone}
+                      rotulo={`Ligar para ${t.nome}`}
+                      destino={telefone ? `tel:${telefone}` : null}
+                    />
+                    <Acao
+                      icone={MessageSquare}
+                      rotulo={`Mensagem para ${t.nome}`}
+                      destino={
+                        zap
+                          ? `https://wa.me/${zap.startsWith('55') ? zap : `55${zap}`}`
+                          : telefone
+                            ? `sms:${telefone}`
+                            : null
+                      }
+                    />
+                  </View>
+                </View>
               );
             })
           )}
@@ -308,126 +383,196 @@ export default function TecnicosScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.bgApp },
-  scroll: { flexGrow: 1, alignItems: 'center' },
-  container: {
-    width: '100%',
-    maxWidth: layout.maxContentWidth,
-    paddingHorizontal: layout.screenPadding,
-    paddingTop: spacing.lg,
-    gap: spacing.lg,
-  },
-  flex: { flex: 1, gap: 2 },
-  centro: { textAlign: 'center', maxWidth: 260 },
+/**
+ * Botão de contato do cartão. O ícone troca de cor ao ser pressionado, como o
+ * `group-active:text-blue-900` do design. Sem número cadastrado o botão fica
+ * inerte em vez de abrir um discador vazio.
+ */
+function Acao({
+  icone: Icone,
+  rotulo,
+  destino,
+}: {
+  icone: typeof Phone;
+  rotulo: string;
+  destino: string | null;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={rotulo}
+      disabled={!destino}
+      onPress={() => {
+        if (destino) Linking.openURL(destino).catch(() => {});
+      }}
+      style={({ pressed }) => [
+        styles.acao,
+        pressed && styles.acaoPressionada,
+        !destino && styles.acaoInerte,
+      ]}>
+      {({ pressed }) => <Icone size={16} color={pressed ? D.azul900 : D.slate400} />}
+    </Pressable>
+  );
+}
 
-  live: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success },
+const styles = StyleSheet.create({
+  raiz: { flex: 1, backgroundColor: D.fundo },
+
+  cabecalho: {
+    backgroundColor: D.branco,
+    borderBottomWidth: 1,
+    borderBottomColor: D.slate100,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    gap: 20,
+    zIndex: 30,
+    ...elevacaoSuave,
+  },
+  cabecalhoTopo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  titulo: { fontSize: 24, fontWeight: '800', color: D.slate900, letterSpacing: -0.5, flex: 1 },
+  live: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: D.esmeralda500 },
+  liveTexto: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: D.slate400,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
 
   busca: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    minHeight: touch.minTarget,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.slate50,
+    gap: 12,
+    height: 48,
+    paddingHorizontal: 16,
+    backgroundColor: D.slate50,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.xl,
+    borderColor: D.slate100,
+    borderRadius: 16,
   },
-  buscaInput: {
-    flex: 1,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    color: colors.textPrimary,
-    paddingVertical: spacing.md,
-  },
+  buscaInput: { flex: 1, fontSize: 14, color: D.slate900, fontWeight: '500', padding: 0 },
 
-  mapa: {
-    height: 380,
-    borderRadius: radius.xl,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.slate100,
-  },
+  principal: { flex: 1 },
+
+  mapa: { width: '100%', height: 320, backgroundColor: D.slate100, position: 'relative' },
   mapaView: { flex: 1 },
-  mapaAviso: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    padding: spacing.xl,
-  },
+  mapaVazio: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24 },
+  mapaVazioTitulo: { fontSize: 14, fontWeight: '800', color: D.slate600 },
+  mapaVazioTexto: { fontSize: 11, color: D.slate400, textAlign: 'center', maxWidth: 260 },
 
-  marcador: {
-    width: 42,
-    height: 42,
-    borderRadius: radius.lg,
-    backgroundColor: colors.bgSurface,
+  pino: {
+    width: 40,
+    height: 40,
+    borderRadius: 16,
+    backgroundColor: D.branco,
     borderWidth: 2,
-    borderColor: colors.brandStrong,
+    borderColor: D.azul900,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 2,
+    ...elevacaoSuave,
   },
-  marcadorAtivo: { transform: [{ scale: 1.18 }], borderColor: colors.brand },
-  marcadorStatus: {
+  pinoAvatar: { width: '100%', height: '100%', borderRadius: 12 },
+  pinoStatus: {
     position: 'absolute',
-    right: -3,
-    bottom: -3,
+    right: -4,
+    bottom: -4,
     width: 12,
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: colors.bgSurface,
+    borderColor: D.branco,
   },
 
-  filtros: { gap: spacing.sm, paddingRight: spacing.lg },
-  filtro: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radius.lg,
-    backgroundColor: colors.bgSurface,
+  botaoMapa: {
+    position: 'absolute',
+    left: 16,
+    bottom: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: D.branco,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  filtroAtivo: { backgroundColor: colors.brandStrong, borderColor: colors.brandStrong },
-
-  linha: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
-  avatarArea: { position: 'relative' },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.lg,
-    backgroundColor: colors.brandTint,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: D.slate100,
     alignItems: 'center',
     justifyContent: 'center',
+    ...elevacaoSuave,
   },
+
+  filtrosArea: { paddingHorizontal: 24, paddingVertical: 24 },
+  filtros: { gap: 8, paddingRight: 24 },
+  filtro: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, ...elevacaoSuave },
+  filtroAtivo: { backgroundColor: D.azul900 },
+  filtroInativo: { backgroundColor: D.branco, borderWidth: 1, borderColor: D.slate100 },
+  filtroTexto: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+
+  lista: { paddingHorizontal: 24, gap: 16 },
+  aviso: { fontSize: 13, color: D.slate400, textAlign: 'center', paddingVertical: 32 },
+  avisoErro: { fontSize: 13, color: '#dc2626', textAlign: 'center', paddingVertical: 32 },
+
+  cartao: {
+    backgroundColor: D.branco,
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: D.slate50,
+    padding: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    ...elevacaoSuave,
+  },
+  cartaoEsmaecido: { opacity: 0.75 },
+  avatarArea: {
+    position: 'relative',
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: D.slate50,
+    borderWidth: 1,
+    borderColor: D.slate100,
+    padding: 2,
+  },
+  avatar: { width: '100%', height: '100%', borderRadius: 12 },
   avatarStatus: {
     position: 'absolute',
-    right: -3,
-    bottom: -3,
-    width: 15,
-    height: 15,
+    right: -4,
+    bottom: -4,
+    width: 16,
+    height: 16,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: colors.bgSurface,
+    borderColor: D.branco,
   },
-  selos: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: 2 },
-  selo: { paddingHorizontal: spacing.sm, paddingVertical: 2, borderRadius: radius.sm },
+  cartaoTextos: { flex: 1, gap: 4 },
+  nome: { fontSize: 14, fontWeight: '800', color: D.slate900, letterSpacing: -0.2 },
+  subtitulo: { fontSize: 11, color: D.slate400, fontWeight: '500' },
+  selo: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  seloTexto: { fontSize: 9, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
 
-  acoes: { gap: spacing.sm },
+  acoes: { gap: 8 },
   acao: {
     width: 40,
     height: 40,
-    borderRadius: radius.md,
-    backgroundColor: colors.slate50,
+    borderRadius: 12,
+    backgroundColor: D.slate50,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: D.slate100,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pressed: { opacity: 0.8 },
+  acaoPressionada: { backgroundColor: D.azul50 },
+  acaoInerte: { opacity: 0.45 },
+  pressionado: { transform: [{ scale: 0.9 }] },
 });

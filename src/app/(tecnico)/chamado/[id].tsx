@@ -1,13 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeft, Camera, CheckCircle2, MapPin, Play, Square } from 'lucide-react-native';
+import { Activity, ArrowLeft, Calendar, Camera, CheckCircle2, ClipboardCheck, ClipboardList, FileText, Info, MapPin, Phone, Play, SearchCheck, Square, UserCheck } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { IconTile } from '@/components/ui/IconTile';
 import { ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
+import { formatDate, formatTime } from '@/lib/format';
 import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 import { captureAndUploadPhoto, fetchChecklist, fetchChecklistResults, fetchServicePhotos, fetchTechnicianCall, saveChecklistResult, technicianUpdateServiceCall, updateTechnicianStatus, type ChecklistItem, type TechnicianCall, type TechnicianPhoto } from '@/services/technician';
 
@@ -66,6 +68,28 @@ export default function TechnicianCallScreen() {
     try { await saveChecklistResult({ serviceCallId: call!.id, itemId: item.id, checked }); } catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível salvar o checklist.'); setResults((current) => ({ ...current, [item.id]: !checked })); }
   }
 
+  /**
+   * O atendimento tem uma acao obvia por status. O design faz dela o centro da
+   * tela, entao ela e resolvida aqui e desenhada dentro do cartao de check-in.
+   */
+  const acao = (() => {
+    if (!call) return { titulo: 'Atendimento', botao: null };
+    if (call.status === 'aberto')
+      return { titulo: 'Aceitar chamado', botao: <Button label="Aceitar chamado" icon={CheckCircle2} onPress={() => changeStatus('tecnico_atribuido')} loading={busy} /> };
+    if (call.status === 'tecnico_atribuido' || call.status === 'aguardando_tecnico')
+      return { titulo: 'Iniciar deslocamento', botao: <Button label="Iniciar deslocamento" icon={Play} onPress={() => changeStatus('a_caminho')} loading={busy} /> };
+    if (call.status === 'a_caminho')
+      return { titulo: 'Iniciar atendimento', botao: <Button label="Iniciar atendimento" icon={Play} onPress={() => changeStatus('em_atendimento')} loading={busy} /> };
+    if (call.status === 'em_atendimento') {
+      const pronto = checklistComplete && beforeCount > 0 && afterCount > 0;
+      return {
+        titulo: 'Finalizar atendimento',
+        botao: <Button label={pronto ? 'Finalizar atendimento' : 'Complete checklist e fotos'} icon={Square} onPress={() => changeStatus('finalizado')} loading={busy} disabled={!pronto} />,
+      };
+    }
+    return { titulo: 'Atendimento', botao: null };
+  })();
+
   if (loading) return <LoadingState />;
   if (error && !call) return <ErrorState message={error} onRetry={load} />;
   if (!call) return null;
@@ -75,17 +99,159 @@ export default function TechnicianCallScreen() {
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       <View style={styles.container}>
         {error ? <Card style={styles.error}><Text variant="body" color={colors.dangerStrong}>{error}</Text></Card> : null}
-        <Card><Text variant="microLabel" color={colors.textSecondary}>Cliente</Text><Text variant="screenTitle">{call.client?.name ?? 'Cliente'}</Text><Text variant="body">{call.title}</Text>{call.address ? <View style={styles.row}><MapPin size={16} color={colors.brand} /><Text variant="body" color={colors.textSecondary}>{call.address.street}, {call.address.number ?? 's/n'} — {call.address.city}</Text></View> : null}</Card>
-        <Card><Text variant="microLabel" color={colors.textSecondary}>Ajustes do atendimento</Text><TextInput value={descriptionDraft} onChangeText={setDescriptionDraft} placeholder="Descrição atualizada" placeholderTextColor={colors.textMuted} multiline style={styles.editorInput} /><TextInput value={diagnosisDraft} onChangeText={setDiagnosisDraft} placeholder="Diagnóstico técnico" placeholderTextColor={colors.textMuted} multiline style={styles.editorInput} /><TextInput value={solutionDraft} onChangeText={setSolutionDraft} placeholder="Solução aplicada" placeholderTextColor={colors.textMuted} multiline style={styles.editorInput} /><Button label="Salvar ajustes" variant="secondary" onPress={() => { void saveAdjustments(); }} loading={busy} /></Card>
+        {/* Cartao de check-in: e o passo do momento, entao abre a tela. */}
+        <Card style={styles.checkin}>
+          <View style={styles.checkinTopo}>
+            <IconTile icon={ClipboardCheck} size="md" />
+            <Text variant="screenTitle" style={styles.checkinTitulo}>{acao.titulo}</Text>
+            <Text variant="microLabel" color={colors.textSecondary}>Confirmação de acesso técnico</Text>
+          </View>
+
+          <View style={styles.checkinLinhas}>
+            <LinhaInfo icone={UserCheck} rotulo="Check-in" valor={call.client?.name ?? 'Cliente'} />
+            <LinhaInfo icone={Calendar} rotulo="Data e horário" valor={call.scheduled_for ? `${formatDate(call.scheduled_for)} às ${formatTime(call.scheduled_for)}` : 'Sem agendamento'} />
+            {call.address ? <LinhaInfo icone={MapPin} rotulo="Geolocalização" valor={`${call.address.street}, ${call.address.number ?? 's/n'} — ${call.address.city}`} /> : null}
+          </View>
+
+          {acao.botao}
+        </Card>
+
+        <View style={styles.section}>
+          <Text variant="microLabel" color={colors.textSecondary}>Informações da unidade</Text>
+          <Card>
+            <View style={styles.rowBetween}>
+              <View style={styles.flex}>
+                <Text variant="microLabel" color={colors.textSecondary}>Cliente</Text>
+                <Text variant="cardTitle">{call.client?.name ?? 'Cliente'}</Text>
+                <Text variant="body" color={colors.textSecondary}>{call.title}</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Ligar para o cliente"
+                disabled={!call.client?.phone}
+                onPress={() => call.client?.phone && Linking.openURL(`tel:${call.client.phone}`).catch(() => {})}
+                style={({ pressed }) => [styles.ligar, pressed && styles.pressed, !call.client?.phone && styles.inerte]}>
+                <Phone size={18} color={colors.brandStrong} />
+              </Pressable>
+            </View>
+
+            <View style={styles.gradeUnidade}>
+              <View style={styles.flex}>
+                <Text variant="microLabel" color={colors.textSecondary}>Equipamento</Text>
+                <Text variant="bodyStrong">{[call.equipment?.brand, call.equipment?.model].filter(Boolean).join(' ') || 'Não informado'}</Text>
+              </View>
+              <View style={styles.flex}>
+                <Text variant="microLabel" color={colors.textSecondary}>Patrimônio</Text>
+                <Text variant="bodyStrong" style={styles.patrimonio}>{call.equipment?.serial_number ?? '—'}</Text>
+              </View>
+            </View>
+          </Card>
+        </View>
+        {/* Formulario de diagnostico: cada campo com seu proprio rotulo e
+            explicacao, como no design da Analise Tecnica. */}
+        <Card style={styles.diagnostico}>
+          <View style={styles.diagnosticoTopo}>
+            <IconTile icon={SearchCheck} size="md" />
+            <Text variant="cardTitle">Dados do diagnóstico</Text>
+            <Text variant="microLabel" color={colors.textSecondary}>
+              Chamado #{call.code}
+              {call.equipment?.brand ? ` · ${call.equipment.brand} ${call.equipment.model ?? ''}`.trimEnd() : ''}
+            </Text>
+          </View>
+
+          <CampoTecnico
+            icone={ClipboardList}
+            rotulo="Defeito identificado"
+            ajuda="Campo obrigatório para o relatório técnico"
+            valor={descriptionDraft}
+            onChange={setDescriptionDraft}
+            placeholder="Descreva a falha principal…"
+          />
+          <CampoTecnico
+            icone={Activity}
+            rotulo="Diagnóstico técnico"
+            ajuda="Avaliação da condição do equipamento"
+            valor={diagnosisDraft}
+            onChange={setDiagnosisDraft}
+            placeholder="O que foi constatado na inspeção…"
+          />
+          <CampoTecnico
+            icone={FileText}
+            rotulo="Solução aplicada"
+            ajuda="Informações complementares e peças"
+            valor={solutionDraft}
+            onChange={setSolutionDraft}
+            placeholder="O que foi feito para resolver…"
+          />
+
+          <Button label="Salvar ajustes" variant="secondary" onPress={() => { void saveAdjustments(); }} loading={busy} />
+        </Card>
+
+        {/* Aviso de seguranca do design — o tecnico le antes de medir. */}
+        <View style={styles.protocolo}>
+          <Info size={24} color={colors.brandStrong} />
+          <View style={styles.flex}>
+            <Text variant="microLabel" color={colors.brandStrong}>Protocolo de segurança</Text>
+            <Text variant="body" color={colors.textSecondary}>
+              Garanta a desenergização total do barramento antes de iniciar as medições.
+              Mantenha os EPIs em conformidade.
+            </Text>
+          </View>
+        </View>
         <Card><Text variant="microLabel" color={colors.textSecondary}>Equipamento</Text><Text variant="screenTitle">{call.equipment?.brand ?? 'Sem marca'} {call.equipment?.model ?? ''}</Text><Text variant="body" color={colors.textSecondary}>{call.equipment?.environment ?? 'Ambiente não informado'} · {call.equipment?.btu_capacity ? `${call.equipment.btu_capacity} BTU` : 'BTU não informado'} · Gás {call.equipment?.gas_type ?? 'não informado'}</Text></Card>
         <View style={styles.section}><Text variant="microLabel" color={colors.textSecondary}>Evidências obrigatórias</Text><View style={styles.photoGrid}><PhotoAction label={`Antes (${beforeCount})`} onPress={() => addPhoto('antes')} complete={beforeCount > 0} /><PhotoAction label={`Depois (${afterCount})`} onPress={() => addPhoto('depois')} complete={afterCount > 0} /></View></View>
         <View style={styles.section}><View style={styles.rowBetween}><Text variant="microLabel" color={colors.textSecondary}>Checklist técnico</Text><Badge label={`${Object.values(results).filter(Boolean).length}/${items.length}`} tone={checklistComplete ? 'success' : 'warning'} /></View>{items.length === 0 ? <Card><Text variant="body" color={colors.textSecondary}>Nenhum checklist cadastrado para este tipo de serviço.</Text></Card> : items.map((item) => <Pressable key={item.id} onPress={() => toggleItem(item)} style={({ pressed }) => [styles.checkRow, pressed && styles.pressed]}><CheckCircle2 size={22} color={results[item.id] ? colors.success : colors.borderStrong} fill={results[item.id] ? colors.successSoft : 'transparent'} /><View style={styles.flex}><Text variant="bodyStrong">{item.label}</Text>{item.help_text ? <Text variant="meta" color={colors.textSecondary}>{item.help_text}</Text> : null}</View></Pressable>)}</View>
-        <View style={styles.actions}>{call.status === 'aberto' ? <Button label="Aceitar chamado" icon={CheckCircle2} onPress={() => changeStatus('tecnico_atribuido')} loading={busy} /> : null}{call.status === 'tecnico_atribuido' || call.status === 'aguardando_tecnico' ? <Button label="Iniciar deslocamento" icon={Play} onPress={() => changeStatus('a_caminho')} loading={busy} /> : null}{call.status === 'a_caminho' ? <Button label="Iniciar atendimento" icon={Play} onPress={() => changeStatus('em_atendimento')} loading={busy} /> : null}{call.status === 'em_atendimento' ? <Button label={checklistComplete && beforeCount > 0 && afterCount > 0 ? 'Finalizar atendimento' : 'Complete checklist e fotos'} icon={Square} onPress={() => changeStatus('finalizado')} loading={busy} disabled={!checklistComplete || beforeCount === 0 || afterCount === 0} /> : null}</View>
       </View>
     </ScrollView>
   </View>;
 }
 
+function CampoTecnico({
+  icone: Icone,
+  rotulo,
+  ajuda,
+  valor,
+  onChange,
+  placeholder,
+}: {
+  icone: typeof MapPin;
+  rotulo: string;
+  ajuda: string;
+  valor: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <View style={styles.campo}>
+      <View style={styles.campoCabecalho}>
+        <Icone size={16} color={colors.brandStrong} />
+        <Text variant="microLabel">{rotulo}</Text>
+      </View>
+      <Text variant="meta" color={colors.textMuted}>{ajuda}</Text>
+      <TextInput
+        value={valor}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textMuted}
+        multiline
+        style={styles.editorInput}
+      />
+    </View>
+  );
+}
+
+function LinhaInfo({ icone: Icone, rotulo, valor }: { icone: typeof MapPin; rotulo: string; valor: string }) {
+  return (
+    <View style={styles.linhaInfo}>
+      <View style={styles.linhaInfoIcone}><Icone size={18} color={colors.brandStrong} /></View>
+      <View style={styles.flex}>
+        <Text variant="microLabel" color={colors.textSecondary}>{rotulo}</Text>
+        <Text variant="bodyStrong" numberOfLines={2}>{valor}</Text>
+      </View>
+    </View>
+  );
+}
+
 function PhotoAction({ label, onPress, complete }: { label: string; onPress: () => void; complete: boolean }) { return <Pressable onPress={onPress} style={({ pressed }) => [styles.photoAction, complete && styles.photoComplete, pressed && styles.pressed]}><Camera size={24} color={complete ? colors.successStrong : colors.brandStrong} /><Text variant="bodyStrong" color={complete ? colors.successStrong : colors.brandStrong}>{label}</Text><Text variant="meta" color={colors.textSecondary}>{complete ? 'Registrada' : 'Obrigatória'}</Text></Pressable>; }
 
-const styles = StyleSheet.create({ editorInput: { minHeight: 76, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, color: colors.textPrimary, backgroundColor: colors.slate50, fontFamily: fonts.medium, fontSize: 14, textAlignVertical: 'top', marginTop: spacing.sm }, root: { flex: 1, backgroundColor: colors.bgApp }, top: { paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, backgroundColor: colors.bgSurface, borderBottomWidth: 1, borderBottomColor: colors.border, flexDirection: 'row', alignItems: 'center', gap: spacing.md }, back: { width: 40, height: 40, borderRadius: radius.pill, backgroundColor: colors.slate50, alignItems: 'center', justifyContent: 'center' }, topTitle: { flex: 1, gap: 2 }, scroll: { flexGrow: 1, alignItems: 'center' }, container: { width: '100%', maxWidth: layout.maxContentWidth, padding: layout.screenPadding, gap: spacing.lg }, row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md }, rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md }, section: { gap: spacing.md }, photoGrid: { flexDirection: 'row', gap: spacing.md }, photoAction: { flex: 1, minHeight: 132, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.brandSoft, backgroundColor: colors.brandTint, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, padding: spacing.md }, photoComplete: { backgroundColor: colors.successSoft, borderColor: colors.success }, checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, marginBottom: spacing.sm }, flex: { flex: 1, gap: spacing.xs }, actions: { gap: spacing.md }, error: { backgroundColor: colors.dangerSoft, borderColor: colors.danger }, pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] } });
+const styles = StyleSheet.create({ editorInput: { minHeight: 76, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, color: colors.textPrimary, backgroundColor: colors.slate50, fontFamily: fonts.medium, fontSize: 14, textAlignVertical: 'top', marginTop: spacing.sm }, root: { flex: 1, backgroundColor: colors.bgApp }, top: { paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, backgroundColor: colors.bgSurface, borderBottomWidth: 1, borderBottomColor: colors.border, flexDirection: 'row', alignItems: 'center', gap: spacing.md }, back: { width: 40, height: 40, borderRadius: radius.pill, backgroundColor: colors.slate50, alignItems: 'center', justifyContent: 'center' }, topTitle: { flex: 1, gap: 2 }, scroll: { flexGrow: 1, alignItems: 'center' }, container: { width: '100%', maxWidth: layout.maxContentWidth, padding: layout.screenPadding, gap: spacing.lg }, row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md }, rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md }, section: { gap: spacing.md }, photoGrid: { flexDirection: 'row', gap: spacing.md }, photoAction: { flex: 1, minHeight: 132, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.brandSoft, backgroundColor: colors.brandTint, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, padding: spacing.md }, photoComplete: { backgroundColor: colors.successSoft, borderColor: colors.success }, checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, marginBottom: spacing.sm }, flex: { flex: 1, gap: spacing.xs }, actions: { gap: spacing.md }, diagnostico: { gap: spacing.lg }, diagnosticoTopo: { alignItems: 'center', gap: spacing.xs, paddingBottom: spacing.sm }, campo: { gap: spacing.xs }, campoCabecalho: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm }, protocolo: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, backgroundColor: colors.brandTint, borderWidth: 1, borderColor: colors.brandSoft, borderRadius: radius.xl, padding: spacing.lg }, checkin: { gap: spacing.xl }, checkinTopo: { alignItems: 'center', gap: spacing.sm }, checkinTitulo: { textAlign: 'center', textTransform: 'uppercase' }, checkinLinhas: { gap: spacing.md }, linhaInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.slate50, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md }, linhaInfoIcone: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }, ligar: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.slate50, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }, inerte: { opacity: 0.4 }, gradeUnidade: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.lg, paddingTop: spacing.lg, borderTopWidth: 1, borderTopColor: colors.slate100 }, patrimonio: { fontFamily: fonts.bold, letterSpacing: 1 }, error: { backgroundColor: colors.dangerSoft, borderColor: colors.danger }, pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] } });

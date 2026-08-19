@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AirVent, HardHat, MapPin, MessageCircle, Phone, Sparkles } from 'lucide-react-native';
+import { AirVent, Check, HardHat, MapPin, MessageCircle, Phone, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -157,20 +157,26 @@ export default function AcompanharChamadoScreen() {
               ) : null}
 
               {call.status === 'a_caminho' ? (
-                <Card accentBorder={colors.brandSoft}>
+                <Card style={styles.eta}>
                   <View style={styles.row}>
-                    <IconTile icon={MapPin} />
+                    <View style={styles.etaIcone}>
+                      <MapPin size={20} color={colors.textOnBrand} />
+                    </View>
                     <View style={styles.flex}>
-                      <Text variant="microLabel" color={colors.textSecondary}>
-                        Técnico a caminho
+                      <Text variant="microLabel" color={colors.brandTint}>
+                        Previsão de chegada
                       </Text>
-                      <Text variant="cardTitle">
+                      <Text variant="cardTitle" color={colors.textOnBrand}>
                         {call.scheduled_for
-                          ? `Previsão de chegada às ${formatTime(call.scheduled_for)}`
+                          ? `Às ${formatTime(call.scheduled_for)}`
                           : 'A caminho do local'}
                       </Text>
                     </View>
                   </View>
+                  <View style={styles.etaFilete} />
+                  <Text variant="meta" color={colors.brandTint}>
+                    O técnico já está a caminho do endereço do atendimento.
+                  </Text>
                 </Card>
               ) : null}
 
@@ -263,15 +269,22 @@ function Timeline({
         const cor = concluida ? colors.success : ativa ? colors.brand : colors.slate300;
         const ultima = index === TIMELINE.length - 1;
 
+        const pendente = !concluida && !ativa;
+
         return (
-          <View key={status} style={styles.etapa}>
+          <View key={status} style={[styles.etapa, pendente && styles.etapaPendente]}>
             <View style={styles.marcadorColuna}>
               <View
                 style={[
                   styles.marcador,
-                  { borderColor: cor, backgroundColor: concluida || ativa ? cor : colors.bgSurface },
-                ]}
-              />
+                  concluida && { backgroundColor: colors.successSoft },
+                  ativa && { backgroundColor: colors.brandTint },
+                  pendente && { backgroundColor: colors.slate200 },
+                ]}>
+                {/* Etapa vencida leva visto; a atual, o ponto vivo da marca. */}
+                {concluida ? <Check size={12} color={colors.successStrong} strokeWidth={3} /> : null}
+                {ativa ? <View style={styles.marcadorAtivo} /> : null}
+              </View>
               {!ultima ? (
                 <View
                   style={[
@@ -283,16 +296,12 @@ function Timeline({
             </View>
 
             <View style={styles.etapaTexto}>
-              <Text
-                variant={ativa ? 'cardTitle' : 'body'}
-                color={concluida || ativa ? colors.textPrimary : colors.textMuted}>
+              <Text variant={ativa ? 'cardTitle' : 'body'} color={ativa ? colors.brand : cor === colors.success ? colors.textPrimary : colors.textMuted}>
                 {STATUS_LABEL[status]}
               </Text>
-              {registro ? (
-                <Text variant="meta" color={colors.textMuted}>
-                  {formatTime(registro.created_at)}
-                </Text>
-              ) : null}
+              <Text variant="meta" color={ativa ? colors.brand : colors.textMuted}>
+                {registro ? formatTime(registro.created_at) : 'Pendente'}
+              </Text>
             </View>
           </View>
         );
@@ -318,9 +327,30 @@ const styles = StyleSheet.create({
   resumo: { gap: spacing.md },
   resumoHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 
+  eta: { backgroundColor: colors.brand, borderColor: colors.brand, gap: spacing.md },
+  etaIcone: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  etaFilete: { height: 1, backgroundColor: 'rgba(255,255,255,0.18)' },
+
   etapa: { flexDirection: 'row', gap: spacing.lg },
-  marcadorColuna: { alignItems: 'center', width: 16 },
-  marcador: { width: 14, height: 14, borderRadius: 7, borderWidth: 2 },
+  etapaPendente: { opacity: 0.4 },
+  marcadorColuna: { alignItems: 'center', width: 20 },
+  marcador: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: colors.bgSurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  marcadorAtivo: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.brand },
   conector: { width: 2, flex: 1, minHeight: 28, marginVertical: 2 },
   etapaTexto: { flex: 1, paddingBottom: spacing.xl, gap: 2 },
   choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },

@@ -10,12 +10,14 @@ type HeaderProps = {
   title: string;
   /** Assinatura da marca — só na tela raiz de cada perfil. */
   eyebrow?: string;
+  /** Conteudo livre abaixo do titulo. Tem precedencia sobre `eyebrow`. */
+  subtitle?: ReactNode;
   onBack?: () => void;
   trailing?: ReactNode;
 };
 
 /** Header fixo branco com borda inferior, respeitando a safe area. */
-export function Header({ title, eyebrow, onBack, trailing }: HeaderProps) {
+export function Header({ title, eyebrow, subtitle, onBack, trailing }: HeaderProps) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -36,11 +38,12 @@ export function Header({ title, eyebrow, onBack, trailing }: HeaderProps) {
           <Text variant="screenTitle" numberOfLines={1}>
             {title}
           </Text>
-          {eyebrow ? (
-            <Text variant="meta" color={colors.brand}>
-              {eyebrow}
-            </Text>
-          ) : null}
+          {subtitle ??
+            (eyebrow ? (
+              <Text variant="meta" color={colors.brand}>
+                {eyebrow}
+              </Text>
+            ) : null)}
         </View>
 
         {trailing ?? <View style={styles.spacer} />}
