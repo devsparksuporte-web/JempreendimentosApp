@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { ArrowLeft, CalendarDays, CheckCircle2, ChevronRight, Info, MapPin, MessageCircle, Navigation, Phone, RefreshCw, Route, ShieldCheck, Wind } from 'lucide-react-native';
+import { ArrowLeft, CalendarDays, ChevronRight, MapPin, MessageCircle, Navigation, Phone, RefreshCw, Route, ShieldCheck, Wind } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { MapboxRouteMap } from '@/components/MapboxRouteMap';
 import { ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
-import { formatarDistancia, formatarDuracao, type Trajeto } from '@/services/navegacao';
+import type { Trajeto } from '@/services/navegacao';
 import { fetchTechnicianCalls, type TechnicianCall } from '@/services/technician';
 import { colors, elevation, fonts, layout, radius, spacing } from '@/theme/tokens';
 
@@ -56,39 +56,6 @@ export default function TechnicianRouteScreen() {
       <MapboxRouteMap calls={calls} selectedId={selected?.id ?? null} onSelect={setSelectedId} onTrajeto={setTrajeto} />
       <View style={styles.topBar}><Pressable onPress={() => router.back()} style={styles.iconButton}><ArrowLeft size={20} color={colors.textPrimary} /></Pressable><View style={styles.live}><View style={styles.liveDot} /><Text variant="meta" color={colors.textPrimary}>Mapbox em tempo real</Text></View></View>
 
-      {/* Cartao de deslocamento: aparece so quando ha rota tracada, para nao
-          tapar o mapa com numeros vazios. */}
-      {trajeto ? (
-        <View style={styles.eta}>
-          <View style={styles.etaLinha}>
-            <View style={styles.etaBloco}>
-              <View style={styles.etaSelo}>
-                <Text variant="meta" color={colors.brandSoft}>ETA</Text>
-                <Text variant="bodyStrong" color={colors.brand}>{formatarDuracao(trajeto.duracao)}</Text>
-              </View>
-              <View>
-                <Text variant="meta" color={colors.textMuted}>Distância</Text>
-                <Text variant="bodyStrong">{formatarDistancia(trajeto.distancia)}</Text>
-              </View>
-            </View>
-
-            <View style={styles.etaDivisor} />
-
-            <View style={styles.etaStatus}>
-              <Text variant="meta" color={colors.textMuted}>Status</Text>
-              <View style={styles.etaStatusLinha}>
-                <CheckCircle2 size={15} color={colors.success} />
-                <Text variant="bodyStrong" color={colors.successStrong}>No fluxo</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.etaRodape}>
-            <Info size={14} color={colors.brand} />
-            <Text variant="meta" color={colors.textSecondary}>Rota recalculada pelo Mapbox</Text>
-          </View>
-        </View>
-      ) : null}
     </View>
     <ScrollView ref={scrollRef} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + spacing.xxl }]} showsVerticalScrollIndicator={false} refreshControl={undefined}>
       <View style={styles.panel}>
@@ -159,44 +126,6 @@ const styles = StyleSheet.create({
   iconButton: { width: 44, height: 44, borderRadius: radius.lg, backgroundColor: colors.bgSurface, alignItems: 'center', justifyContent: 'center', ...elevation.card },
   live: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.bgSurface, borderRadius: radius.lg, paddingHorizontal: spacing.md, paddingVertical: spacing.md, ...elevation.card },
   liveDot: { width: 8, height: 8, borderRadius: radius.pill, backgroundColor: colors.success },
-
-  eta: {
-    position: 'absolute',
-    top: 118,
-    left: layout.screenPadding,
-    right: layout.screenPadding,
-    backgroundColor: 'rgba(255,255,255,0.96)',
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.xl,
-    padding: spacing.lg,
-    gap: spacing.md,
-    ...elevation.card,
-  },
-  etaLinha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
-  etaBloco: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  etaSelo: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.lg,
-    backgroundColor: colors.brandTint,
-    borderWidth: 1,
-    borderColor: colors.brandSoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  etaDivisor: { width: 1, height: 32, backgroundColor: colors.border },
-  etaStatus: { alignItems: 'center', gap: 2 },
-  etaStatusLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
-  etaRodape: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.sm,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: colors.slate100,
-  },
 
   rodape: {
     backgroundColor: colors.bgSurface,

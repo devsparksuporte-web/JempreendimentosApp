@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { CardGrid } from '@/components/ui/CardGrid';
 import { Header } from '@/components/ui/Header';
+import { SinoNotificacoes } from '@/components/ui/SinoNotificacoes';
 import { LoadingState, ErrorState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
 import { formatTime } from '@/lib/format';
@@ -56,6 +57,7 @@ export default function AdminHomeScreen() {
               <View style={styles.operacaoPonto} />
               <Text variant="meta" color={colors.brandStrong}>Operação ativa</Text>
             </View>
+            <SinoNotificacoes />
             <Pressable accessibilityRole="button" accessibilityLabel="Atualizar" onPress={load} style={styles.refresh}>
               <RefreshCw size={18} color={colors.brand} />
             </Pressable>

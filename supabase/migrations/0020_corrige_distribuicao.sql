@@ -23,9 +23,11 @@
 -- A função tem quase cem linhas de cálculo de pontuação. Reescrevê-la
 -- inteira aqui só para trocar uma linha convidaria a erro de transcrição,
 -- então a correção é cirúrgica: lê a definição atual do catálogo, troca o
--- trecho defeituoso e recria. Se o trecho não estiver lá — porque alguém
--- já corrigiu ou a função mudou —, a migration PARA com erro em vez de
--- seguir em silêncio achando que consertou.
+-- trecho defeituoso e recria.
+--
+-- Rodar duas vezes é seguro: se a marca da correção já estiver na função,
+-- sai com um aviso. Só para com erro se a função tiver mudado de forma
+-- inesperada — aí é melhor alguém olhar do que seguir em silêncio.
 -- ---------------------------------------------------------------------
 do $fix$
 declare
@@ -43,12 +45,19 @@ begin
     raise exception 'distribute_service_call não existe neste banco.';
   end if;
 
+  -- Rodar de novo não pode ser um susto. Se a marca da correção já está na
+  -- função, o trabalho está feito: avisa e sai em paz.
+  if v_def like '%trim(to_char(v_best_score%' then
+    raise notice 'distribute_service_call já estava corrigida. Nada a fazer.';
+    return;
+  end if;
+
   -- Troca o especificador inválido por %s.
   v_novo := replace(v_def, 'com %.2f pontos', 'com %s pontos');
   if v_novo = v_def then
     raise exception
-      'Trecho "com %%.2f pontos" não encontrado em distribute_service_call. '
-      'A função já foi corrigida ou mudou — confira antes de rodar de novo.';
+      'Trecho "com %%.2f pontos" não encontrado, e a marca da correção também '
+      'não está lá. A função mudou de forma inesperada — confira antes de seguir.';
   end if;
 
   -- E formata o número no argumento, mantendo as duas casas que o %.2f prometia.
@@ -64,6 +73,7 @@ begin
   end if;
 
   execute v_novo;
+  raise notice 'distribute_service_call corrigida.';
 end
 $fix$;
 

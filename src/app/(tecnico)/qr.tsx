@@ -1,4 +1,5 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { abrirConfiguracoes } from '@/lib/permissoes';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, QrCode } from 'lucide-react-native';
 import { useState } from 'react';
@@ -28,7 +29,33 @@ export default function TechnicianQrScreen() {
   }
 
   if (!permission) return <View style={styles.center}><Text variant="body">Verificando câmera…</Text></View>;
-  if (!permission.granted) return <View style={styles.center}><QrCode size={42} color={colors.brand} /><Text variant="screenTitle">Permissão de câmera</Text><Text variant="body" color={colors.textSecondary}>A câmera é necessária para iniciar o atendimento pelo QR Code.</Text><Pressable onPress={requestPermission} style={styles.button}><Text variant="bodyStrong" color={colors.textOnBrand}>Permitir câmera</Text></Pressable></View>;
+  if (!permission.granted) {
+    // Sem canAskAgain o diálogo do sistema não abre mais: insistir no botão
+    // "Permitir" seria enganar o técnico. O caminho passa a ser as
+    // configurações do aplicativo.
+    const bloqueada = !permission.canAskAgain;
+    return (
+      <View style={styles.center}>
+        <QrCode size={42} color={colors.brand} />
+        <Text variant="screenTitle">Permissão de câmera</Text>
+        <Text variant="body" color={colors.textSecondary}>
+          {bloqueada
+            ? 'A permissão de câmera está bloqueada. Para ler o QR Code, habilite-a nas configurações do aplicativo.'
+            : 'A câmera é necessária para iniciar o atendimento pelo QR Code.'}
+        </Text>
+        <Pressable
+          onPress={() => {
+            if (bloqueada) void abrirConfiguracoes();
+            else void requestPermission();
+          }}
+          style={styles.button}>
+          <Text variant="bodyStrong" color={colors.textOnBrand}>
+            {bloqueada ? 'Abrir configurações' : 'Permitir câmera'}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return <View style={styles.root}><CameraView style={styles.camera} facing="back" barcodeScannerSettings={{ barcodeTypes: ['qr'] }} onBarcodeScanned={locked ? undefined : handleCode}><View style={styles.overlay}><Pressable onPress={() => router.back()} style={styles.back}><ArrowLeft size={22} color={colors.textPrimary} /></Pressable><View style={styles.frame} /><View style={styles.caption}><Text variant="bodyStrong" color={colors.textPrimary}>{message}</Text></View></View></CameraView></View>;
 }

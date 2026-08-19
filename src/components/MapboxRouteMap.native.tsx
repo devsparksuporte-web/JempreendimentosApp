@@ -2,6 +2,7 @@ import Mapbox, { Camera, LineLayer, MapView, MarkerView, ShapeSource } from '@rn
 import * as Location from 'expo-location';
 import {
   AirVent,
+  CheckCircle2,
   CornerUpRight,
   MapPinned,
   Navigation,
@@ -323,14 +324,28 @@ export function MapboxRouteMap({ calls, selectedId, onSelect, onTrajeto }: Props
       {navegando && trajeto ? (
         <View style={styles.painel}>
           <View style={styles.painelTopo}>
-            <View style={styles.flex}>
-              <Text variant="microLabel" color={colors.textSecondary}>
-                Navegando até a parada {selecionado?.ordem}
+            {/* Selo de ETA do design, agora dentro do próprio painel. */}
+            <View style={styles.etaSelo}>
+              <Text variant="meta" color={colors.brandSoft}>
+                ETA
               </Text>
-              <Text variant="cardTitle">
-                {formatarDistancia(trajeto.distancia)} · {formatarDuracao(trajeto.duracao)}
+              <Text variant="bodyStrong" color={colors.brand}>
+                {formatarDuracao(trajeto.duracao)}
               </Text>
             </View>
+
+            <View style={styles.flex}>
+              <Text variant="microLabel" color={colors.textSecondary}>
+                Parada {selecionado?.ordem} · {formatarDistancia(trajeto.distancia)}
+              </Text>
+              <View style={styles.statusLinha}>
+                <CheckCircle2 size={14} color={colors.success} />
+                <Text variant="bodyStrong" color={colors.successStrong}>
+                  No fluxo
+                </Text>
+              </View>
+            </View>
+
             <Pressable
               onPress={encerrar}
               accessibilityLabel="Encerrar navegação"
@@ -542,7 +557,9 @@ const styles = StyleSheet.create({
     left: spacing.md,
     right: spacing.md,
     bottom: spacing.md,
-    maxHeight: 210,
+    // Enxuto de propósito: com o painel alto demais o mapa some, que era
+    // justamente o que se queria enxergar.
+    maxHeight: 172,
     backgroundColor: colors.bgSurface,
     borderRadius: radius.xl,
     borderWidth: 1,
@@ -551,6 +568,17 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   painelTopo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  etaSelo: {
+    width: 56,
+    height: 52,
+    borderRadius: radius.lg,
+    backgroundColor: colors.brandTint,
+    borderWidth: 1,
+    borderColor: colors.brandSoft,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   fechar: {
     width: 32,
     height: 32,

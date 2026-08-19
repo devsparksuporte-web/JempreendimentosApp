@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import {
   AirVent,
-  Bell,
   CalendarClock,
   ChevronRight,
   HardHat,
@@ -15,6 +14,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Header } from '@/components/ui/Header';
+import { SinoNotificacoes } from '@/components/ui/SinoNotificacoes';
 import { IconTile } from '@/components/ui/IconTile';
 import { ListRow } from '@/components/ui/ListRow';
 import { Section } from '@/components/ui/Section';
@@ -66,14 +66,7 @@ export default function ClienteHomeScreen() {
       <Header
         title="JEmpreendimentos"
         eyebrow="Soluções Técnicas"
-        trailing={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Notificações"
-            style={({ pressed }) => [styles.bell, pressed && styles.pressed]}>
-            <Bell size={20} color={colors.textMuted} />
-          </Pressable>
-        }
+        trailing={<SinoNotificacoes />}
       />
 
       <ScrollView
@@ -199,15 +192,5 @@ const styles = StyleSheet.create({
   activeCard: { backgroundColor: colors.brandTint },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
   flex: { flex: 1, gap: 2 },
-  bell: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.slate50,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   pressed: { opacity: 0.85, transform: [{ scale: 0.98 }] },
 });

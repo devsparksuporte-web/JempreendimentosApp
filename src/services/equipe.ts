@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 
+import { garantirPermissao } from '@/lib/permissoes';
 import { supabase } from '@/lib/supabase';
 import type { TechnicianStatus } from '@/types/database';
 
@@ -112,8 +113,8 @@ export async function fetchEquipeEmCampo(): Promise<TecnicoEmCampo[]> {
  */
 export async function reportarMinhaLocalizacao(): Promise<boolean> {
   try {
-    const { status } = await Location.getForegroundPermissionsAsync();
-    if (status !== 'granted') return false;
+    const permissao = await garantirPermissao('localizacao');
+    if (!permissao.ok) return false;
 
     const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
     const { error } = await supabase.rpc('report_technician_location', {

@@ -15,6 +15,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { carregarOnboarding, useOnboarding } from '@/lib/onboarding';
+import { carregarAssistentePermissoes, useAssistentePermissoes } from '@/lib/permissoes';
+import { incrementarNaoLidas, recarregarNaoLidas } from '@/lib/naoLidas';
 import { subscribeToNotifications } from '@/services/notifications';
 import { colors } from '@/theme/tokens';
 
@@ -27,45 +29,69 @@ SplashScreen.preventAutoHideAsync();
 function AuthGate() {
   const { session, initializing, role } = useAuth();
   const { carregado: onboardingReady, concluido: onboardingDone } = useOnboarding();
+  const { carregado: permissoesReady, concluido: permissoesDone } = useAssistentePermissoes();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     void carregarOnboarding();
+    void carregarAssistentePermissoes();
   }, []);
 
   useEffect(() => {
     if (!session?.user.id) return;
-    return subscribeToNotifications(session.user.id, () => {
-      Vibration.vibrate([0, 180, 80, 180]);
-      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate?.([180, 80, 180]);
+    void recarregarNaoLidas();
+
+    return subscribeToNotifications(session.user.id, (nova) => {
+      incrementarNaoLidas();
+
+      // O padrão da vibração carrega a urgência: três toques longos para
+      // urgente, dois médios para alta, um curto para o resto. Tremer igual
+      // para tudo faz o aparelho virar ruído de fundo.
+      const padrao =
+        nova.priority === 'urgent'
+          ? [0, 300, 120, 300, 120, 300]
+          : nova.priority === 'high'
+            ? [0, 180, 80, 180]
+            : [0, 120];
+
+      Vibration.vibrate(padrao);
+      if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+        navigator.vibrate?.(padrao.slice(1));
+      }
     });
   }, [session?.user.id]);
 
   useEffect(() => {
-    if (initializing || !onboardingReady) return;
+    if (initializing || !onboardingReady || !permissoesReady) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = inAuthGroup && (segments as string[])[1] === 'onboarding';
+    const inPermissoes = inAuthGroup && (segments as string[])[1] === 'permissoes';
     const inAdminGroup = segments[0] === '(admin)';
     const inTechnicianGroup = segments[0] === '(tecnico)';
     const destination = role === 'admin' ? '/(admin)' : role === 'tecnico' ? '/(tecnico)' : '/(cliente)';
 
+    // A ordem é: apresentação, permissões, login. Cada etapa só sai do
+    // caminho depois de concluída, e quem já entrou nunca mais as vê.
     if (!onboardingDone && !inOnboarding) {
       router.replace('/(auth)/onboarding' as never);
-    } else if (onboardingDone && !session && (!inAuthGroup || inOnboarding)) {
+    } else if (onboardingDone && !permissoesDone && !session && !inPermissoes) {
+      router.replace('/(auth)/permissoes' as never);
+    } else if (onboardingDone && permissoesDone && !session && (!inAuthGroup || inOnboarding || inPermissoes)) {
       router.replace('/(auth)/login');
     } else if (session && (inAuthGroup || (role === 'admin' && !inAdminGroup) || (role === 'tecnico' && !inTechnicianGroup) || (role === 'cliente' && (inAdminGroup || inTechnicianGroup)))) {
       router.replace(destination);
     }
-  }, [session, initializing, role, segments, router, onboardingReady, onboardingDone]);
+  }, [session, initializing, role, segments, router, onboardingReady, onboardingDone, permissoesReady, permissoesDone]);
 
-  if (initializing || !onboardingReady) return <StartupLoader />;
+  if (initializing || !onboardingReady || !permissoesReady) return <StartupLoader />;
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bgApp } }}>
       <Stack.Screen name="(auth)/login" />
       <Stack.Screen name="(auth)/onboarding" />
+      <Stack.Screen name="(auth)/permissoes" />
       <Stack.Screen name="(auth)/recuperar-senha" />
       <Stack.Screen name="(cliente)" />
       <Stack.Screen name="(admin)" />

@@ -1,7 +1,8 @@
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Check, CheckCircle2, ChevronLeft, ClipboardCheck, RotateCcw, UserCheck } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Image, PanResponder, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, PanResponder, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
