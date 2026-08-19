@@ -123,6 +123,9 @@ export type Technician = {
   updated_at: string;
 };
 
+/** Laudo do técnico sobre a condição física do equipamento. */
+export type EquipmentConditionLevel = 'critica' | 'alerta' | 'otimo';
+
 export type ServiceCall = {
   id: string;
   code: number;
@@ -138,6 +141,11 @@ export type ServiceCall = {
   ai_summary: AiSummary | null;
   diagnosis: string | null;
   solution: string | null;
+  /**
+   * Não confundir com `service_ratings.equipment_condition`, que é a
+   * percepção do cliente. Este campo é o laudo de quem executou.
+   */
+  equipment_condition: EquipmentConditionLevel | null;
   scheduled_for: string | null;
   started_at: string | null;
   finished_at: string | null;
@@ -288,6 +296,7 @@ export type Database = {
       service_priority: ServicePriority;
       service_type: ServiceType;
       technician_status: TechnicianStatus;
+      equipment_condition_level: EquipmentConditionLevel;
     };
     CompositeTypes: Record<string, never>;
   };

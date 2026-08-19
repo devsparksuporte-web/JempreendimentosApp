@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase';
-import type { ServiceCall, ServiceCallStatusHistory } from '@/types/database';
+import type { EquipmentConditionLevel, ServiceCall, ServiceCallStatusHistory } from '@/types/database';
 
 export type TechnicianCall = ServiceCall & {
   client: { name: string; phone: string | null } | null;
@@ -90,13 +90,21 @@ export async function fetchHistory(callId: string): Promise<ServiceCallStatusHis
   return data ?? [];
 }
 
-export async function technicianUpdateServiceCall(input: { callId: string; title?: string; description?: string | null; diagnosis?: string | null; solution?: string | null }) {
+export async function technicianUpdateServiceCall(input: {
+  callId: string;
+  title?: string;
+  description?: string | null;
+  diagnosis?: string | null;
+  solution?: string | null;
+  equipmentCondition?: EquipmentConditionLevel | null;
+}) {
   const { error } = await (supabase as any).rpc('technician_update_service_call', {
     p_call_id: input.callId,
     p_title: input.title ?? null,
     p_description: input.description ?? null,
     p_diagnosis: input.diagnosis ?? null,
     p_solution: input.solution ?? null,
+    p_equipment_condition: input.equipmentCondition ?? null,
   });
   if (error) throw new Error(error.message);
 }

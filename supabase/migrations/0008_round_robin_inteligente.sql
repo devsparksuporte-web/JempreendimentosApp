@@ -257,7 +257,7 @@ begin
   update public.service_calls set technician_id = v_best_technician, updated_at = now() where id = v_call.id;
   insert into public.service_distribution_runs (service_call_id, selected_technician_id, estimated_duration_minutes, candidate_scores, explanation)
   values (v_call.id, v_best_technician, coalesce((v_best_factors->>'estimated_minutes')::int, v_standard_minutes, v_config.default_duration_minutes), v_candidates,
-    format('Técnico %s selecionado com %.2f pontos: disponibilidade, especialidade, carga de trabalho, tempo estimado, localização e Round Robin foram considerados.', v_best_name, v_best_score));
+    format('Técnico %s selecionado com %s pontos: disponibilidade, especialidade, carga de trabalho, tempo estimado, localização e Round Robin foram considerados.', v_best_name, trim(to_char(v_best_score, 'FM990.00'))));
   return v_best_technician;
 end;
 $$;

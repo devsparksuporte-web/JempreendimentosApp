@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Activity, ArrowLeft, Calendar, Camera, CheckCircle2, ClipboardCheck, ClipboardList, FileText, Info, MapPin, Phone, Play, SearchCheck, Square, UserCheck } from 'lucide-react-native';
+import { Activity, AlertCircle, AlertTriangle, ArrowLeft, Calendar, Camera, CheckCircle2, ClipboardCheck, ClipboardList, FileText, Info, MapPin, Phone, Play, SearchCheck, Square, UserCheck } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
@@ -12,6 +12,42 @@ import { Text } from '@/components/ui/Text';
 import { formatDate, formatTime } from '@/lib/format';
 import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 import { captureAndUploadPhoto, fetchChecklist, fetchChecklistResults, fetchServicePhotos, fetchTechnicianCall, saveChecklistResult, technicianUpdateServiceCall, updateTechnicianStatus, type ChecklistItem, type TechnicianCall, type TechnicianPhoto } from '@/services/technician';
+import type { EquipmentConditionLevel } from '@/types/database';
+
+/** As três condições do design, na mesma ordem e com as mesmas cores. */
+const CONDICOES: {
+  valor: EquipmentConditionLevel;
+  rotulo: string;
+  ajuda: string;
+  cor: string;
+  fundo: string;
+  icone: typeof AlertCircle;
+}[] = [
+  {
+    valor: 'critica',
+    rotulo: 'Crítica',
+    ajuda: 'Precisa de atenção imediata e urgente.',
+    cor: colors.danger,
+    fundo: colors.dangerSoft,
+    icone: AlertCircle,
+  },
+  {
+    valor: 'alerta',
+    rotulo: 'Alerta',
+    ajuda: 'Funciona, mas requer reparos em breve.',
+    cor: colors.warning,
+    fundo: colors.warningSoft,
+    icone: AlertTriangle,
+  },
+  {
+    valor: 'otimo',
+    rotulo: 'Ótimo',
+    ajuda: 'Tudo em ordem, pronto para operar.',
+    cor: colors.success,
+    fundo: colors.successSoft,
+    icone: CheckCircle2,
+  },
+];
 
 export default function TechnicianCallScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,6 +62,7 @@ export default function TechnicianCallScreen() {
   const [descriptionDraft, setDescriptionDraft] = useState('');
   const [diagnosisDraft, setDiagnosisDraft] = useState('');
   const [solutionDraft, setSolutionDraft] = useState('');
+  const [condicaoDraft, setCondicaoDraft] = useState<EquipmentConditionLevel | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -33,7 +70,7 @@ export default function TechnicianCallScreen() {
     try {
       const nextCall = await fetchTechnicianCall(id);
       const [checklist, saved, nextPhotos] = await Promise.all([fetchChecklist(nextCall.service_type), fetchChecklistResults(id), fetchServicePhotos(id)]);
-      setCall(nextCall); setItems(checklist); setPhotos(nextPhotos); setResults(Object.fromEntries(saved.map((item) => [item.checklist_item_id, item.checked]))); setDescriptionDraft(nextCall.description ?? ''); setDiagnosisDraft(nextCall.diagnosis ?? ''); setSolutionDraft(nextCall.solution ?? '');
+      setCall(nextCall); setItems(checklist); setPhotos(nextPhotos); setResults(Object.fromEntries(saved.map((item) => [item.checklist_item_id, item.checked]))); setDescriptionDraft(nextCall.description ?? ''); setDiagnosisDraft(nextCall.diagnosis ?? ''); setSolutionDraft(nextCall.solution ?? ''); setCondicaoDraft(nextCall.equipment_condition ?? null);
     } catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível carregar o atendimento.'); } finally { setLoading(false); }
   }, [id]);
   useEffect(() => { load(); }, [load]);
@@ -57,7 +94,7 @@ export default function TechnicianCallScreen() {
   async function saveAdjustments() {
     if (!call) return;
     setBusy(true); setError(null);
-    try { await technicianUpdateServiceCall({ callId: call.id, description: descriptionDraft, diagnosis: diagnosisDraft, solution: solutionDraft }); await load(); }
+    try { await technicianUpdateServiceCall({ callId: call.id, description: descriptionDraft, diagnosis: diagnosisDraft, solution: solutionDraft, equipmentCondition: condicaoDraft }); await load(); }
     catch (err) { setError(err instanceof Error ? err.message : 'Não foi possível salvar os ajustes.'); }
     finally { setBusy(false); }
   }
@@ -167,10 +204,46 @@ export default function TechnicianCallScreen() {
             onChange={setDescriptionDraft}
             placeholder="Descreva a falha principal…"
           />
+          <View style={styles.campo}>
+            <View style={styles.campoCabecalho}>
+              <Activity size={16} color={colors.brandStrong} />
+              <Text variant="microLabel">Status de operação</Text>
+            </View>
+            <Text variant="meta" color={colors.textMuted}>Avaliação da condição física</Text>
+
+            <View style={styles.condicoes}>
+              {CONDICOES.map((c) => {
+                const ativa = condicaoDraft === c.valor;
+                const Icone = c.icone;
+                return (
+                  <Pressable
+                    key={c.valor}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: ativa }}
+                    // Tocar de novo na opção marcada desmarca: o técnico pode
+                    // ter errado o toque e não deve ficar preso a um laudo.
+                    onPress={() => setCondicaoDraft(ativa ? null : c.valor)}
+                    style={({ pressed }) => [
+                      styles.condicao,
+                      ativa && { borderColor: c.cor, backgroundColor: c.fundo },
+                      pressed && styles.pressed,
+                    ]}>
+                    <View style={[styles.condicaoMarca, ativa && { borderColor: c.cor, backgroundColor: c.cor }]} />
+                    <View style={styles.flex}>
+                      <Text variant="bodyStrong">{c.rotulo}</Text>
+                      <Text variant="meta" color={colors.textSecondary}>{c.ajuda}</Text>
+                    </View>
+                    <Icone size={20} color={c.cor} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
           <CampoTecnico
-            icone={Activity}
+            icone={SearchCheck}
             rotulo="Diagnóstico técnico"
-            ajuda="Avaliação da condição do equipamento"
+            ajuda="O que a inspeção constatou"
             valor={diagnosisDraft}
             onChange={setDiagnosisDraft}
             placeholder="O que foi constatado na inspeção…"
@@ -254,4 +327,4 @@ function LinhaInfo({ icone: Icone, rotulo, valor }: { icone: typeof MapPin; rotu
 
 function PhotoAction({ label, onPress, complete }: { label: string; onPress: () => void; complete: boolean }) { return <Pressable onPress={onPress} style={({ pressed }) => [styles.photoAction, complete && styles.photoComplete, pressed && styles.pressed]}><Camera size={24} color={complete ? colors.successStrong : colors.brandStrong} /><Text variant="bodyStrong" color={complete ? colors.successStrong : colors.brandStrong}>{label}</Text><Text variant="meta" color={colors.textSecondary}>{complete ? 'Registrada' : 'Obrigatória'}</Text></Pressable>; }
 
-const styles = StyleSheet.create({ editorInput: { minHeight: 76, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, color: colors.textPrimary, backgroundColor: colors.slate50, fontFamily: fonts.medium, fontSize: 14, textAlignVertical: 'top', marginTop: spacing.sm }, root: { flex: 1, backgroundColor: colors.bgApp }, top: { paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, backgroundColor: colors.bgSurface, borderBottomWidth: 1, borderBottomColor: colors.border, flexDirection: 'row', alignItems: 'center', gap: spacing.md }, back: { width: 40, height: 40, borderRadius: radius.pill, backgroundColor: colors.slate50, alignItems: 'center', justifyContent: 'center' }, topTitle: { flex: 1, gap: 2 }, scroll: { flexGrow: 1, alignItems: 'center' }, container: { width: '100%', maxWidth: layout.maxContentWidth, padding: layout.screenPadding, gap: spacing.lg }, row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md }, rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md }, section: { gap: spacing.md }, photoGrid: { flexDirection: 'row', gap: spacing.md }, photoAction: { flex: 1, minHeight: 132, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.brandSoft, backgroundColor: colors.brandTint, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, padding: spacing.md }, photoComplete: { backgroundColor: colors.successSoft, borderColor: colors.success }, checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, marginBottom: spacing.sm }, flex: { flex: 1, gap: spacing.xs }, actions: { gap: spacing.md }, diagnostico: { gap: spacing.lg }, diagnosticoTopo: { alignItems: 'center', gap: spacing.xs, paddingBottom: spacing.sm }, campo: { gap: spacing.xs }, campoCabecalho: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm }, protocolo: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, backgroundColor: colors.brandTint, borderWidth: 1, borderColor: colors.brandSoft, borderRadius: radius.xl, padding: spacing.lg }, checkin: { gap: spacing.xl }, checkinTopo: { alignItems: 'center', gap: spacing.sm }, checkinTitulo: { textAlign: 'center', textTransform: 'uppercase' }, checkinLinhas: { gap: spacing.md }, linhaInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.slate50, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md }, linhaInfoIcone: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }, ligar: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.slate50, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }, inerte: { opacity: 0.4 }, gradeUnidade: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.lg, paddingTop: spacing.lg, borderTopWidth: 1, borderTopColor: colors.slate100 }, patrimonio: { fontFamily: fonts.bold, letterSpacing: 1 }, error: { backgroundColor: colors.dangerSoft, borderColor: colors.danger }, pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] } });
+const styles = StyleSheet.create({ editorInput: { minHeight: 76, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, padding: spacing.md, color: colors.textPrimary, backgroundColor: colors.slate50, fontFamily: fonts.medium, fontSize: 14, textAlignVertical: 'top', marginTop: spacing.sm }, root: { flex: 1, backgroundColor: colors.bgApp }, top: { paddingTop: 56, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, backgroundColor: colors.bgSurface, borderBottomWidth: 1, borderBottomColor: colors.border, flexDirection: 'row', alignItems: 'center', gap: spacing.md }, back: { width: 40, height: 40, borderRadius: radius.pill, backgroundColor: colors.slate50, alignItems: 'center', justifyContent: 'center' }, topTitle: { flex: 1, gap: 2 }, scroll: { flexGrow: 1, alignItems: 'center' }, container: { width: '100%', maxWidth: layout.maxContentWidth, padding: layout.screenPadding, gap: spacing.lg }, row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md }, rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md }, section: { gap: spacing.md }, photoGrid: { flexDirection: 'row', gap: spacing.md }, photoAction: { flex: 1, minHeight: 132, borderRadius: radius.xl, borderWidth: 1, borderColor: colors.brandSoft, backgroundColor: colors.brandTint, alignItems: 'center', justifyContent: 'center', gap: spacing.sm, padding: spacing.md }, photoComplete: { backgroundColor: colors.successSoft, borderColor: colors.success }, checkRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, marginBottom: spacing.sm }, flex: { flex: 1, gap: spacing.xs }, actions: { gap: spacing.md }, diagnostico: { gap: spacing.lg }, diagnosticoTopo: { alignItems: 'center', gap: spacing.xs, paddingBottom: spacing.sm }, campo: { gap: spacing.xs }, condicoes: { gap: spacing.sm, marginTop: spacing.sm }, condicao: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.slate50, borderRadius: radius.lg, padding: spacing.md }, condicaoMarca: { width: 18, height: 18, borderRadius: 9, borderWidth: 2, borderColor: colors.slate300 }, campoCabecalho: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm }, protocolo: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, backgroundColor: colors.brandTint, borderWidth: 1, borderColor: colors.brandSoft, borderRadius: radius.xl, padding: spacing.lg }, checkin: { gap: spacing.xl }, checkinTopo: { alignItems: 'center', gap: spacing.sm }, checkinTitulo: { textAlign: 'center', textTransform: 'uppercase' }, checkinLinhas: { gap: spacing.md }, linhaInfo: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.slate50, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, padding: spacing.md }, linhaInfoIcone: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }, ligar: { width: 40, height: 40, borderRadius: radius.md, backgroundColor: colors.slate50, borderWidth: 1, borderColor: colors.border, alignItems: 'center', justifyContent: 'center' }, inerte: { opacity: 0.4 }, gradeUnidade: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.lg, paddingTop: spacing.lg, borderTopWidth: 1, borderTopColor: colors.slate100 }, patrimonio: { fontFamily: fonts.bold, letterSpacing: 1 }, error: { backgroundColor: colors.dangerSoft, borderColor: colors.danger }, pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] } });
