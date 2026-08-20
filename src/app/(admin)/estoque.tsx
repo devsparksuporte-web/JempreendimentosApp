@@ -1,4 +1,5 @@
-import { AlertCircle, Box, Package, RefreshCw, Search } from 'lucide-react-native';
+import { AlertCircle, Box, Package, Plus, RefreshCw, Search } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,6 +47,7 @@ function nivelDoItem(row: InventoryRow) {
 }
 
 export default function AdminInventoryScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [rows, setRows] = useState<InventoryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,13 +90,22 @@ export default function AdminInventoryScreen() {
         title="Gerenciamento de estoque"
         eyebrow="Controle de peças e componentes"
         trailing={
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Atualizar"
-            onPress={load}
-            style={styles.refresh}>
-            <RefreshCw size={18} color={colors.brand} />
-          </Pressable>
+          <View style={styles.headerAcoes}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Novo produto"
+              onPress={() => router.push('/(admin)/produto/novo' as never)}
+              style={styles.refresh}>
+              <Plus size={18} color={colors.brand} />
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Atualizar"
+              onPress={load}
+              style={styles.refresh}>
+              <RefreshCw size={18} color={colors.brand} />
+            </Pressable>
+          </View>
         }
       />
 
@@ -192,7 +203,14 @@ export default function AdminInventoryScreen() {
               const nivel = nivelDoItem(row);
               const Icone = nivel.icone;
               return (
-                <View key={row.part_id} style={[styles.item, { borderColor: nivel.borda }]}>
+                <Pressable
+                  key={row.part_id}
+                  onPress={() => router.push(`/(admin)/produto/${row.part_id}` as never)}
+                  style={({ pressed }) => [
+                    styles.item,
+                    { borderColor: nivel.borda },
+                    pressed && styles.itemPressionado,
+                  ]}>
                   <View style={[styles.itemIcone, { backgroundColor: nivel.fundo }]}>
                     <Icone size={22} color={nivel.chave === 'ok' ? colors.brand : nivel.texto} />
                   </View>
@@ -223,7 +241,7 @@ export default function AdminInventoryScreen() {
                       </Text>
                     </View>
                   </View>
-                </View>
+                </Pressable>
               );
             })
           )}
@@ -330,6 +348,8 @@ const styles = StyleSheet.create({
   itemMeta: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
   pontinho: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.slate300 },
 
+  headerAcoes: { flexDirection: 'row', gap: spacing.sm },
+  itemPressionado: { opacity: 0.85, transform: [{ scale: 0.995 }] },
   refresh: {
     width: 36,
     height: 36,
