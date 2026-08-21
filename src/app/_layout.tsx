@@ -70,6 +70,16 @@ function AuthGate() {
     const inPermissoes = inAuthGroup && (segments as string[])[1] === 'permissoes';
     const inAdminGroup = segments[0] === '(admin)';
     const inTechnicianGroup = segments[0] === '(tecnico)';
+
+    // Telas na raiz não pertencem a perfil nenhum: a central de
+    // notificações e o chamado são as mesmas para quem quer que esteja
+    // logado. Sem esta exceção o administrador é devolvido para
+    // `(admin)` no mesmo instante em que abre o sino, e a tela pisca sem
+    // dizer por quê. Quem decide o que cada um enxerga é a RLS, não isto
+    // aqui — isto é só para onde a navegação leva.
+    const emRotaCompartilhada = ['notificacoes', 'chamado'].includes(
+      (segments as string[])[0],
+    );
     const destination = role === 'admin' ? '/(admin)' : role === 'tecnico' ? '/(tecnico)' : '/(cliente)';
 
     // A ordem é: apresentação, permissões, login. Cada etapa só sai do
@@ -80,7 +90,14 @@ function AuthGate() {
       router.replace('/(auth)/permissoes' as never);
     } else if (onboardingDone && permissoesDone && !session && (!inAuthGroup || inOnboarding || inPermissoes)) {
       router.replace('/(auth)/login');
-    } else if (session && (inAuthGroup || (role === 'admin' && !inAdminGroup) || (role === 'tecnico' && !inTechnicianGroup) || (role === 'cliente' && (inAdminGroup || inTechnicianGroup)))) {
+    } else if (
+      session &&
+      !emRotaCompartilhada &&
+      (inAuthGroup ||
+        (role === 'admin' && !inAdminGroup) ||
+        (role === 'tecnico' && !inTechnicianGroup) ||
+        (role === 'cliente' && (inAdminGroup || inTechnicianGroup)))
+    ) {
       router.replace(destination);
     }
   }, [session, initializing, role, segments, router, onboardingReady, onboardingDone, permissoesReady, permissoesDone]);

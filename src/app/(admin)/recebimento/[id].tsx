@@ -144,12 +144,17 @@ export default function RecebimentoDetalheScreen() {
       return;
     }
 
+    // Entrada acima do que falta precisa de confirmação — inclusive quando
+    // não falta nada. Pedido já completo recebendo mais é o caso em que o
+    // engano passa mais fácil, e é justamente onde o aviso faltava.
     const falta = quantidadePendente(pedido);
-    if (confirmar && qtd > falta && falta > 0) {
+    if (confirmar && qtd > falta) {
       const seguir = await new Promise<boolean>((resolve) => {
         Alert.alert(
           'Chegou mais que o pedido',
-          `Faltavam ${falta} e você está dando entrada de ${qtd}. Confirmar mesmo assim?`,
+          falta > 0
+            ? `Faltavam ${falta} e você está dando entrada de ${qtd}. Confirmar mesmo assim?`
+            : `Este pedido já foi recebido por inteiro. Confirmar entrada de mais ${qtd}?`,
           [
             { text: 'Revisar', style: 'cancel', onPress: () => resolve(false) },
             { text: 'Confirmar', onPress: () => resolve(true) },

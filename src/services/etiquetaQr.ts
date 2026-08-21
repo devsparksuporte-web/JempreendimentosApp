@@ -1,6 +1,7 @@
 import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 import QRCode from 'qrcode';
+
+import { entregarPdf } from '@/services/documento';
 
 /**
  * Etiqueta de QR Code do equipamento.
@@ -99,14 +100,5 @@ export async function imprimirEtiqueta(dados: DadosEtiqueta, copias = 1): Promis
  */
 export async function compartilharEtiqueta(dados: DadosEtiqueta, copias = 1): Promise<void> {
   const svg = await svgDoQr(dados.conteudo);
-  const { uri } = await Print.printToFileAsync({ html: montarHtml(svg, dados, copias) });
-
-  if (!(await Sharing.isAvailableAsync())) {
-    throw new Error('Compartilhamento indisponível neste aparelho.');
-  }
-  await Sharing.shareAsync(uri, {
-    mimeType: 'application/pdf',
-    dialogTitle: 'Etiqueta do equipamento',
-    UTI: 'com.adobe.pdf',
-  });
+  await entregarPdf(montarHtml(svg, dados, copias), 'Etiqueta do equipamento');
 }

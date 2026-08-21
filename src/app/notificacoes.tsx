@@ -101,9 +101,13 @@ export default function NotificationsScreen() {
   useEffect(() => {
     const perfil = session?.user.id;
     if (!perfil) return;
-    return subscribeToNotifications(perfil, (nova) => {
-      setItems((atual) => [nova, ...atual]);
-    });
+    return subscribeToNotifications(
+      perfil,
+      (nova) => {
+        setItems((atual) => [nova, ...atual]);
+      },
+      'central',
+    );
   }, [session?.user.id]);
 
   const naoLidas = useMemo(() => items.filter((i) => !i.read_at).length, [items]);

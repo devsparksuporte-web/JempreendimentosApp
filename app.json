@@ -30,7 +30,7 @@
       ]
     },
     "web": {
-      "output": "static",
+      "output": "single",
       "themeColor": "#06152E",
       "backgroundColor": "#F4F8FF"
     },

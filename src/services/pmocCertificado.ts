@@ -1,6 +1,6 @@
 import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
 
+import { entregarPdf } from '@/services/documento';
 import { execucoesNoPeriodo, type PmocCertificate, type PmocPlan } from '@/services/pmoc';
 import { colors } from '@/theme/tokens';
 
@@ -177,17 +177,11 @@ export function montarHtml(plan: PmocPlan, certificado: PmocCertificate): string
 }
 
 /** Gera o PDF e abre o compartilhamento (imprimir, salvar, enviar). */
-export async function gerarPdf(plan: PmocPlan, certificado: PmocCertificate): Promise<string> {
-  const { uri } = await Print.printToFileAsync({ html: montarHtml(plan, certificado) });
-
-  if (await Sharing.isAvailableAsync()) {
-    await Sharing.shareAsync(uri, {
-      mimeType: 'application/pdf',
-      dialogTitle: 'Certificado ' + certificado.number,
-      UTI: 'com.adobe.pdf',
-    });
-  }
-  return uri;
+export async function gerarPdf(
+  plan: PmocPlan,
+  certificado: PmocCertificate,
+): Promise<string | null> {
+  return entregarPdf(montarHtml(plan, certificado), 'Certificado ' + certificado.number);
 }
 
 /** Envia direto para a impressora, sem passar pelo compartilhamento. */

@@ -69,12 +69,34 @@ export async function markAllNotificationsRead() {
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Sequência das inscrições. Ver `subscribeToNotifications`.
+ */
+let sequenciaDeCanal = 0;
+
+/**
+ * Escuta as notificações que chegam para este perfil.
+ *
+ * O nome do canal é único a cada chamada, e isso não é capricho: o
+ * supabase-js devolve o canal JÁ EXISTENTE quando alguém pede um tópico
+ * repetido. Como `removeChannel` é assíncrono, um efeito que desmonta e
+ * remonta encontra o canal anterior ainda na lista, recebe ele de volta já
+ * inscrito, e o `.on()` estoura em "cannot add postgres_changes callbacks
+ * after subscribe()". O mesmo vale para dois assinantes simultâneos — o
+ * sino global e a central — em que ainda por cima o primeiro a desmontar
+ * levaria o canal do outro junto.
+ *
+ * O `escopo` fica só para o nome dizer de quem é o canal quando se olha a
+ * conexão; quem garante que não há colisão é o contador.
+ */
 export function subscribeToNotifications(
   profileId: string,
   onNotification: (notification: AppNotification) => void,
+  escopo = 'app',
 ) {
+  sequenciaDeCanal += 1;
   const channel = supabase
-    .channel(`notifications:${profileId}`)
+    .channel(`notifications:${profileId}:${escopo}:${sequenciaDeCanal}`)
     .on(
       'postgres_changes',
       {
