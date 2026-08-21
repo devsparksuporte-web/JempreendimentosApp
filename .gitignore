@@ -45,3 +45,9 @@ example
 
 # superdesign
 .superdesign
+
+# Este projeto usa npm. Um segundo lockfile faz a Vercel instalar com o
+# gerenciador errado e o build quebra em ERR_PNPM_OUTDATED_LOCKFILE.
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
