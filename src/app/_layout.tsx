@@ -9,7 +9,7 @@ import {
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, StyleSheet, Text as NativeText, Vibration, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text as NativeText, Vibration, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -68,6 +68,19 @@ function AuthGate() {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboarding = inAuthGroup && (segments as string[])[1] === 'onboarding';
     const inPermissoes = inAuthGroup && (segments as string[])[1] === 'permissoes';
+
+    // A recuperação de senha é destino de link de email: a pessoa chega
+    // com o token na URL, quase sempre num navegador que nunca abriu este
+    // app. Mandá-la para o onboarding descarta o token e o link morre —
+    // e ela nunca entende por quê, porque a tela que aparece é bonita e
+    // não diz que algo se perdeu.
+    const inRecuperarSenha = inAuthGroup && (segments as string[])[1] === 'recuperar-senha';
+
+    // No navegador o site da empresa é a apresentação: quem clicou em
+    // "Entrar no sistema" quer o formulário de login, não três telas de
+    // boas-vindas. O onboarding é ritual de primeira abertura de
+    // aplicativo, e no web ele só atrasa quem já decidiu entrar.
+    const apresentacaoOk = onboardingDone || Platform.OS === 'web';
     const inAdminGroup = segments[0] === '(admin)';
     const inTechnicianGroup = segments[0] === '(tecnico)';
 
@@ -84,11 +97,13 @@ function AuthGate() {
 
     // A ordem é: apresentação, permissões, login. Cada etapa só sai do
     // caminho depois de concluída, e quem já entrou nunca mais as vê.
-    if (!onboardingDone && !inOnboarding) {
+    if (inRecuperarSenha) {
+      return;
+    } else if (!apresentacaoOk && !inOnboarding) {
       router.replace('/(auth)/onboarding' as never);
-    } else if (onboardingDone && !permissoesDone && !session && !inPermissoes) {
+    } else if (apresentacaoOk && !permissoesDone && !session && !inPermissoes) {
       router.replace('/(auth)/permissoes' as never);
-    } else if (onboardingDone && permissoesDone && !session && (!inAuthGroup || inOnboarding || inPermissoes)) {
+    } else if (apresentacaoOk && permissoesDone && !session && (!inAuthGroup || inOnboarding || inPermissoes)) {
       router.replace('/(auth)/login');
     } else if (
       session &&
