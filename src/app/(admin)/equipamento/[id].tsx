@@ -1,8 +1,10 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { QrCode, Save } from 'lucide-react-native';
+import { Printer, QrCode, Save, Share2 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import QRCode from 'react-native-qrcode-svg';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -23,6 +25,7 @@ import {
   type EdicaoEquipamento,
   type Endereco,
 } from '@/services/cadastros';
+import { compartilharEtiqueta, imprimirEtiqueta } from '@/services/etiquetaQr';
 import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 
 export default function EquipamentoScreen() {
@@ -37,6 +40,7 @@ export default function EquipamentoScreen() {
   const [loading, setLoading] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imprimindo, setImprimindo] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -96,6 +100,29 @@ export default function EquipamentoScreen() {
       setError(e instanceof Error ? e.message : 'Não foi possível salvar.');
     } finally {
       setSalvando(false);
+    }
+  }
+
+  /** Monta a etiqueta com o que identifica o aparelho na parede. */
+  function dadosDaEtiqueta() {
+    const cliente = clientes.find((c) => c.id === form?.client_id);
+    return {
+      conteudo: conteudoQrDoEquipamento(id!),
+      titulo: [form?.brand, form?.model].filter(Boolean).join(' ') || 'Equipamento',
+      linha1: [cliente?.name, form?.environment].filter(Boolean).join(' · ') || null,
+      linha2: form?.serial_number ? `S/N ${form.serial_number}` : null,
+    };
+  }
+
+  async function comEtiqueta(acao: (d: ReturnType<typeof dadosDaEtiqueta>) => Promise<void>) {
+    if (!id || novo) return;
+    setImprimindo(true);
+    try {
+      await acao(dadosDaEtiqueta());
+    } catch (e) {
+      Alert.alert('Não foi possível gerar a etiqueta', e instanceof Error ? e.message : '');
+    } finally {
+      setImprimindo(false);
     }
   }
 
@@ -230,19 +257,59 @@ export default function EquipamentoScreen() {
           </Secao>
 
           {!novo && id ? (
-            <Card>
+            <Card style={styles.cartaoQr}>
               <View style={styles.qrTopo}>
                 <QrCode size={22} color={colors.brand} />
                 <Text variant="microLabel" color={colors.textSecondary}>
-                  Etiqueta QR do aparelho
+                  Etiqueta do aparelho
                 </Text>
               </View>
-              <Text variant="meta" color={colors.textMuted} style={styles.mono}>
-                {conteudoQrDoEquipamento(id)}
+
+              {/* Correção alta no QR: etiqueta de obra suja, arranha e desbota,
+                  e ainda precisa ser lida. */}
+              <View style={styles.qrCaixa}>
+                <QRCode
+                  value={conteudoQrDoEquipamento(id)}
+                  size={168}
+                  ecl="H"
+                  backgroundColor="#ffffff"
+                  color="#06152E"
+                />
+              </View>
+
+              <Text variant="bodyStrong" style={styles.centro}>
+                {[form.brand, form.model].filter(Boolean).join(' ') || 'Equipamento'}
               </Text>
-              <Text variant="meta" color={colors.textSecondary}>
-                Este é o conteúdo que a etiqueta deve conter. O técnico lê pelo aplicativo e abre o
-                atendimento direto no equipamento certo.
+              {form.serial_number ? (
+                <Text variant="meta" color={colors.textSecondary} style={styles.centro}>
+                  S/N {form.serial_number}
+                </Text>
+              ) : null}
+
+              <View style={styles.qrAcoes}>
+                <View style={styles.flex}>
+                  <Button
+                    label="Imprimir"
+                    icon={Printer}
+                    loading={imprimindo}
+                    onPress={() => void comEtiqueta((d) => imprimirEtiqueta(d))}
+                  />
+                </View>
+                <View style={styles.flex}>
+                  <Button
+                    label="Enviar PDF"
+                    icon={Share2}
+                    variant="secondary"
+                    disabled={imprimindo}
+                    onPress={() => void comEtiqueta((d) => compartilharEtiqueta(d))}
+                  />
+                </View>
+              </View>
+
+              <Text variant="meta" color={colors.textMuted}>
+                A etiqueta sai no tamanho de bobina de 58 mm. "Imprimir" usa o sistema do Android e
+                só enxerga impressora com serviço de impressão instalado; "Enviar PDF" gera o
+                arquivo para abrir no aplicativo da impressora.
               </Text>
             </Card>
           ) : null}
@@ -380,8 +447,17 @@ const styles = StyleSheet.create({
   },
   pillAtiva: { backgroundColor: colors.brand, borderColor: colors.brand },
 
+  cartaoQr: { alignItems: 'center', gap: spacing.md },
   qrTopo: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  mono: { letterSpacing: 0.4 },
+  qrCaixa: {
+    padding: spacing.md,
+    backgroundColor: '#ffffff',
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  qrAcoes: { flexDirection: 'row', gap: spacing.md, alignSelf: 'stretch' },
+  centro: { textAlign: 'center' },
 
   erro: { backgroundColor: colors.dangerSoft, borderColor: colors.danger },
 });

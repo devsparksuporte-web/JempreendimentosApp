@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Building2, ChevronRight, PackageSearch, RefreshCw, ScanSearch } from 'lucide-react-native';
+import { Building2, ChevronRight, PackageCheck, PackageSearch, RefreshCw, ScanSearch } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -163,6 +163,13 @@ export default function ReposicaoScreen() {
               onPress={() => {
                 void varrer();
               }}
+            />
+            <View style={styles.espaco} />
+            <Button
+              label="Recebimento de mercadoria"
+              icon={PackageCheck}
+              variant="secondary"
+              onPress={() => router.push('/(admin)/recebimento' as never)}
             />
             <View style={styles.espaco} />
             <Button
