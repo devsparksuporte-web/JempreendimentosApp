@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { Building2, ChevronRight, PackageCheck, PackageSearch, RefreshCw, ScanSearch } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge, type BadgeTone } from '@/components/ui/Badge';
@@ -17,6 +17,7 @@ import {
   type Reposicao,
   type StatusReposicao,
 } from '@/services/estoque';
+import { Alert } from '@/lib/alerta';
 import { colors, layout, radius, spacing } from '@/theme/tokens';
 
 type Filtro = 'abertas' | 'todas' | 'concluidas';

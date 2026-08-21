@@ -1,11 +1,12 @@
 import { CheckCircle2, ChevronLeft, Circle, CircleX, Send, Star, ThumbsUp, XCircle } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/ui/Button';
+import { Alert } from '@/lib/alerta';
 import { submitServiceRating } from '@/services/ratings';
 import { colors, elevation, fonts, layout, radius, spacing, touch } from '@/theme/tokens';
 

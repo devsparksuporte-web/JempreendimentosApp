@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ArrowDownToLine, ArrowUpFromLine, Save, SlidersHorizontal } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -24,6 +24,7 @@ import {
   type Movimento,
   type TipoMovimento,
 } from '@/services/estoque';
+import { Alert } from '@/lib/alerta';
 import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 
 const UNIDADES = ['un', 'cx', 'm', 'L', 'kg', 'pct', 'rolo', 'par'];

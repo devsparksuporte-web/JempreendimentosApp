@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AirVent, Check, HardHat, MapPin, MessageCircle, Phone, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -19,6 +19,7 @@ import {
   STATUS_LIVE,
   STATUS_TONE,
 } from '@/lib/format';
+import { Alert } from '@/lib/alerta';
 import { adminUpdateServiceCall, cancelMyServiceCall, fetchServiceCall, fetchStatusHistory, type ServiceCallDetailed } from '@/services/client';
 import { fetchDistributionTechnicians, type DistributionTechnician } from '@/services/distribution';
 import { useAuth } from '@/context/AuthContext';

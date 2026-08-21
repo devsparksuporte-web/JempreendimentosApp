@@ -1,12 +1,13 @@
 import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, HelpCircle, LockKeyhole, Mail, RefreshCw } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/context/AuthContext';
+import { Alert } from '@/lib/alerta';
 import { supabase } from '@/lib/supabase';
 import { colors, fonts, layout, radius, spacing, touch } from '@/theme/tokens';
 

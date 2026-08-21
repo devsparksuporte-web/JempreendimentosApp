@@ -1,12 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Bell, ChevronLeft, ChevronRight, Clock3, Edit3, FileText, History, LockKeyhole, LogOut, Mail, MapPin, MessageSquare, Phone, RefreshCw, Settings, ShieldCheck, UserRound, Wifi } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/context/AuthContext';
+import { Alert } from '@/lib/alerta';
 import { colors, fonts, layout, radius, spacing, touch } from '@/theme/tokens';
 
 type SettingsScreenProps = { roleLabel: string; subtitle: string };

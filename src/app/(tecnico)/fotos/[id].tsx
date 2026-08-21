@@ -12,12 +12,13 @@ import {
   Upload,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
+import { Alert } from '@/lib/alerta';
 import { formatTime } from '@/lib/format';
 import { supabase } from '@/lib/supabase';
 import {

@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Building2, Mail, MessageCircle, Phone, Save } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Header } from '@/components/ui/Header';
 import { ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
+import { Alert } from '@/lib/alerta';
 import { fetchFornecedores, salvarFornecedor, type Fornecedor } from '@/services/estoque';
 import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 

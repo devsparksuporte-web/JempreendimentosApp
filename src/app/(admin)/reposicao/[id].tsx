@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ban, Check, FileText, MessageCircle, Save, Send } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -24,6 +24,7 @@ import {
   type Fornecedor,
   type Reposicao,
 } from '@/services/estoque';
+import { Alert } from '@/lib/alerta';
 import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 
 function paraNumero(t: string): number {

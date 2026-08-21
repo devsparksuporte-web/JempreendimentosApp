@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Printer, QrCode, Save, Share2 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import QRCode from 'react-native-qrcode-svg';
@@ -25,6 +25,7 @@ import {
   type EdicaoEquipamento,
   type Endereco,
 } from '@/services/cadastros';
+import { Alert } from '@/lib/alerta';
 import { compartilharEtiqueta, imprimirEtiqueta } from '@/services/etiquetaQr';
 import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 

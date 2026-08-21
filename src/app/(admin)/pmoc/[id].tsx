@@ -9,7 +9,7 @@ import {
   XCircle,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -21,6 +21,7 @@ import { IconTile } from '@/components/ui/IconTile';
 import { Section } from '@/components/ui/Section';
 import { ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
+import { Alert } from '@/lib/alerta';
 import { daysUntilLabel, formatDate } from '@/lib/format';
 import {
   emitirCertificado,
