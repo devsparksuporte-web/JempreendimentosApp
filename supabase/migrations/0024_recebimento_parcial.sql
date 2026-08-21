@@ -164,15 +164,19 @@ begin
 
     v_completo := v_recebida >= v_pedida;
 
+    -- O cast é obrigatório: um `case` com literais resolve para text, e a
+    -- coluna é enum. Literal solto o Postgres coage; `case` não.
     update public.purchase_orders
-       set status = case when v_completo then 'recebido' else 'em_transito' end,
+       set status = (case when v_completo then 'recebido' else 'em_transito' end)
+                    ::public.purchase_order_status,
            updated_at = now()
      where id = new.purchase_order_id;
 
     -- Parcial deixa a solicitação em 'recebido': chegou material, mas
     -- ainda há o que cobrar do fornecedor.
     update public.replenishment_requests
-       set status = case when v_completo then 'concluido' else 'recebido' end,
+       set status = (case when v_completo then 'concluido' else 'recebido' end)
+                    ::public.replenishment_status,
            updated_at = now()
      where id = v_pedido.request_id;
 
