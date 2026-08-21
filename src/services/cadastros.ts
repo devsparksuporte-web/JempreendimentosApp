@@ -380,6 +380,63 @@ export async function salvarTecnico(
   return (data as { id: string }).id;
 }
 
+/**
+ * Perfis que podem virar técnico.
+ *
+ * Inclui quem ainda está como cliente, porque nenhum cadastro nasce
+ * técnico: o `signUp` grava sempre 'cliente'. Sem poder promover por
+ * aqui, a lista de vínculo ficaria eternamente vazia e a única saída
+ * seria mexer no banco à mão.
+ *
+ * Administrador fica de fora de propósito. Se o único administrador se
+ * promovesse a técnico, perderia o próprio acesso de administração — e
+ * não sobraria ninguém com poder para desfazer.
+ */
+export async function fetchPerfisDisponiveis(): Promise<PerfilLivre[]> {
+  const { data: perfis, error } = await (supabase as any)
+    .from('profiles')
+    .select('id, full_name, email, role')
+    .eq('active', true)
+    .neq('role', 'admin')
+    .order('full_name');
+  if (error) throw new Error(error.message);
+
+  const { data: vinculados } = await (supabase as any).from('technicians').select('profile_id');
+  const jaTem = new Set(((vinculados ?? []) as { profile_id: string }[]).map((v) => v.profile_id));
+  return ((perfis ?? []) as PerfilLivre[]).filter((p) => !jaTem.has(p.id));
+}
+
+/**
+ * Muda o papel do perfil para técnico.
+ *
+ * Não é cosmético: o papel decide quais telas a pessoa vê e o que a RLS
+ * deixa ela ler. Quem era cliente perde o portal do cliente ao virar
+ * técnico, então a tela pergunta antes.
+ */
+export async function promoverParaTecnico(profileId: string): Promise<void> {
+  const { error } = await (supabase as any)
+    .from('profiles')
+    .update({ role: 'tecnico' })
+    .eq('id', profileId);
+  if (error) throw new Error(error.message);
+}
+
+export const ROTULO_ESPECIALIDADE: Record<string, string> = {
+  instalacao: 'Instalação',
+  manutencao_preventiva: 'Preventiva',
+  manutencao_corretiva: 'Corretiva',
+  higienizacao: 'Higienização',
+  carga_gas: 'Carga de gás',
+  eletrica: 'Elétrica',
+};
+
+export const ROTULO_STATUS_TECNICO: Record<Tecnico['status'], string> = {
+  disponivel: 'Disponível',
+  em_atendimento: 'Em atendimento',
+  a_caminho: 'A caminho',
+  indisponivel: 'Indisponível',
+};
+
 export const ESPECIALIDADES = [
   'instalacao',
   'manutencao_preventiva',
