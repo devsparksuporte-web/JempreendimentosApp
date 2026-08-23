@@ -3,6 +3,8 @@ import { Activity, AlertCircle, AlertTriangle, ArrowLeft, Calendar, Camera, Chec
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
+import { ConversaChamado } from '@/components/ConversaChamado';
+
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -274,6 +276,8 @@ export default function TechnicianCallScreen() {
         <Card><Text variant="microLabel" color={colors.textSecondary}>Equipamento</Text><Text variant="screenTitle">{call.equipment?.brand ?? 'Sem marca'} {call.equipment?.model ?? ''}</Text><Text variant="body" color={colors.textSecondary}>{call.equipment?.environment ?? 'Ambiente não informado'} · {call.equipment?.btu_capacity ? `${call.equipment.btu_capacity} BTU` : 'BTU não informado'} · Gás {call.equipment?.gas_type ?? 'não informado'}</Text></Card>
         <View style={styles.section}><Text variant="microLabel" color={colors.textSecondary}>Evidências obrigatórias</Text><View style={styles.photoGrid}><PhotoAction label={`Antes (${beforeCount})`} onPress={() => addPhoto('antes')} complete={beforeCount > 0} /><PhotoAction label={`Depois (${afterCount})`} onPress={() => addPhoto('depois')} complete={afterCount > 0} /></View></View>
         <View style={styles.section}><View style={styles.rowBetween}><Text variant="microLabel" color={colors.textSecondary}>Checklist técnico</Text><Badge label={`${Object.values(results).filter(Boolean).length}/${items.length}`} tone={checklistComplete ? 'success' : 'warning'} /></View>{items.length === 0 ? <Card><Text variant="body" color={colors.textSecondary}>Nenhum checklist cadastrado para este tipo de serviço.</Text></Card> : items.map((item) => <Pressable key={item.id} onPress={() => toggleItem(item)} style={({ pressed }) => [styles.checkRow, pressed && styles.pressed]}><CheckCircle2 size={22} color={results[item.id] ? colors.success : colors.borderStrong} fill={results[item.id] ? colors.successSoft : 'transparent'} /><View style={styles.flex}><Text variant="bodyStrong">{item.label}</Text>{item.help_text ? <Text variant="meta" color={colors.textSecondary}>{item.help_text}</Text> : null}</View></Pressable>)}</View>
+
+        {id ? <ConversaChamado callId={id} /> : null}
       </View>
     </ScrollView>
   </View>;

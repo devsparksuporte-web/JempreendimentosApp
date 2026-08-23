@@ -2,6 +2,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AirVent, Check, HardHat, MapPin, MessageCircle, Phone, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+
+import { ConversaChamado } from '@/components/ConversaChamado';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -246,6 +248,8 @@ export default function AcompanharChamadoScreen() {
               ) : null}
             </>
           )}
+
+          {id ? <ConversaChamado callId={id} /> : null}
         </View>
       </ScrollView>
     </View>
