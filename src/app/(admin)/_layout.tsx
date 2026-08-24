@@ -79,6 +79,7 @@ export default function AdminLayout() {
       <Tabs.Screen name="reposicao/[id]" options={{ href: null }} />
       <Tabs.Screen name="recebimento" options={{ href: null }} />
       <Tabs.Screen name="recebimento/[id]" options={{ href: null }} />
+      <Tabs.Screen name="chamados" options={{ href: null }} />
       <Tabs.Screen name="equipe" options={{ href: null }} />
       <Tabs.Screen name="tecnico/[id]" options={{ href: null }} />
       <Tabs.Screen name="fornecedores" options={{ href: null }} />

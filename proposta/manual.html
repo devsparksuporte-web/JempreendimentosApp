@@ -1,0 +1,541 @@
+<!doctype html>
+<!--
+  Manual de uso do sistema JEmpreendimentos.
+
+  Gera PDF com:
+    node proposta/gerar.mjs manual
+
+  Escrito a partir das telas que existem de verdade — abas, botões e
+  fluxos foram conferidos no próprio aplicativo. O que ainda não existe
+  está na última página, em "Limites de hoje", em vez de ser omitido.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Manual do sistema — JEmpreendimentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tinta:   #06152E;
+    --tinta-2: #48617D;
+    --tinta-3: #8199B2;
+    --marca:   #006BFF;
+    --escuro:  #06152E;
+    --linha:   #E2ECF9;
+    --fundo:   #F6F9FE;
+    --ok:      #007A5A;
+    --ok-fundo:#D9F8ED;
+    --alerta:  #C65400;
+    --alerta-fundo: #FFF0DC;
+  }
+
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--tinta); font-size: 10.5pt; line-height: 1.6;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  h1, h2, h3, h4 { margin: 0; line-height: 1.2; letter-spacing: -0.02em; }
+  p { margin: 0 0 9px; }
+
+  .pagina { page-break-after: always; }
+  .pagina:last-child { page-break-after: auto; }
+  .junto { page-break-inside: avoid; }
+
+  /* ---------- capa ---------- */
+  .capa {
+    background: linear-gradient(160deg, #0B2350, var(--escuro));
+    color: #fff; margin: -16mm -15mm 0; padding: 34mm 15mm 26mm;
+    position: relative; overflow: hidden;
+  }
+  .capa::after {
+    content: ''; position: absolute; right: -60mm; top: -45mm;
+    width: 150mm; height: 150mm; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,107,255,.32), transparent 65%);
+  }
+  .capa > * { position: relative; }
+  .marca-capa { display: flex; align-items: center; gap: 10px; margin-bottom: 30mm; }
+  .marca-selo {
+    width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.14);
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px;
+  }
+  .marca-nome { font-weight: 800; font-size: 12pt; line-height: 1.2; }
+  .marca-nome small { display: block; font-size: 7pt; letter-spacing: .16em; color: #8FB6E8; font-weight: 600; }
+  .capa .rotulo { font-size: 8pt; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #8FE8C8; }
+  .capa h1 { font-size: 30pt; margin: 10px 0 14px; font-weight: 800; }
+  .capa .sub { font-size: 12pt; color: #B9CEEA; max-width: 118mm; }
+
+  /* ---------- sumário ---------- */
+  .sumario { margin-top: 14mm; }
+  .sumario-linha {
+    display: flex; align-items: baseline; gap: 6px;
+    padding: 7px 0; border-bottom: 1px solid var(--linha); font-size: 10pt;
+  }
+  .sumario-linha b { font-weight: 700; min-width: 8mm; color: var(--marca); }
+  .sumario-linha span { color: var(--tinta-2); }
+
+  /* ---------- seções ---------- */
+  section { margin-top: 11mm; }
+  .olho { font-size: 8pt; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--marca); }
+  h2 { font-size: 18pt; margin: 6px 0 8px; }
+  h3 { font-size: 12pt; margin: 7mm 0 4px; }
+  h4 { font-size: 10.5pt; margin: 0 0 3px; }
+  .conduz { color: var(--tinta-2); font-size: 11pt; margin-bottom: 7mm; }
+
+  .perfil-tarja {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 8pt; font-weight: 800; letter-spacing: .12em; text-transform: uppercase;
+    background: #E9F3FF; color: #062B68; margin-bottom: 6px;
+  }
+
+  /* ---------- passos ---------- */
+  ol.passos { counter-reset: passo; list-style: none; margin: 0; padding: 0; }
+  ol.passos > li {
+    counter-increment: passo; position: relative;
+    padding: 0 0 5mm 11mm; margin: 0;
+  }
+  ol.passos > li::before {
+    content: counter(passo); position: absolute; left: 0; top: 0;
+    width: 7mm; height: 7mm; border-radius: 50%;
+    background: var(--marca); color: #fff;
+    font-size: 8.5pt; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+  }
+  ol.passos > li::after {
+    content: ''; position: absolute; left: 3.4mm; top: 7.5mm; bottom: 1mm;
+    width: 1px; background: var(--linha);
+  }
+  ol.passos > li:last-child::after { display: none; }
+  ol.passos p { margin: 2px 0 0; font-size: 9.5pt; color: var(--tinta-2); }
+
+  .bloco { border: 1px solid var(--linha); border-radius: 10px; padding: 5mm; background: var(--fundo); margin: 4mm 0; }
+  .bloco.atencao { background: var(--alerta-fundo); border-color: #E9A254; }
+  .bloco.bom { background: var(--ok-fundo); border-color: #8FE0C4; }
+  .bloco h4 { display: flex; align-items: center; gap: 6px; }
+  .bloco p { font-size: 9.5pt; color: var(--tinta-2); margin: 4px 0 0; }
+  .bloco.atencao p { color: #7A3B00; }
+  .bloco.bom p { color: #04503A; }
+
+  ul.simples { margin: 0; padding-left: 5mm; }
+  ul.simples li { margin-bottom: 4px; color: var(--tinta-2); font-size: 9.5pt; }
+  ul.simples li b { color: var(--tinta); }
+
+  .abas { display: flex; flex-wrap: wrap; gap: 5px; margin: 3mm 0 5mm; }
+  .aba {
+    font-size: 8.5pt; font-weight: 700; padding: 4px 11px;
+    border-radius: 20px; border: 1px solid var(--linha); background: #fff; color: var(--tinta-2);
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-top: 3mm; }
+  th { text-align: left; font-size: 7.5pt; letter-spacing: .12em; text-transform: uppercase; color: var(--tinta-3); padding: 0 0 6px; border-bottom: 1px solid var(--linha); }
+  td { padding: 7px 8px 7px 0; border-bottom: 1px solid var(--linha); vertical-align: top; color: var(--tinta-2); }
+  td:first-child { color: var(--tinta); font-weight: 600; width: 38%; }
+
+  .rodape-doc {
+    margin-top: 12mm; padding-top: 4mm; border-top: 1px solid var(--linha);
+    font-size: 8pt; color: var(--tinta-3); display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== CAPA E SUMÁRIO ==================== -->
+<div class="pagina">
+  <div class="capa">
+    <div class="marca-capa">
+      <span class="marca-selo">J</span>
+      <span class="marca-nome">JEMPREENDIMENTOS<small>CLIMATIZAÇÃO</small></span>
+    </div>
+    <span class="rotulo">Manual de uso</span>
+    <h1>Como usar o sistema</h1>
+    <p class="sub">
+      Guia por perfil — cliente, técnico e administração. Cada parte pode ser
+      entregue separada para quem vai usá-la.
+    </p>
+  </div>
+
+  <section>
+    <span class="olho">Neste manual</span>
+    <h2>Conteúdo</h2>
+    <div class="sumario">
+      <div class="sumario-linha"><b>1</b><span>Entrar no sistema — login, senha e quem cria as contas</span></div>
+      <div class="sumario-linha"><b>2</b><span>Guia do cliente — abrir chamado, acompanhar e conversar</span></div>
+      <div class="sumario-linha"><b>3</b><span>Guia do técnico — do aceite à assinatura</span></div>
+      <div class="sumario-linha"><b>4</b><span>Guia da administração — cadastros, equipe, estoque e compras</span></div>
+      <div class="sumario-linha"><b>5</b><span>Quando algo dá errado</span></div>
+      <div class="sumario-linha"><b>6</b><span>Limites de hoje</span></div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== 1. ENTRAR ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Parte 1</span>
+    <h2>Entrar no sistema</h2>
+    <p class="conduz">
+      O mesmo sistema atende três perfis. O que cada um enxerga é decidido no
+      login — não há troca de perfil dentro do aplicativo.
+    </p>
+
+    <h3>Onde acessar</h3>
+    <ul class="simples">
+      <li><b>No celular ou tablet:</b> aplicativo JEmpreendimentos, instalado no aparelho.</li>
+      <li><b>No computador:</b> pelo site da empresa, botão <b>Entrar no sistema</b>. É o mesmo sistema, sem instalar nada.</li>
+    </ul>
+
+    <h3>Quem cria a conta</h3>
+    <div class="bloco atencao junto">
+      <h4>A senha nunca é criada por outra pessoa</h4>
+      <p>
+        Ninguém — nem a administração — define a senha de outro usuário. Cada
+        pessoa cria a própria conta em <b>Cadastre-se</b>, na tela de login, e
+        escolhe a senha dela. Depois disso a administração liga essa conta ao
+        cadastro correspondente. É o que garante que só a própria pessoa
+        conhece a sua senha.
+      </p>
+    </div>
+
+    <ol class="passos">
+      <li>
+        <h4>A pessoa se cadastra</h4>
+        <p>Na tela de login, toca em <b>Cadastre-se</b> e informa nome, email e senha.</p>
+      </li>
+      <li>
+        <h4>A administração vincula</h4>
+        <p>
+          Para cliente: Início → Clientes e equipamentos → abre o cadastro →
+          <b>Conta de acesso</b> → toca no nome da pessoa.<br>
+          Para técnico: Início → <b>Equipe técnica</b> → Vincular técnico.
+        </p>
+      </li>
+      <li>
+        <h4>A pessoa entra</h4>
+        <p>Do próximo login em diante ela já enxerga o que é dela.</p>
+      </li>
+    </ol>
+
+    <h3>Esqueci minha senha</h3>
+    <ol class="passos">
+      <li><h4>Toque em "Esqueci minha senha"</h4><p>Na tela de login.</p></li>
+      <li><h4>Informe o email do cadastro</h4><p>Chega um link de segurança na caixa de entrada.</p></li>
+      <li><h4>Abra o link e defina a nova senha</h4><p>Se não chegar em alguns minutos, verifique a pasta de spam.</p></li>
+    </ol>
+  </section>
+</div>
+
+<!-- ==================== 2. CLIENTE ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="perfil-tarja">Perfil cliente</span>
+    <h2>Guia do cliente</h2>
+    <p class="conduz">
+      O cliente abre chamado, acompanha o atendimento e consulta o histórico
+      dos próprios equipamentos. Ele não vê dado de nenhum outro cliente.
+    </p>
+
+    <div class="abas">
+      <span class="aba">Início</span>
+      <span class="aba">Equipamentos</span>
+      <span class="aba">Chamados</span>
+      <span class="aba">Assistente</span>
+      <span class="aba">Perfil</span>
+    </div>
+
+    <h3>Abrir um chamado</h3>
+    <p style="font-size:9.5pt;color:var(--tinta-2)">
+      A abertura é por conversa: o assistente pergunta o necessário e monta um
+      resumo para o técnico, para ele já chegar sabendo do que se trata.
+    </p>
+    <ol class="passos">
+      <li><h4>Toque em Abrir chamado</h4><p>Pela tela inicial ou pela aba Chamados.</p></li>
+      <li><h4>Responda as perguntas do assistente</h4><p>Qual equipamento, o que está acontecendo, desde quando. Quanto mais preciso, melhor o técnico se prepara.</p></li>
+      <li><h4>Confira o resumo</h4><p>O assistente mostra o que entendeu antes de gravar.</p></li>
+      <li><h4>Toque em Criar chamado</h4><p>Pronto. O chamado entra na fila e a administração é avisada.</p></li>
+    </ol>
+
+    <h3>Acompanhar o atendimento</h3>
+    <ul class="simples">
+      <li><b>Status.</b> A tela do chamado mostra em que etapa ele está, do aberto ao finalizado.</li>
+      <li><b>Técnico a caminho.</b> Quando o técnico inicia o deslocamento, dá para acompanhar a chegada.</li>
+      <li><b>Fotos e laudo.</b> Registro de antes e depois, diagnóstico e solução ficam no próprio chamado.</li>
+    </ul>
+
+    <h3>Conversar sobre o chamado</h3>
+    <div class="bloco junto">
+      <h4>Use a conversa, não o telefone</h4>
+      <p>
+        No fim da tela do chamado existe a <b>Conversa do chamado</b>. O que for
+        escrito ali fica no histórico do atendimento e a equipe recebe o aviso.
+        O que se combina por telefone não fica registrado em lugar nenhum — e é
+        exatamente o que costuma virar discussão depois.
+      </p>
+    </div>
+
+    <h3>Equipamentos</h3>
+    <p style="font-size:9.5pt;color:var(--tinta-2)">
+      A aba <b>Equipamentos</b> lista os aparelhos cadastrados, com marca,
+      modelo, ambiente e o histórico de atendimentos de cada um.
+    </p>
+  </section>
+</div>
+
+<!-- ==================== 3. TÉCNICO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="perfil-tarja">Perfil técnico</span>
+    <h2>Guia do técnico</h2>
+    <p class="conduz">
+      O técnico enxerga apenas os chamados atribuídos a ele. Todo o atendimento
+      é registrado no aparelho, em campo.
+    </p>
+
+    <div class="abas">
+      <span class="aba">Atendimentos</span>
+      <span class="aba">Rota</span>
+      <span class="aba">Ler QR</span>
+      <span class="aba">Configurações</span>
+    </div>
+
+    <h3>O atendimento, do começo ao fim</h3>
+    <ol class="passos">
+      <li>
+        <h4>Aceitar chamado</h4>
+        <p>Na aba Atendimentos, abra o chamado e toque em <b>Aceitar chamado</b>. O cliente é avisado.</p>
+      </li>
+      <li>
+        <h4>Iniciar deslocamento</h4>
+        <p>Ao sair para o endereço. A partir daqui o cliente acompanha a chegada, e a aba <b>Rota</b> mostra o caminho.</p>
+      </li>
+      <li>
+        <h4>Iniciar atendimento</h4>
+        <p>Ao chegar no local e começar o serviço.</p>
+      </li>
+      <li>
+        <h4>Fotos de antes</h4>
+        <p>Registre o estado do aparelho antes de mexer. É o que sustenta o laudo depois.</p>
+      </li>
+      <li>
+        <h4>Checklist</h4>
+        <p>Marque os itens conforme executa. O checklist muda conforme o tipo de serviço.</p>
+      </li>
+      <li>
+        <h4>Peças utilizadas</h4>
+        <p>Lance as peças no chamado. A baixa no estoque é automática — peça não lançada some do saldo sem explicação.</p>
+      </li>
+      <li>
+        <h4>Fotos de depois</h4>
+        <p>O antes e o depois lado a lado é o que encerra discussão sobre o que foi feito.</p>
+      </li>
+      <li>
+        <h4>Condição do equipamento</h4>
+        <p>Classifique como <b>Ótimo</b>, <b>Alerta</b> ou <b>Crítica</b>. É o que avisa a administração de um aparelho que vai dar problema.</p>
+      </li>
+      <li>
+        <h4>Assinatura do cliente</h4>
+        <p>Colha a assinatura na tela, com o cliente presente.</p>
+      </li>
+      <li>
+        <h4>Finalizar atendimento</h4>
+        <p>Só libera com checklist e fotos completos. O laudo é gerado e o cliente é avisado.</p>
+      </li>
+    </ol>
+
+    <div class="bloco bom junto">
+      <h4>Ler QR: o atalho que economiza tempo</h4>
+      <p>
+        Cada aparelho tem uma etiqueta com QR. Na aba <b>Ler QR</b>, aponte a
+        câmera para a etiqueta e o histórico daquele aparelho abre na hora — sem
+        procurar cliente, endereço e ambiente na lista.
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== 4. ADMINISTRAÇÃO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="perfil-tarja">Perfil administração</span>
+    <h2>Guia da administração</h2>
+    <p class="conduz">
+      A administração enxerga tudo: chamados, equipe, clientes, estoque e
+      compras.
+    </p>
+
+    <div class="abas">
+      <span class="aba">Início</span>
+      <span class="aba">Mapa</span>
+      <span class="aba">PMOC</span>
+      <span class="aba">Estoque</span>
+      <span class="aba">Distribuição</span>
+      <span class="aba">Perfil</span>
+    </div>
+
+    <h3>Cadastrar um cliente</h3>
+    <ol class="passos">
+      <li><h4>Início → Clientes e equipamentos → botão +</h4><p>Nome, documento, telefone, WhatsApp e email.</p></li>
+      <li><h4>Endereços</h4><p>Digite o CEP e toque em <b>Buscar</b>: rua, bairro, cidade e estado vêm preenchidos. Número e complemento continuam na mão.</p></li>
+      <li><h4>Equipamentos</h4><p>Marca, modelo, ambiente, BTU, gás e tecnologia. Cada aparelho ganha uma etiqueta QR.</p></li>
+      <li><h4>Conta de acesso</h4><p>Ligue a conta da pessoa ao cadastro, para ela acompanhar os chamados pelo portal.</p></li>
+    </ol>
+
+    <h3>Imprimir a etiqueta QR</h3>
+    <p style="font-size:9.5pt;color:var(--tinta-2)">
+      No cadastro do equipamento, role até <b>Etiqueta do aparelho</b>. São dois
+      caminhos: <b>Imprimir</b> usa o sistema de impressão do Android e só
+      enxerga impressora com serviço instalado; <b>Enviar PDF</b> gera o arquivo
+      para abrir no aplicativo da impressora térmica. A etiqueta sai no tamanho
+      de bobina de 58 mm.
+    </p>
+
+    <h3>Chamados</h3>
+    <ul class="simples">
+      <li><b>Início → Chamados</b> mostra o histórico completo, com filtro de abertos, encerrados e todos. É onde se consulta um serviço já terminado.</li>
+      <li><b>Distribuição</b> atribui o chamado por proximidade, especialidade e carga do técnico.</li>
+      <li><b>Mapa</b> mostra a equipe em tempo real.</li>
+    </ul>
+
+    <h3>Equipe técnica</h3>
+    <ol class="passos">
+      <li><h4>Início → Equipe técnica → Vincular técnico</h4><p>Escolha a conta da pessoa.</p></li>
+      <li><h4>Preencha matrícula e especialidades</h4><p>As especialidades não são enfeite: a distribuição automática usa elas para escolher quem atende cada chamado.</p></li>
+      <li><h4>Ativo na equipe</h4><p>Técnico inativo não recebe chamado novo e some do mapa, mas o histórico dele continua.</p></li>
+    </ol>
+  </section>
+</div>
+
+<!-- ==================== 4b. ESTOQUE E COMPRAS ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="perfil-tarja">Perfil administração</span>
+    <h2>Estoque, reposição e compras</h2>
+    <p class="conduz">
+      O ciclo vai do saldo baixo até a mercadoria entrando no estoque, sem
+      planilha paralela.
+    </p>
+
+    <ol class="passos">
+      <li>
+        <h4>O sistema detecta o saldo baixo</h4>
+        <p>Ao cruzar o estoque mínimo, uma solicitação de reposição é criada sozinha e a administração é avisada. Produto sem estoque máximo configurado não gera sugestão.</p>
+      </li>
+      <li>
+        <h4>Consultar o fornecedor</h4>
+        <p>Em <b>Reposição de estoque</b>, abra a solicitação e use <b>Enviar por WhatsApp</b>. A mensagem sai pronta e o envio fica registrado.</p>
+      </li>
+      <li>
+        <h4>Registrar a cotação</h4>
+        <p>Valor unitário, frete, desconto, prazo e condição de pagamento.</p>
+      </li>
+      <li>
+        <h4>Aprovar</h4>
+        <p>A aprovação é sempre de uma pessoa. Ao aprovar, o pedido de compra é gerado automaticamente.</p>
+      </li>
+      <li>
+        <h4>Acompanhar o pedido</h4>
+        <p>Em <b>Recebimento de mercadoria</b>, marque enviado, confirmado ou em trânsito conforme fala com o fornecedor.</p>
+      </li>
+      <li>
+        <h4>Receber a mercadoria</h4>
+        <p>Informe a quantidade que chegou, a nota fiscal e o lote. <b>Confirmar entrada</b> sobe o saldo na hora; <b>Salvar para conferir depois</b> registra sem mexer no estoque.</p>
+      </li>
+    </ol>
+
+    <div class="bloco junto">
+      <h4>Recebimento parcial</h4>
+      <p>
+        Chegando 3 de 8, o pedido continua aberto e volta para "em trânsito",
+        com as 5 restantes ainda na sua régua de cobrança. Só quando a
+        quantidade completa entra é que o pedido fecha e a solicitação é
+        encerrada.
+      </p>
+    </div>
+
+    <h3>Movimentar estoque à mão</h3>
+    <p style="font-size:9.5pt;color:var(--tinta-2)">
+      No cadastro do produto existem <b>entrada</b>, <b>saída</b> e
+      <b>ajuste</b>. Entrada e saída somam e subtraem; <b>ajuste substitui o
+      saldo</b> pelo número informado — use ajuste depois de contar a
+      prateleira, não para corrigir uma entrada errada.
+    </p>
+
+    <h3>Notificações</h3>
+    <p style="font-size:9.5pt;color:var(--tinta-2)">
+      O sino no topo mostra as não lidas. Em <b>Perfil → Notificações</b> dá
+      para desligar categorias inteiras — chamados, mensagens, estoque,
+      agendamentos, financeiro, serviços e equipe. A preferência vale para a
+      sua conta em qualquer aparelho. Avisos críticos continuam chegando mesmo
+      desligados.
+    </p>
+  </section>
+</div>
+
+<!-- ==================== 5 e 6 ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Parte 5</span>
+    <h2>Quando algo dá errado</h2>
+
+    <table>
+      <tr><th>Situação</th><th>O que fazer</th></tr>
+      <tr>
+        <td>O cliente entrou mas não vê nada</td>
+        <td>A conta dele não está ligada ao cadastro. Abra o cliente → Conta de acesso → toque no nome dele.</td>
+      </tr>
+      <tr>
+        <td>A pessoa não aparece na lista de contas</td>
+        <td>Ela ainda não se cadastrou no aplicativo, ou a conta já está ligada a outro cadastro.</td>
+      </tr>
+      <tr>
+        <td>O link de recuperação de senha não chegou</td>
+        <td>Verifique a pasta de spam e se o email digitado é o mesmo do cadastro. Depois use "Reenviar link".</td>
+      </tr>
+      <tr>
+        <td>A impressora térmica não aparece ao imprimir</td>
+        <td>A maioria das térmicas de 58 mm não instala serviço de impressão no Android. Use <b>Enviar PDF</b> e abra o arquivo no aplicativo da impressora.</td>
+      </tr>
+      <tr>
+        <td>O produto abaixo do mínimo não gerou solicitação</td>
+        <td>Falta o estoque máximo no cadastro do produto. Preencha e use "Procurar estoque baixo agora".</td>
+      </tr>
+      <tr>
+        <td>O técnico não recebe chamado novo</td>
+        <td>Confira se ele está <b>ativo na equipe</b> e se tem a especialidade do serviço cadastrada.</td>
+      </tr>
+      <tr>
+        <td>O saldo do estoque não bate</td>
+        <td>Abra o produto e veja o histórico de movimentação: cada linha mostra o saldo antes e depois. Corrija com um ajuste após contar a prateleira.</td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <span class="olho">Parte 6</span>
+    <h2>Limites de hoje</h2>
+    <p class="conduz">
+      Saber o que o sistema ainda não faz evita esperar por algo que não vai
+      acontecer.
+    </p>
+
+    <ul class="simples">
+      <li><b>Aviso só com o aplicativo aberto.</b> As notificações aparecem dentro do sistema. Notificação que toca no celular com o aplicativo fechado ainda não está implantada.</li>
+      <li><b>Um acesso por cliente.</b> Cada cadastro de cliente se liga a uma conta. Um condomínio com síndico e zelador teria hoje só um acesso.</li>
+      <li><b>Sem agenda própria.</b> O agendamento é registrado no chamado; não existe calendário de visitas.</li>
+      <li><b>Sem módulo financeiro.</b> Contas a receber e faturamento por contrato não fazem parte do sistema.</li>
+      <li><b>Localização em segundo plano.</b> No navegador, o acompanhamento da equipe só atualiza com a aba aberta. Em campo, use o aplicativo.</li>
+    </ul>
+
+    <div class="rodape-doc">
+      <span>Manual do sistema — JEmpreendimentos Climatização</span>
+      <span>Versão 1.0</span>
+    </div>
+  </section>
+</div>
+
+</body>
+</html>

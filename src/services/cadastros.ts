@@ -30,6 +30,9 @@ export type Cliente = {
 
 export type EdicaoCliente = Omit<Cliente, 'id' | 'profile_id'>;
 
+/** Conta de acesso ainda sem dono, usada tanto por cliente quanto por técnico. */
+export type PerfilLivre = { id: string; full_name: string; email: string | null; role: string };
+
 export const CLIENTE_VAZIO: EdicaoCliente = {
   name: '',
   doc: null,
@@ -112,6 +115,54 @@ export const ENDERECO_VAZIO: EdicaoEndereco = {
   zip_code: null,
   is_primary: true,
 };
+
+/**
+ * Contas que podem virar o acesso deste cliente.
+ *
+ * São os perfis com papel de cliente que ainda não estão ligados a
+ * nenhum cadastro. O vínculo é um-para-um: `clients.profile_id` é único,
+ * então uma conta não pode responder por duas empresas.
+ *
+ * Administrador e técnico ficam de fora: o papel deles decide o que veem
+ * no aplicativo, e ligar um técnico a um cadastro de cliente só criaria
+ * confusão sobre qual portal ele deveria abrir.
+ */
+export async function fetchPerfisParaCliente(): Promise<PerfilLivre[]> {
+  const { data: perfis, error } = await (supabase as any)
+    .from('profiles')
+    .select('id, full_name, email, role')
+    .eq('active', true)
+    .eq('role', 'cliente')
+    .order('full_name');
+  if (error) throw new Error(error.message);
+
+  const { data: ligados } = await (supabase as any)
+    .from('clients')
+    .select('profile_id')
+    .not('profile_id', 'is', null);
+  const jaTem = new Set(
+    ((ligados ?? []) as { profile_id: string }[]).map((v) => v.profile_id),
+  );
+  return ((perfis ?? []) as PerfilLivre[]).filter((p) => !jaTem.has(p.id));
+}
+
+/**
+ * Liga (ou desliga) a conta de acesso ao cadastro do cliente.
+ *
+ * É isto que faz `my_client_id()` encontrar alguma coisa. Sem o vínculo,
+ * a pessoa entra no aplicativo e não enxerga chamado, equipamento nem
+ * laudo nenhum — o cadastro existe só para a administração.
+ */
+export async function vincularContaDoCliente(
+  clientId: string,
+  profileId: string | null,
+): Promise<void> {
+  const { error } = await (supabase as any)
+    .from('clients')
+    .update({ profile_id: profileId, updated_at: new Date().toISOString() })
+    .eq('id', clientId);
+  if (error) throw new Error(error.message);
+}
 
 export async function fetchEnderecos(clientId: string): Promise<Endereco[]> {
   const { data, error } = await (supabase as any)
@@ -313,8 +364,6 @@ export function conteudoQrDoEquipamento(id: string): string {
 // se cadastra no aplicativo. Criar login por aqui exigiria a chave de
 // serviço do Supabase dentro do app — que é justamente o que não se faz.
 // ---------------------------------------------------------------------------
-
-export type PerfilLivre = { id: string; full_name: string; email: string | null; role: string };
 
 export type Tecnico = {
   id: string;

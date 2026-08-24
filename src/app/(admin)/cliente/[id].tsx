@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AirVent, MapPin, Plus, Save, Search, Trash2 } from 'lucide-react-native';
+import { AirVent, Link2 as LinkIcon, MapPin, Plus, Save, Search, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -23,6 +23,9 @@ import {
   CLIENTE_VAZIO,
   buscarCep,
   ENDERECO_VAZIO,
+  fetchPerfisParaCliente,
+  vincularContaDoCliente,
+  type PerfilLivre,
   excluirEndereco,
   fetchCliente,
   fetchEnderecos,
@@ -55,6 +58,11 @@ export default function ClienteScreen() {
   );
   const [buscandoCep, setBuscandoCep] = useState(false);
 
+  /** Conta de acesso ligada a este cadastro, e as candidatas livres. */
+  const [contaId, setContaId] = useState<string | null>(null);
+  const [contas, setContas] = useState<PerfilLivre[]>([]);
+  const [ligando, setLigando] = useState(false);
+
   const load = useCallback(async () => {
     setError(null);
     try {
@@ -70,6 +78,8 @@ export default function ClienteScreen() {
       ]);
       const { id: _i, profile_id: _p, ...resto } = c;
       setForm(resto);
+      setContaId(c.profile_id);
+      setContas(await fetchPerfisParaCliente());
       setEnderecos(e);
       setEquipamentos(eq);
     } catch (e) {
@@ -150,6 +160,27 @@ export default function ClienteScreen() {
       );
     } finally {
       setBuscandoCep(false);
+    }
+  }
+
+  /**
+   * Liga a conta de acesso ao cadastro, ou desfaz a ligação.
+   *
+   * É o que faz `my_client_id()` encontrar este cliente. Enquanto não
+   * houver conta ligada, a pessoa entra no aplicativo e não vê chamado,
+   * equipamento nem laudo — o cadastro serve só para a administração.
+   */
+  async function ligarConta(profileId: string | null) {
+    if (!id || novo) return;
+    setLigando(true);
+    try {
+      await vincularContaDoCliente(id, profileId);
+      setContaId(profileId);
+      setContas(await fetchPerfisParaCliente());
+    } catch (e) {
+      Alert.alert('Não foi possível vincular', e instanceof Error ? e.message : '');
+    } finally {
+      setLigando(false);
     }
   }
 
@@ -272,6 +303,79 @@ export default function ClienteScreen() {
               </View>
             </Pressable>
           </Secao>
+
+          {!novo ? (
+            <Secao titulo="Conta de acesso">
+              {contaId ? (
+                <>
+                  <Text variant="bodyStrong">
+                    {contas.find((c) => c.id === contaId)?.full_name ??
+                      'Conta ligada a este cadastro'}
+                  </Text>
+                  <Text variant="meta" color={colors.textSecondary}>
+                    Esta pessoa entra no aplicativo e enxerga os chamados, equipamentos e laudos
+                    deste cliente — e de mais ninguém.
+                  </Text>
+                  <Button
+                    label="Desvincular conta"
+                    variant="secondary"
+                    disabled={ligando}
+                    onPress={() => {
+                      Alert.alert(
+                        'Desvincular conta',
+                        'A pessoa continua com login, mas deixa de enxergar este cliente.',
+                        [
+                          { text: 'Cancelar', style: 'cancel' },
+                          {
+                            text: 'Desvincular',
+                            style: 'destructive',
+                            onPress: () => {
+                              void ligarConta(null);
+                            },
+                          },
+                        ],
+                      );
+                    }}
+                  />
+                </>
+              ) : (
+                <>
+                  <Text variant="meta" color={colors.textSecondary}>
+                    Este cadastro ainda não tem acesso. A senha não se cria por aqui: a pessoa se
+                    cadastra sozinha no aplicativo, em "Cadastre-se", e você liga a conta dela a
+                    este cliente. Assim ninguém além dela conhece a própria senha.
+                  </Text>
+
+                  {contas.length === 0 ? (
+                    <Text variant="meta" color={colors.textMuted}>
+                      Nenhuma conta disponível no momento. Peça para a pessoa se cadastrar com o
+                      email dela e atualize esta tela.
+                    </Text>
+                  ) : (
+                    contas.map((c) => (
+                      <Pressable
+                        key={c.id}
+                        disabled={ligando}
+                        onPress={() => {
+                          void ligarConta(c.id);
+                        }}
+                        style={({ pressed }) => [styles.conta, pressed && styles.pressionado]}>
+                        <View style={styles.flex}>
+                          <Text variant="bodyStrong" numberOfLines={1}>
+                            {c.full_name || 'Sem nome'}
+                          </Text>
+                          <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+                            {c.email ?? 'Sem email'}
+                          </Text>
+                        </View>
+                        <LinkIcon size={17} color={colors.brand} />
+                      </Pressable>
+                    ))
+                  )}
+                </>
+              )}
+            </Secao>
+          ) : null}
 
           {error ? (
             <Card style={styles.erro}>
@@ -603,6 +707,16 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   flex: { flex: 1, gap: 2 },
+  conta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.lg,
+    backgroundColor: colors.slate50,
+    padding: spacing.md,
+  },
   centro: { textAlign: 'center' },
 
   secao: { gap: spacing.md },

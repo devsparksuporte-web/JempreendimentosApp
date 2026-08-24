@@ -1,0 +1,459 @@
+<!doctype html>
+<!--
+  Proposta comercial do sistema JEmpreendimentos.
+
+  Gera PDF com:
+    node proposta/gerar.mjs
+
+  PREENCHER — procure por [PREENCHER no arquivo:
+    - valor de implantação e forma de pagamento
+    - valor da manutenção mensal
+    - dados de quem propõe (razão social, CNPJ, contato)
+    - dados do cliente
+    - prazo e validade
+
+  Nenhum número foi inventado. O que eu não sei está marcado.
+  O inventário do que está pronto foi levantado do próprio código.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Proposta — Sistema de Gestão JEmpreendimentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tinta:   #06152E;
+    --tinta-2: #48617D;
+    --tinta-3: #8199B2;
+    --marca:   #006BFF;
+    --escuro:  #06152E;
+    --linha:   #E2ECF9;
+    --fundo:   #F6F9FE;
+    --ok:      #00A878;
+    --alerta:  #C65400;
+  }
+
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--tinta);
+    font-size: 10.5pt;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3 { margin: 0; line-height: 1.2; letter-spacing: -0.02em; }
+  p { margin: 0 0 10px; }
+  strong { font-weight: 700; }
+
+  .pagina { page-break-after: always; }
+  .pagina:last-child { page-break-after: auto; }
+  .evitar-quebra { page-break-inside: avoid; }
+
+  /* ---------- capa ---------- */
+  .capa {
+    background: linear-gradient(160deg, #0B2350, var(--escuro));
+    color: #fff;
+    margin: -16mm -15mm 0;
+    padding: 32mm 15mm 24mm;
+    position: relative;
+    overflow: hidden;
+  }
+  .capa::after {
+    content: ''; position: absolute; right: -60mm; top: -40mm;
+    width: 140mm; height: 140mm; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,107,255,.35), transparent 65%);
+  }
+  .capa > * { position: relative; }
+  .marca-capa { display: flex; align-items: center; gap: 10px; margin-bottom: 28mm; }
+  .marca-selo {
+    width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.14);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px;
+  }
+  .marca-nome { font-weight: 800; font-size: 12pt; letter-spacing: -0.01em; line-height: 1.2; }
+  .marca-nome small { display: block; font-size: 7pt; letter-spacing: .16em; color: #8FB6E8; font-weight: 600; }
+  .capa .rotulo { font-size: 8pt; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #8FE8C8; }
+  .capa h1 { font-size: 30pt; margin: 10px 0 14px; font-weight: 800; }
+  .capa .sub { font-size: 12pt; color: #B9CEEA; max-width: 120mm; }
+  .capa-rodape { margin-top: 24mm; display: flex; gap: 18mm; font-size: 9pt; color: #B9CEEA; }
+  .capa-rodape b { display: block; font-size: 7.5pt; letter-spacing: .14em; text-transform: uppercase; color: #6F8CAF; margin-bottom: 3px; }
+
+  /* ---------- seções ---------- */
+  section { margin-top: 12mm; }
+  .olho { font-size: 8pt; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--marca); }
+  h2 { font-size: 17pt; margin: 6px 0 10px; }
+  h3 { font-size: 11.5pt; margin: 0 0 4px; }
+  .conduz { color: var(--tinta-2); font-size: 11pt; margin-bottom: 8mm; }
+
+  .bloco {
+    border: 1px solid var(--linha); border-radius: 10px;
+    padding: 6mm; background: var(--fundo); margin-bottom: 5mm;
+  }
+  .bloco.destaque { background: #EEF5FF; border-color: #CFE0F4; }
+  .bloco.aviso { background: #FFF6EC; border-color: #FFD9AE; }
+
+  ul { margin: 0; padding-left: 5mm; }
+  li { margin-bottom: 4px; color: var(--tinta-2); }
+  li b { color: var(--tinta); }
+
+  /* ---------- módulos ---------- */
+  .modulos { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .modulo { border: 1px solid var(--linha); border-radius: 10px; padding: 5mm; }
+  .modulo h3 { font-size: 10.5pt; display: flex; align-items: center; gap: 6px; }
+  .modulo .pronto { font-size: 7pt; font-weight: 800; letter-spacing: .08em; padding: 2px 7px; border-radius: 20px; background: #D9F8ED; color: #007A5A; }
+  .modulo p { font-size: 9pt; color: var(--tinta-2); margin: 4px 0 0; }
+
+  /* ---------- tabela ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  th {
+    text-align: left; font-size: 7.5pt; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--tinta-3); padding: 0 0 6px; border-bottom: 1px solid var(--linha);
+  }
+  td { padding: 7px 0; border-bottom: 1px solid var(--linha); vertical-align: top; color: var(--tinta-2); }
+  td:first-child { color: var(--tinta); font-weight: 600; width: 46%; }
+  td:last-child { text-align: right; white-space: nowrap; font-weight: 700; color: var(--tinta); }
+  tr.total td { border-bottom: 0; padding-top: 10px; font-size: 11pt; }
+
+  /* Campo por preencher tem que doer de tão visível: proposta enviada com
+     [PREENCHER] esquecido é pior que proposta sem número. */
+  .preencher {
+    color: var(--alerta); font-weight: 800;
+    background: #FFF0DC; padding: 1px 5px; border-radius: 4px;
+    border: 1px dashed #E9A254;
+  }
+  .capa .preencher {
+    color: #FFD166; background: rgba(255,209,102,.12); border-color: rgba(255,209,102,.5);
+  }
+
+  .assinaturas { display: grid; grid-template-columns: 1fr 1fr; gap: 16mm; margin-top: 22mm; }
+  .assinatura { border-top: 1px solid var(--tinta-3); padding-top: 4px; font-size: 8.5pt; color: var(--tinta-2); }
+
+  .rodape-doc {
+    margin-top: 14mm; padding-top: 4mm; border-top: 1px solid var(--linha);
+    font-size: 8pt; color: var(--tinta-3); display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== CAPA ==================== -->
+<div class="pagina">
+  <div class="capa">
+    <div class="marca-capa">
+      <span class="marca-selo">J</span>
+      <span class="marca-nome">JEMPREENDIMENTOS<small>CLIMATIZAÇÃO</small></span>
+    </div>
+
+    <span class="rotulo">Proposta comercial</span>
+    <h1>Sistema de gestão de serviços técnicos</h1>
+    <p class="sub">
+      Aplicativo Android, portal web e site institucional, com controle de
+      chamados, equipe em campo, PMOC, estoque e compras — em operação.
+    </p>
+
+    <div class="capa-rodape">
+      <div><b>Preparado para</b><span class="preencher">[PREENCHER: cliente]</span></div>
+      <div><b>Preparado por</b><span class="preencher">[PREENCHER: sua razão social]</span></div>
+      <div><b>Data</b>23 de agosto de 2026</div>
+      <div><b>Validade</b>15 dias</div>
+    </div>
+  </div>
+
+  <section>
+    <span class="olho">O que está em jogo</span>
+    <h2>O problema que este sistema resolve</h2>
+    <p class="conduz">
+      Empresa de climatização perde dinheiro em três pontos que ninguém vê no
+      caixa: serviço sem registro, peça sem baixa e preventiva esquecida.
+    </p>
+
+    <div class="bloco">
+      <ul>
+        <li><b>Serviço sem registro.</b> O que foi combinado por telefone não existe quando o cliente contesta. Sem foto, laudo e assinatura, a discussão é palavra contra palavra.</li>
+        <li><b>Peça sem baixa.</b> O técnico usa o capacitor e ninguém desconta do estoque. O saldo do sistema deixa de valer e a compra vira adivinhação.</li>
+        <li><b>Preventiva esquecida.</b> O PMOC vence, e só se descobre na fiscalização ou quando o cliente reclama do ar.</li>
+        <li><b>Cliente no escuro.</b> Ele liga para perguntar em que pé está o chamado, e alguém para de trabalhar para responder.</li>
+      </ul>
+    </div>
+
+    <p>
+      O sistema entregue trata os quatro pontos no mesmo lugar, com as regras
+      críticas dentro do banco de dados — não apenas na tela.
+    </p>
+  </section>
+</div>
+
+<!-- ==================== O QUE ESTÁ PRONTO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Escopo entregue</span>
+    <h2>O que já está em operação</h2>
+    <p class="conduz">
+      Cada item abaixo está construído e funcionando, não é promessa de
+      roadmap.
+    </p>
+
+    <div class="modulos">
+      <div class="modulo evitar-quebra">
+        <h3>Chamados <span class="pronto">PRONTO</span></h3>
+        <p>Abertura pelo cliente ou pela administração, ciclo de estados controlado no banco, histórico completo de abertos e encerrados.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Distribuição automática <span class="pronto">PRONTO</span></h3>
+        <p>O chamado é atribuído por proximidade, especialidade e carga do técnico. A decisão fica registrada com a pontuação de cada candidato.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Técnico em campo <span class="pronto">PRONTO</span></h3>
+        <p>Checklist por tipo de serviço, fotos antes e depois, peças utilizadas com baixa no estoque e assinatura do cliente no aparelho.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Mapa em tempo real <span class="pronto">PRONTO</span></h3>
+        <p>Equipe no mapa, rota até o endereço e tempo estimado de chegada. O cliente acompanha o próprio atendimento.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>PMOC <span class="pronto">PRONTO</span></h3>
+        <p>Plano por equipamento, registro de cada execução e certificado em PDF conforme a Lei 13.589/2018, pronto para apresentar.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Estoque <span class="pronto">PRONTO</span></h3>
+        <p>Saldo mínimo e máximo, movimentações com saldo antes e depois, e trava contra dois lançamentos simultâneos no mesmo item.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Reposição e compras <span class="pronto">PRONTO</span></h3>
+        <p>Detecção automática de estoque baixo, cotação com fornecedor, aprovação, pedido e recebimento — inclusive parcial.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Etiqueta QR <span class="pronto">PRONTO</span></h3>
+        <p>Cada aparelho com etiqueta própria. O técnico lê e abre o histórico ali, de pé na frente da máquina. Sai em bobina de 58 mm.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Notificações <span class="pronto">PRONTO</span></h3>
+        <p>Avisos por evento, com destino certo para cada perfil, preferências por categoria e chegada em tempo real.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Conversa no chamado <span class="pronto">PRONTO</span></h3>
+        <p>Cliente e equipe conversam dentro do atendimento. Fica no histórico, diferente do que se combina por telefone.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Cadastros <span class="pronto">PRONTO</span></h3>
+        <p>Clientes, endereços com busca por CEP, equipamentos e equipe técnica com especialidades.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Site e portal web <span class="pronto">PRONTO</span></h3>
+        <p>Site institucional público e o mesmo sistema rodando no navegador, sem instalar nada.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== POR QUE VALE ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">O que sustenta o valor</span>
+    <h2>Não é um aplicativo bonito. É a regra dentro do banco.</h2>
+    <p class="conduz">
+      O que separa um sistema que dura de um que apodrece em um ano está em
+      decisões que não aparecem na tela.
+    </p>
+
+    <div class="bloco destaque evitar-quebra">
+      <h3>Isolamento de dados garantido no banco</h3>
+      <p style="margin:6px 0 0; font-size:9.5pt; color:var(--tinta-2)">
+        Cada cliente só enxerga o que é dele, e essa regra está no PostgreSQL,
+        não no aplicativo. Mesmo que alguém extraia as chaves do aplicativo e
+        chame a API direto, o banco recusa. É a diferença entre esconder um
+        botão e proibir o acesso.
+      </p>
+    </div>
+
+    <div class="bloco evitar-quebra">
+      <h3>Regras críticas onde não dá para burlar</h3>
+      <p style="margin:6px 0 0; font-size:9.5pt; color:var(--tinta-2)">
+        Saldo de estoque, transição de status do chamado e entrada de compra são
+        executados por funções no banco, em transação. Um aplicativo desatualizado
+        na mão de um técnico não consegue gravar um estado inválido.
+      </p>
+    </div>
+
+    <div class="bloco evitar-quebra">
+      <h3>Histórico que reconstrói o passado</h3>
+      <p style="margin:6px 0 0; font-size:9.5pt; color:var(--tinta-2)">
+        Toda movimentação de estoque guarda o saldo antes e depois. Dá para
+        responder "quanto eu tinha em tal data" sem somar a tabela inteira e
+        torcer para nada ter sido ajustado por fora.
+      </p>
+    </div>
+
+    <div class="bloco evitar-quebra">
+      <h3>Sem chave de serviço dentro do aplicativo</h3>
+      <p style="margin:6px 0 0; font-size:9.5pt; color:var(--tinta-2)">
+        A chave administrativa do banco nunca é embarcada no APK. Isso limita o
+        que o aplicativo pode fazer sozinho — e é exatamente por isso que um
+        aparelho perdido não vira um vazamento de base.
+      </p>
+    </div>
+
+    <div class="bloco evitar-quebra">
+      <h3>Banco versionado, mudança auditável</h3>
+      <p style="margin:6px 0 0; font-size:9.5pt; color:var(--tinta-2)">
+        A estrutura do banco é descrita em arquivos de migração numerados e
+        guardados no repositório. Qualquer alteração tem autor, data e motivo —
+        e pode ser reaplicada em outro ambiente do zero.
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== INVESTIMENTO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Investimento</span>
+    <h2>Implantação</h2>
+
+    <table>
+      <tr>
+        <th>Item</th><th style="text-align:right">Valor</th>
+      </tr>
+      <tr>
+        <td>Sistema completo, conforme escopo entregue
+          <div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Aplicativo Android, portal web, site institucional e banco de dados</div>
+        </td>
+        <td>R$ 18.000,00</td>
+      </tr>
+      <tr>
+        <td>Implantação e migração de dados
+          <div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Cadastro inicial de clientes, equipamentos e estoque</div>
+        </td>
+        <td>R$ 4.500,00</td>
+      </tr>
+      <tr>
+        <td>Treinamento das equipes
+          <div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Administração, técnicos e atendimento</div>
+        </td>
+        <td>R$ 2.500,00</td>
+      </tr>
+      <tr class="total">
+        <td>Total de implantação</td>
+        <td>R$ 25.000,00</td>
+      </tr>
+    </table>
+
+    <p style="margin-top:6mm; font-size:9.5pt; color:var(--tinta-2)">
+      Forma de pagamento: <strong>50% na assinatura e 50% na entrega</strong>.
+      Prazo de implantação: <strong>até 30 dias</strong> a partir da assinatura e do recebimento dos dados para migração.
+    </p>
+  </section>
+
+  <section>
+    <span class="olho">Manutenção</span>
+    <h2>Mensalidade — o que ela sustenta</h2>
+    <p class="conduz">
+      Software não é obra entregue e esquecida. Sistema parado apodrece sozinho,
+      por motivos externos a ele.
+    </p>
+
+    <div class="bloco">
+      <ul>
+        <li><b>Infraestrutura no ar.</b> Banco de dados, armazenamento de fotos, hospedagem do site e do portal, mapas e envio de emails.</li>
+        <li><b>Backup e recuperação.</b> Cópia diária e teste de restauração — backup que nunca foi restaurado não é backup, é esperança.</li>
+        <li><b>Atualizações obrigatórias.</b> Android e as bibliotecas sobem de versão todo ano. Sem acompanhar, o aplicativo simplesmente para de instalar em aparelho novo.</li>
+        <li><b>Correções.</b> Falha encontrada em produção é corrigida sem cobrança adicional.</li>
+        <li><b>Monitoramento.</b> Acompanhamento de erros e de consumo dos serviços contratados.</li>
+        <li><b>Suporte.</b> Atendimento para dúvidas de uso e problemas, em <strong>dias úteis, das 8h às 18h, por WhatsApp e email</strong>.</li>
+        <li><b>Pequenas evoluções.</b> Ajustes de tela, relatórios e regras, até <strong>4 horas</strong> por mês, não cumulativas.</li>
+      </ul>
+    </div>
+
+    <table style="margin-top:4mm">
+      <tr><th>Manutenção mensal</th><th style="text-align:right">Valor</th></tr>
+      <tr class="total">
+        <td>Mensalidade
+          <div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Reajuste anual pelo IPCA · início 30 dias após a entrega</div>
+        </td>
+        <td>R$ 1.200,00</td>
+      </tr>
+    </table>
+
+    <div class="bloco aviso evitar-quebra" style="margin-top:5mm">
+      <h3 style="font-size:10pt">Custos de terceiros</h3>
+      <p style="margin:5px 0 0; font-size:9pt; color:var(--tinta-2)">
+        Banco de dados, hospedagem e mapas têm planos gratuitos que atendem o
+        início da operação. Ao passar dos limites de uso, a cobrança é feita
+        pelos fornecedores e repassada sem acréscimo, mediante aviso prévio.
+        Os valores atuais desses serviços constam em
+        <strong>sob consulta</strong>, e hoje somam cerca de R$ 300,00 por mês nos planos atuais.
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== ROADMAP E CONDIÇÕES ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Transparência</span>
+    <h2>O que ainda não está pronto</h2>
+    <p class="conduz">
+      Listar o que falta vale mais que prometer o que não existe. Estes itens
+      estão fora do escopo entregue e podem ser contratados à parte.
+    </p>
+
+    <table>
+      <tr><th>Item</th><th style="text-align:right">Situação</th></tr>
+      <tr><td>Notificação push no celular<div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Hoje o aviso aparece dentro do aplicativo aberto</div></td><td>A contratar</td></tr>
+      <tr><td>Agenda de visitas<div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Calendário próprio de agendamentos</div></td><td>A contratar</td></tr>
+      <tr><td>Financeiro<div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Contas a receber, faturamento por contrato</div></td><td>A contratar</td></tr>
+      <tr><td>Convite de acesso por email<div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Hoje a pessoa se cadastra e a administração vincula</div></td><td>A contratar</td></tr>
+      <tr><td>Aplicativo iOS<div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">O código é o mesmo; falta publicação na App Store</div></td><td>A contratar</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <span class="olho">Condições</span>
+    <h2>Termos</h2>
+    <div class="bloco">
+      <ul>
+        <li><b>Propriedade.</b> O código-fonte permanece com a contratada, e o contratante recebe licença de uso permanente e exclusiva para sua operação. A base de dados é do contratante.</li>
+        <li><b>Dados.</b> A base pertence ao contratante e pode ser exportada a qualquer momento, em formato aberto.</li>
+        <li><b>Vigência.</b> Contrato de manutenção por <strong>12 meses</strong>, renovado automaticamente por igual período.</li>
+        <li><b>Rescisão.</b> Aviso prévio de <strong>30 dias</strong>, com entrega da base e do que for de propriedade do contratante.</li>
+        <li><b>Validade desta proposta.</b> <strong>15 dias</strong> a partir da data de emissão.</li>
+      </ul>
+    </div>
+
+    <div class="assinaturas">
+      <div class="assinatura">
+        <span class="preencher">[PREENCHER: sua razão social]</span><br>
+        CNPJ <span class="preencher">[PREENCHER]</span>
+      </div>
+      <div class="assinatura">
+        <span class="preencher">[PREENCHER: cliente]</span><br>
+        CNPJ <span class="preencher">[PREENCHER]</span>
+      </div>
+    </div>
+
+    <div class="rodape-doc">
+      <span>Proposta — Sistema de Gestão JEmpreendimentos</span>
+      23/08/2026
+    </div>
+  </section>
+</div>
+
+</body>
+</html>

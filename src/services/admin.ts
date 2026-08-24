@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type { ServiceCall, ServiceStatus, Technician, TechnicianStatus } from '@/types/database';
 
-type AdminCall = ServiceCall & {
+export type AdminCall = ServiceCall & {
   client: { name: string } | null;
   equipment: { brand: string | null; model: string | null; environment: string | null } | null;
   technician: { profile: { full_name: string } | null } | null;
@@ -32,6 +32,29 @@ const OPEN_STATUSES: ServiceStatus[] = [
   'aguardando_peca',
   'aguardando_aprovacao',
 ];
+
+/** Os status abertos, para quem precisa da mesma régua fora do painel. */
+export const STATUS_ABERTOS = OPEN_STATUSES;
+
+/**
+ * Todos os chamados, abertos ou não.
+ *
+ * O painel só mostra os abertos, e isso deixava a administração sem
+ * nenhuma forma de reabrir um atendimento encerrado — nem para conferir o
+ * laudo, nem para ler a conversa. Aqui não há filtro de status: quem
+ * filtra é a tela.
+ */
+export async function fetchChamados(): Promise<AdminCall[]> {
+  const { data, error } = await supabase
+    .from('service_calls')
+    .select(
+      `*, client:client_id ( name ), equipment:equipment_id ( brand, model, environment ), technician:technician_id ( profile:profile_id ( full_name ) )`,
+    )
+    .order('created_at', { ascending: false })
+    .limit(200);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as AdminCall[];
+}
 
 export async function fetchAdminDashboard(): Promise<AdminDashboard> {
   const now = new Date();
