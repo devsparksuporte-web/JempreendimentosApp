@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { supabase } from '@/lib/supabase';
+import { esquecerPush } from '@/services/push';
 import type { Profile, UserRole } from '@/types/database';
 
 type AuthState = {
@@ -113,6 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    // Antes de limpar a sessão: o token de push é endereço de entrega e
+    // não pode ficar apontando para quem saiu — num tablet compartilhado,
+    // seria entregar chamado de um técnico ao próximo que entrar.
+    await esquecerPush();
+
     // Limpa o estado primeiro para o AuthGate retirar o usuário das rotas protegidas,
     // mesmo se a rede estiver instável durante a revogação remota.
     setSession(null);

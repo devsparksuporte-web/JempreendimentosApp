@@ -18,6 +18,7 @@ import { carregarOnboarding, useOnboarding } from '@/lib/onboarding';
 import { carregarAssistentePermissoes, useAssistentePermissoes } from '@/lib/permissoes';
 import { incrementarNaoLidas, recarregarNaoLidas } from '@/lib/naoLidas';
 import { subscribeToNotifications } from '@/services/notifications';
+import { ouvirToqueNoAviso, registrarPush } from '@/services/push';
 import { colors } from '@/theme/tokens';
 
 SplashScreen.preventAutoHideAsync();
@@ -37,6 +38,21 @@ function AuthGate() {
     void carregarOnboarding();
     void carregarAssistentePermissoes();
   }, []);
+
+  /**
+   * Push: registra o aparelho e escuta o toque no aviso.
+   *
+   * Separado da escuta em tempo real porque resolve o caso oposto — a
+   * notificação em tempo real serve a quem está com o app aberto; o push
+   * serve a quem não está.
+   */
+  useEffect(() => {
+    const perfil = session?.user.id;
+    if (!perfil) return;
+
+    void registrarPush(perfil);
+    return ouvirToqueNoAviso((destino) => router.push(destino as never));
+  }, [session?.user.id, router]);
 
   useEffect(() => {
     if (!session?.user.id) return;
