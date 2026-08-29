@@ -16,6 +16,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./android/app/google-services.json",
       "package": "br.com.jempreendimentos.app",
       "adaptiveIcon": {
         "backgroundColor": "#06152E"

@@ -68,7 +68,7 @@ export async function registrarPush(profileId: string): Promise<void> {
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
     tokenAtual = token;
 
-    await (supabase as any).from('push_tokens').upsert(
+    const { error } = await (supabase as any).from('push_tokens').upsert(
       {
         token,
         profile_id: profileId,
@@ -77,8 +77,16 @@ export async function registrarPush(profileId: string): Promise<void> {
       },
       { onConflict: 'token' },
     );
-  } catch {
-    // Falha aqui não pode atrapalhar a abertura do aplicativo.
+    if (error) {
+      console.warn('[push] endereco de entrega nao foi salvo:', error.message);
+      return;
+    }
+    console.log('[push] aparelho registrado:', token);
+  } catch (erro) {
+    // Falha aqui nao pode atrapalhar a abertura do aplicativo. Mas sumir em
+    // silencio e pior: sem token nao chega aviso nenhum e ninguem descobre
+    // por que. O aplicativo segue; o motivo fica no log.
+    console.warn('[push] nao foi possivel registrar este aparelho:', erro);
   }
 }
 
