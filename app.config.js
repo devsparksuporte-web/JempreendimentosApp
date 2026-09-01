@@ -25,5 +25,15 @@ module.exports = () => {
 
   expo.plugins = [...(expo.plugins ?? []), '@rnmapbox/maps'];
 
+  // O google-services.json mora em android/, que está no .gitignore — então
+  // ele não sobe junto com o código para o build na nuvem. Sem esse arquivo o
+  // aplicativo compila normalmente e só falha depois, em silêncio: o Firebase
+  // não inicializa e nenhum aviso chega ao celular. Na nuvem o arquivo vem de
+  // uma variável do tipo file; na máquina, do caminho de sempre.
+  expo.android = {
+    ...expo.android,
+    googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? expo.android?.googleServicesFile,
+  };
+
   return { expo };
 };
