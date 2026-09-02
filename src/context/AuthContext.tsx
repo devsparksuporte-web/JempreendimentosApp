@@ -8,6 +8,9 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
+
+import * as Linking from 'expo-linking';
 
 import { supabase } from '@/lib/supabase';
 import { esquecerPush } from '@/services/push';
@@ -108,7 +111,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
-    const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/recuperar-senha` : undefined;
+    // Para onde o link do email deve voltar.
+    //
+    // No navegador, a própria origem. No celular, o esquema do aplicativo —
+    // e isso não é detalhe: sem `redirectTo`, o Supabase usa a Site URL do
+    // projeto, que é o site. O técnico abria o link no celular, caía no site
+    // e nunca chegava à tela de nova senha, porque o evento PASSWORD_RECOVERY
+    // acontecia no navegador e não no aplicativo onde ele estava.
+    const redirectTo =
+      Platform.OS === 'web'
+        ? `${window.location.origin}/recuperar-senha`
+        : Linking.createURL('/recuperar-senha');
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), { redirectTo });
     if (error) throw new Error(traduzErroAuth(error.message));
   }, []);

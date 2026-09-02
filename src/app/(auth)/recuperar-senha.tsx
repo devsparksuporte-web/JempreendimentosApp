@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, HelpCircle, LockKeyhole, Mail, RefreshCw } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import * as LinkDoSistema from 'expo-linking';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -33,6 +34,46 @@ export default function RecoverPasswordScreen() {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  // O link que chega pelo email, quando o aplicativo é aberto por ele.
+  //
+  // No navegador o supabase-js lê a URL sozinho. No celular não: o cliente
+  // roda com `detectSessionInUrl` desligado, porque em React Native não há
+  // uma barra de endereços para observar. Quem abre o link é o sistema
+  // operacional, e os tokens chegam aqui no fragmento da URL — se ninguém
+  // os trocar por uma sessão, a etapa 3 até aparece, mas `updateUser`
+  // falha com "Auth session missing".
+  const urlRecebida = LinkDoSistema.useURL();
+  useEffect(() => {
+    if (!urlRecebida) return;
+
+    const partes = extrairDaUrl(urlRecebida);
+    if (partes.erro) {
+      setError(partes.erro);
+      setStep(1);
+      return;
+    }
+    if (!partes.accessToken || !partes.refreshToken) return;
+
+    let ativo = true;
+    (async () => {
+      const { error: falha } = await supabase.auth.setSession({
+        access_token: partes.accessToken as string,
+        refresh_token: partes.refreshToken as string,
+      });
+      if (!ativo) return;
+      if (falha) {
+        setError('O link expirou ou já foi usado. Peça um novo.');
+        setStep(1);
+        return;
+      }
+      setError(null);
+      setStep(3);
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, [urlRecebida]);
+
   async function sendCode() {
     if (!email.trim() || !email.includes('@')) { setError('Informe um email corporativo válido.'); return; }
     setLoading(true); setError(null);
@@ -53,6 +94,32 @@ export default function RecoverPasswordScreen() {
 
   const progress = [1, 2, 3].map((value) => <View key={value} style={styles.progressTrack}><View style={[styles.progressValue, value <= step && styles.progressValueActive]} /></View>);
   return <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}><ScrollView contentContainerStyle={[styles.page, { paddingBottom: insets.bottom + spacing.xxl }]} keyboardShouldPersistTaps="handled"><View style={[styles.hero, { paddingTop: insets.top + spacing.xxl }]}><View style={styles.heroIcon}><LockKeyhole size={30} color={colors.textOnBrand} /></View><Text variant="screenTitle" color={colors.textOnBrand} style={styles.heroTitle}>Recuperar Senha</Text><Text variant="body" color={colors.slate200} style={styles.heroSubtitle}>Siga as etapas para redefinir seu acesso</Text></View><View style={styles.main}><View style={styles.progress}>{progress}</View><View style={styles.card}>{step === 1 ? <StepOne email={email} setEmail={setEmail} error={error} loading={loading} onSubmit={() => { void sendCode(); }} onBack={() => router.replace('/(auth)/login')} /> : null}{step === 2 ? <StepTwo email={email} error={error} resending={resending} onResend={() => { void resend(); }} onContinue={() => setStep(3)} onBack={() => router.replace('/(auth)/login')} /> : null}{step === 3 ? <StepThree newPassword={newPassword} confirmPassword={confirmPassword} setNewPassword={setNewPassword} setConfirmPassword={setConfirmPassword} showPassword={showPassword} setShowPassword={setShowPassword} error={error} loading={loading} onSubmit={() => { void updatePassword(); }} /> : null}</View><Pressable onPress={() => { void Linking.openURL('mailto:suporte@jempreendimentos.com.br'); }} style={styles.support}><View style={styles.supportIcon}><HelpCircle size={20} color={colors.warning} /></View><View style={styles.supportText}><Text variant="bodyStrong" color={colors.brandStrong}>Precisa de ajuda?</Text><Text variant="meta" color={colors.brand}>Contate o suporte técnico</Text></View></Pressable></View><Text variant="microLabel" color={colors.slate300} style={styles.footer}>© 2025 JEMPREENDIMENTOS Climatização</Text></ScrollView></KeyboardAvoidingView>;
+}
+
+/**
+ * Lê os tokens que o Supabase devolve no link de recuperação.
+ *
+ * Eles vêm no fragmento (`#access_token=...`), que é onde o padrão OAuth os
+ * coloca para não vazarem em log de servidor. Alguns caminhos de redirect
+ * usam a query em vez do fragmento, então os dois são aceitos. O erro
+ * também vem por aí quando o link já expirou.
+ */
+function extrairDaUrl(url: string): {
+  accessToken?: string;
+  refreshToken?: string;
+  erro?: string;
+} {
+  const bruto = url.includes('#') ? url.slice(url.indexOf('#') + 1) : url.split('?')[1] ?? '';
+  if (!bruto) return {};
+
+  const campos = new URLSearchParams(bruto);
+  const descricao = campos.get('error_description');
+  if (descricao) return { erro: decodeURIComponent(descricao.replace(/\+/g, ' ')) };
+
+  return {
+    accessToken: campos.get('access_token') ?? undefined,
+    refreshToken: campos.get('refresh_token') ?? undefined,
+  };
 }
 
 function StepOne({ email, setEmail, error, loading, onSubmit, onBack }: { email: string; setEmail: (value: string) => void; error: string | null; loading: boolean; onSubmit: () => void; onBack: () => void }) { return <View style={styles.stepContent}><StepHeading number="01" title="Identifique seu e-mail" description="Enviaremos um link de segurança." /><Field label="E-mail Corporativo" icon={<Mail size={19} color={colors.textMuted} />} value={email} onChangeText={setEmail} placeholder="seu@email.com" keyboardType="email-address" autoCapitalize="none" /><ErrorMessage error={error} /><Button label="ENVIAR CÓDIGO" icon={ArrowRight} onPress={onSubmit} loading={loading} /><Pressable onPress={onBack} style={styles.back}><ArrowLeft size={15} color={colors.brand} /><Text variant="meta" color={colors.brand}>VOLTAR AO LOGIN</Text></Pressable></View>; }

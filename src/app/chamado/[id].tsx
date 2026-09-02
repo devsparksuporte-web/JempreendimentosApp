@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { ConversaChamado } from '@/components/ConversaChamado';
+import { SeletorDeVisita } from '@/components/SeletorDeVisita';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -58,6 +59,7 @@ export default function AcompanharChamadoScreen() {
   const [statusDraft, setStatusDraft] = useState<ServiceCallDetailed['status']>('aberto');
   const [technicianDraft, setTechnicianDraft] = useState<string | null>(null);
   const [technicians, setTechnicians] = useState<DistributionTechnician[]>([]);
+  const [agendaDraft, setAgendaDraft] = useState<Date | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -73,6 +75,7 @@ export default function AcompanharChamadoScreen() {
       setPriorityDraft(c.priority);
       setStatusDraft(c.status);
       setTechnicianDraft(c.technician_id);
+      setAgendaDraft(c.scheduled_for ? new Date(c.scheduled_for) : null);
       if (role === 'admin') { setTechnicians(await fetchDistributionTechnicians()); }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erro ao carregar o chamado.');
@@ -101,7 +104,7 @@ export default function AcompanharChamadoScreen() {
   async function saveAdminChanges() {
     if (!call) return;
     setSaving(true); setError(null);
-    try { await adminUpdateServiceCall({ callId: call.id, title: titleDraft, description: descriptionDraft, diagnosis: diagnosisDraft, solution: solutionDraft, priority: priorityDraft, status: statusDraft, technicianId: technicianDraft, setTechnician: true }); await load(); }
+    try { await adminUpdateServiceCall({ callId: call.id, title: titleDraft, description: descriptionDraft, diagnosis: diagnosisDraft, solution: solutionDraft, priority: priorityDraft, status: statusDraft, technicianId: technicianDraft, setTechnician: true, scheduledFor: agendaDraft ? agendaDraft.toISOString() : null }); await load(); }
     catch (e) { setError(e instanceof Error ? e.message : 'Não foi possível salvar os ajustes.'); }
     finally { setSaving(false); }
   }
@@ -229,7 +232,7 @@ export default function AcompanharChamadoScreen() {
                 </Card>
               </Section>
 
-              {canAdminEdit ? <Section label="Ajustes administrativos"><Card><Text variant="microLabel" color={colors.textSecondary}>Prioridade</Text><View style={styles.choiceRow}>{(['baixa', 'normal', 'alta', 'urgente'] as const).map((value) => <Pressable key={value} onPress={() => setPriorityDraft(value)} style={[styles.choice, priorityDraft === value && styles.choiceActive]}><Text variant="meta" color={priorityDraft === value ? colors.textOnBrand : colors.textSecondary}>{value}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Status permitido</Text><View style={styles.choiceWrap}>{(['aberto', 'em_analise', 'aguardando_tecnico', 'tecnico_atribuido', 'a_caminho', 'em_atendimento', 'aguardando_peca', 'aguardando_aprovacao', 'finalizado', 'cancelado'] as const).map((value) => <Pressable key={value} onPress={() => setStatusDraft(value)} style={[styles.choice, statusDraft === value && styles.choiceActive]}><Text variant="meta" color={statusDraft === value ? colors.textOnBrand : colors.textSecondary}>{value.replaceAll('_', ' ')}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Técnico responsável</Text><View style={styles.choiceWrap}><Pressable onPress={() => setTechnicianDraft(null)} style={[styles.choice, technicianDraft === null && styles.choiceActive]}><Text variant="meta" color={technicianDraft === null ? colors.textOnBrand : colors.textSecondary}>Sem técnico</Text></Pressable>{technicians.map((tech) => <Pressable key={tech.technician_id} onPress={() => setTechnicianDraft(tech.technician_id)} style={[styles.choice, technicianDraft === tech.technician_id && styles.choiceActive]}><Text variant="meta" color={technicianDraft === tech.technician_id ? colors.textOnBrand : colors.textSecondary}>{tech.profile?.full_name ?? 'Técnico'}</Text></Pressable>)}</View><TextInput value={titleDraft} onChangeText={setTitleDraft} placeholder="Título" placeholderTextColor={colors.textMuted} style={styles.editorInput} /><TextInput value={descriptionDraft} onChangeText={setDescriptionDraft} placeholder="Descrição" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={diagnosisDraft} onChangeText={setDiagnosisDraft} placeholder="Diagnóstico" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={solutionDraft} onChangeText={setSolutionDraft} placeholder="Solução" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><Button label="Salvar ajustes" loading={saving} onPress={() => { void saveAdminChanges(); }} /></Card></Section> : null}
+              {canAdminEdit ? <Section label="Ajustes administrativos"><Card><Text variant="microLabel" color={colors.textSecondary}>Prioridade</Text><View style={styles.choiceRow}>{(['baixa', 'normal', 'alta', 'urgente'] as const).map((value) => <Pressable key={value} onPress={() => setPriorityDraft(value)} style={[styles.choice, priorityDraft === value && styles.choiceActive]}><Text variant="meta" color={priorityDraft === value ? colors.textOnBrand : colors.textSecondary}>{value}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Status permitido</Text><View style={styles.choiceWrap}>{(['aberto', 'em_analise', 'aguardando_tecnico', 'tecnico_atribuido', 'a_caminho', 'em_atendimento', 'aguardando_peca', 'aguardando_aprovacao', 'finalizado', 'cancelado'] as const).map((value) => <Pressable key={value} onPress={() => setStatusDraft(value)} style={[styles.choice, statusDraft === value && styles.choiceActive]}><Text variant="meta" color={statusDraft === value ? colors.textOnBrand : colors.textSecondary}>{value.replaceAll('_', ' ')}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Técnico responsável</Text><View style={styles.choiceWrap}><Pressable onPress={() => setTechnicianDraft(null)} style={[styles.choice, technicianDraft === null && styles.choiceActive]}><Text variant="meta" color={technicianDraft === null ? colors.textOnBrand : colors.textSecondary}>Sem técnico</Text></Pressable>{technicians.map((tech) => <Pressable key={tech.technician_id} onPress={() => setTechnicianDraft(tech.technician_id)} style={[styles.choice, technicianDraft === tech.technician_id && styles.choiceActive]}><Text variant="meta" color={technicianDraft === tech.technician_id ? colors.textOnBrand : colors.textSecondary}>{tech.profile?.full_name ?? 'Técnico'}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Agendamento</Text><SeletorDeVisita valor={agendaDraft} onChange={setAgendaDraft} /><TextInput value={titleDraft} onChangeText={setTitleDraft} placeholder="Título" placeholderTextColor={colors.textMuted} style={styles.editorInput} /><TextInput value={descriptionDraft} onChangeText={setDescriptionDraft} placeholder="Descrição" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={diagnosisDraft} onChangeText={setDiagnosisDraft} placeholder="Diagnóstico" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={solutionDraft} onChangeText={setSolutionDraft} placeholder="Solução" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><Button label="Salvar ajustes" loading={saving} onPress={() => { void saveAdminChanges(); }} /></Card></Section> : null}
 
               {call.ai_summary?.resumo ? (
                 <Card accentBorder={colors.aiBorder}>

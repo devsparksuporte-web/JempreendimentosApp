@@ -51,3 +51,6 @@ example
 pnpm-lock.yaml
 yarn.lock
 bun.lockb
+
+# Estado temporário do Supabase CLI (guarda a referência do projeto)
+supabase/.temp/

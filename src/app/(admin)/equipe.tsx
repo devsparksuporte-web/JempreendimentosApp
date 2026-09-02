@@ -1,7 +1,7 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ChevronRight, HardHat, RefreshCw, UserPlus } from 'lucide-react-native';
+import { ChevronRight, HardHat, MailPlus, RefreshCw, UserPlus } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge, type BadgeTone } from '@/components/ui/Badge';
@@ -16,7 +16,9 @@ import {
   ROTULO_STATUS_TECNICO,
   type Tecnico,
 } from '@/services/cadastros';
-import { colors, layout, radius, spacing } from '@/theme/tokens';
+import { convidarAcesso } from '@/services/convites';
+import { Alert } from '@/lib/alerta';
+import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
 
 const TOM_STATUS: Record<Tecnico['status'], BadgeTone> = {
   disponivel: 'success',
@@ -28,6 +30,9 @@ const TOM_STATUS: Record<Tecnico['status'], BadgeTone> = {
 export default function EquipeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [emailConvite, setEmailConvite] = useState('');
+  const [nomeConvite, setNomeConvite] = useState('');
+  const [convidando, setConvidando] = useState(false);
 
   const [itens, setItens] = useState<Tecnico[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +58,24 @@ export default function EquipeScreen() {
   );
 
   const ativos = useMemo(() => itens.filter((t) => t.active).length, [itens]);
+
+  async function enviarConvite() {
+    if (convidando) return;
+    setConvidando(true);
+    try {
+      await convidarAcesso(emailConvite, nomeConvite);
+      Alert.alert(
+        'Convite enviado',
+        `${emailConvite.trim().toLowerCase()} vai receber um email para definir a senha.`,
+      );
+      setEmailConvite('');
+      setNomeConvite('');
+    } catch (e) {
+      Alert.alert('Não foi possível convidar', e instanceof Error ? e.message : '');
+    } finally {
+      setConvidando(false);
+    }
+  }
 
   return (
     <View style={styles.root}>
@@ -102,10 +125,50 @@ export default function EquipeScreen() {
             />
             <View style={styles.espaco} />
             <Text variant="meta" color={colors.textMuted}>
-              O vínculo é feito sobre uma conta que já existe. A pessoa se cadastra no aplicativo e
-              você a liga à equipe aqui — criar login por esta tela exigiria a chave de serviço do
-              Supabase dentro do app, que é justamente o que não se faz.
+              O vínculo é feito sobre uma conta que já existe. Se a pessoa ainda não tem conta,
+              convide abaixo: ela recebe um email, define a própria senha e aparece na lista de
+              vínculo.
             </Text>
+          </Card>
+
+          <Card>
+            <View style={styles.resumo}>
+              <View style={styles.flex}>
+                <Text variant="microLabel" color={colors.textSecondary}>
+                  Convidar para a equipe
+                </Text>
+                <Text variant="meta" color={colors.textMuted}>
+                  A conta nasce como cliente. Depois de aceitar, use Vincular técnico.
+                </Text>
+              </View>
+              <MailPlus size={26} color={colors.brand} />
+            </View>
+            <TextInput
+              value={nomeConvite}
+              onChangeText={setNomeConvite}
+              placeholder="Nome (opcional)"
+              placeholderTextColor={colors.textMuted}
+              style={styles.campo}
+            />
+            <TextInput
+              value={emailConvite}
+              onChangeText={setEmailConvite}
+              placeholder="email@empresa.com.br"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={styles.campo}
+            />
+            <Button
+              label="Enviar convite"
+              icon={MailPlus}
+              loading={convidando}
+              disabled={!emailConvite.includes('@')}
+              onPress={() => {
+                void enviarConvite();
+              }}
+            />
           </Card>
 
           {loading ? (
@@ -155,6 +218,17 @@ export default function EquipeScreen() {
 }
 
 const styles = StyleSheet.create({
+  campo: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    color: colors.textPrimary,
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    backgroundColor: colors.bgSurface,
+  },
   root: { flex: 1, backgroundColor: colors.bgApp },
   scroll: { flexGrow: 1, alignItems: 'center' },
   container: {

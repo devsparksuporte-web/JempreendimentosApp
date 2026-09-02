@@ -106,7 +106,7 @@ function AuthGate() {
     // `(admin)` no mesmo instante em que abre o sino, e a tela pisca sem
     // dizer por quê. Quem decide o que cada um enxerga é a RLS, não isto
     // aqui — isto é só para onde a navegação leva.
-    const emRotaCompartilhada = ['notificacoes', 'chamado'].includes(
+    const emRotaCompartilhada = ['notificacoes', 'chamado', 'trocar-senha', 'agenda'].includes(
       (segments as string[])[0],
     );
     const destination = role === 'admin' ? '/(admin)' : role === 'tecnico' ? '/(tecnico)' : '/(cliente)';
@@ -141,6 +141,8 @@ function AuthGate() {
       <Stack.Screen name="(auth)/onboarding" />
       <Stack.Screen name="(auth)/permissoes" />
       <Stack.Screen name="(auth)/recuperar-senha" />
+      <Stack.Screen name="trocar-senha" />
+      <Stack.Screen name="agenda" />
       <Stack.Screen name="(cliente)" />
       <Stack.Screen name="(admin)" />
       <Stack.Screen name="(tecnico)" />
