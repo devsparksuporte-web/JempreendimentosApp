@@ -1,5 +1,5 @@
-import { ArrowRight, Eye, EyeOff, Lock, Mail, Snowflake, User } from 'lucide-react-native';
-import { useState } from 'react';
+import { ArrowRight, Eye, EyeOff, Fingerprint, Lock, Mail, Snowflake, User } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -16,6 +16,12 @@ import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/context/AuthContext';
+import {
+  biometriaDisponivel,
+  entrarComBiometria,
+  guardarAcesso,
+  temAcessoGuardado,
+} from '@/services/biometria';
 import { colors, fonts, layout, radius, spacing, touch } from '@/theme/tokens';
 
 /**
@@ -41,7 +47,25 @@ export default function LoginScreen() {
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [comDigital, setComDigital] = useState(false);
   const criando = mode === 'criar';
+
+  // A digital só aparece quando o aparelho tem leitor com digital cadastrada
+  // E existe um acesso guardado. Oferecer o botão sem uma das duas coisas é
+  // prometer um atalho que não funciona.
+  useEffect(() => {
+    let ativo = true;
+    (async () => {
+      const [temLeitor, temGuardado] = await Promise.all([
+        biometriaDisponivel(),
+        temAcessoGuardado(),
+      ]);
+      if (ativo) setComDigital(temLeitor && temGuardado);
+    })();
+    return () => {
+      ativo = false;
+    };
+  }, []);
 
   async function handleSubmit() {
     setError(null);
@@ -55,12 +79,28 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      if (criando) await signUp(email, password, fullName);
-      else await signIn(email, password);
+      if (criando) {
+        await signUp(email, password, fullName);
+      } else {
+        await signIn(email, password);
+        // Só guarda quando a pessoa pediu para lembrar. Sem isso, o próximo
+        // que pegasse o aparelho entraria com a digital dele na conta dela.
+        if (remember) await guardarAcesso();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível continuar.');
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function entrarPelaDigital() {
+    setError(null);
+    try {
+      await entrarComBiometria();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível usar a digital.');
+      setComDigital(false);
     }
   }
 
@@ -207,6 +247,26 @@ export default function LoginScreen() {
               </Text>
             </Text>
           </Pressable>
+          {comDigital && !criando ? (
+            <View style={styles.biometria}>
+              <View style={styles.divisor}>
+                <View style={styles.linha} />
+                <Text variant="microLabel" color={colors.textMuted}>
+                  OU USE SUA BIOMETRIA
+                </Text>
+                <View style={styles.linha} />
+              </View>
+              <Pressable
+                onPress={() => {
+                  void entrarPelaDigital();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Entrar com a digital"
+                style={({ pressed }) => [styles.digital, pressed && styles.digitalTocada]}>
+                <Fingerprint size={30} color={colors.brand} />
+              </Pressable>
+            </View>
+          ) : null}
         </View>
 
         <Text variant="microLabel" color={colors.textMuted} style={styles.rodape}>
@@ -298,5 +358,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerSoft,
   },
   alternar: { alignItems: 'center', paddingVertical: spacing.sm },
+  biometria: { alignItems: 'center', gap: spacing.md, marginTop: spacing.sm },
+  divisor: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, alignSelf: 'stretch' },
+  linha: { flex: 1, height: 1, backgroundColor: colors.border },
+  digital: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bgSurface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  digitalTocada: { opacity: 0.85, transform: [{ scale: 0.97 }] },
   rodape: { marginTop: 'auto', paddingTop: spacing.lg },
 });

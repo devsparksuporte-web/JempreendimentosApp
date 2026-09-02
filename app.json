@@ -65,6 +65,13 @@
           "icon": "./assets/images/notificacao-j.png",
           "color": "#006BFF"
         }
+      ],
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Permita o uso da biometria para entrar sem digitar a senha."
+        }
       ]
     ],
     "experiments": {
