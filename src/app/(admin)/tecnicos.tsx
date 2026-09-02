@@ -35,6 +35,17 @@ import type { TechnicianStatus } from '@/types/database';
 const TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const CENTRO_PADRAO: [number, number] = [-47, -15];
 
+// Sem esta linha o aplicativo FECHA ao abrir o mapa. O SDK nativo do Mapbox
+// não avisa que falta token: ele lança MapboxConfigurationException no
+// momento em que o MapView é inflado, e isso derruba o processo inteiro.
+//
+// A chamada existia só dentro do MapboxRouteMap. Quem passasse antes por uma
+// rota de chamado carregava aquele módulo e o mapa daqui funcionava por
+// tabela; quem viesse direto para cá levava o app ao chão. É o mesmo token,
+// e configurá-lo é idempotente — repetir aqui é mais barato que depender da
+// ordem em que as telas foram abertas.
+Mapbox.setAccessToken(TOKEN ?? null);
+
 type Filtro = 'todos' | TechnicianStatus;
 
 const FILTROS: { chave: Filtro; rotulo: string }[] = [
