@@ -19,7 +19,8 @@
       "googleServicesFile": "./android/app/google-services.json",
       "package": "br.com.jempreendimentos.app",
       "adaptiveIcon": {
-        "backgroundColor": "#06152E"
+        "foregroundImage": "./assets/images/icone-adaptativo.png",
+        "backgroundColor": "#FFFFFF"
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
@@ -46,9 +47,9 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "backgroundColor": "#062B68",
-          "imageWidth": 160
+          "image": "./assets/images/logo-j.png",
+          "backgroundColor": "#F4F8FF",
+          "imageWidth": 180
         }
       ],
       "expo-sharing",
@@ -56,6 +57,13 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Permita o acesso à localização para traçar a rota até o atendimento e acompanhar o trajeto."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notificacao-j.png",
+          "color": "#006BFF"
         }
       ]
     ],
@@ -67,6 +75,7 @@
       "eas": {
         "projectId": "d07c1c26-b3b9-440a-8478-b0a252faea90"
       }
-    }
+    },
+    "icon": "./assets/images/icone-app.png"
   }
 }
