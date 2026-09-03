@@ -25,9 +25,25 @@ export type PmocExecution = {
   technician: { profile: { full_name: string } | null } | null;
 };
 
+/** Seção 4 do PMOC: um ambiente climatizado, não um equipamento. */
+export type PmocEnvironment = {
+  id: string;
+  activity: string;
+  name: string;
+  occupants_fixed: number;
+  occupants_floating: number;
+  area_m2: number | null;
+  thermal_load_btu: number | null;
+  ordem: number;
+};
+
 export type PmocItem = {
   id: string;
   routine: string;
+  /** Código do catálogo da norma ('4.9'), quando a rotina veio de lá. */
+  catalog_code: string | null;
+  /** Q, M, B, T, S ou A. Manda no reagendamento desde a 0031. */
+  periodicidade: string | null;
   frequency_months: number;
   last_execution: string | null;
   next_execution: string | null;
@@ -42,6 +58,8 @@ export type PmocPlan = {
   start_date: string;
   end_date: string | null;
   active: boolean;
+  art_trt: string | null;
+  contract_term: string | null;
   client: { id: string; name: string; doc: string | null } | null;
   address: {
     street: string;
@@ -54,8 +72,10 @@ export type PmocPlan = {
   responsible: {
     id: string;
     registration: string | null;
+    council_registration: string | null;
     profile: { full_name: string } | null;
   } | null;
+  environments: PmocEnvironment[];
   items: PmocItem[];
 };
 
@@ -71,12 +91,13 @@ export type PmocCertificate = {
 };
 
 const PLAN_SELECT = `
-  id, title, start_date, end_date, active,
+  id, title, start_date, end_date, active, art_trt, contract_term,
   client:client_id ( id, name, doc ),
   address:address_id ( street, number, district, city, state, zip_code ),
-  responsible:responsible_id ( id, registration, profile:profile_id ( full_name ) ),
+  responsible:responsible_id ( id, registration, council_registration, profile:profile_id ( full_name ) ),
+  environments:pmoc_environments ( id, activity, name, occupants_fixed, occupants_floating, area_m2, thermal_load_btu, ordem ),
   items:pmoc_items (
-    id, routine, frequency_months, last_execution, next_execution, notes,
+    id, routine, catalog_code, periodicidade, frequency_months, last_execution, next_execution, notes,
     equipment:equipment_id ( id, brand, model, environment, btu_capacity, serial_number ),
     executions:pmoc_executions (
       id, executed_at, conforme, notes,
@@ -175,4 +196,103 @@ export function execucoesNoPeriodo(plan: PmocPlan, inicio: string, fim: string) 
       })
       .map((e) => ({ item, execucao: e })),
   );
+}
+
+// ---------------------------------------------------------------------
+// Catálogo da norma e ambientes (0031)
+// ---------------------------------------------------------------------
+
+export type RotinaDoCatalogo = {
+  code: string;
+  grupo: number;
+  grupo_nome: string;
+  descricao: string;
+  periodicidade: string;
+  ordem: number;
+};
+
+export const ROTULO_PERIODICIDADE: Record<string, string> = {
+  Q: 'Quinzenal',
+  M: 'Mensal',
+  B: 'Bimestral',
+  T: 'Trimestral',
+  S: 'Semestral',
+  A: 'Anual',
+};
+
+/** As 44 rotinas da norma, na ordem em que aparecem no documento. */
+export async function fetchCatalogoDeRotinas(): Promise<RotinaDoCatalogo[]> {
+  const { data, error } = await (supabase as any)
+    .from('pmoc_routine_catalog')
+    .select('code, grupo, grupo_nome, descricao, periodicidade, ordem')
+    .order('ordem', { ascending: true });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as RotinaDoCatalogo[];
+}
+
+/**
+ * Cria as 44 rotinas para um equipamento do plano.
+ *
+ * Repetir não duplica — o banco garante isso pelo par (plano, equipamento,
+ * código). Devolve quantas foram criadas de fato.
+ */
+export async function aplicarCatalogo(pmocId: string, equipmentId: string): Promise<number> {
+  const { data, error } = await (supabase as any).rpc('aplicar_catalogo_pmoc', {
+    p_pmoc: pmocId,
+    p_equipment: equipmentId,
+  });
+  if (error) throw new Error(error.message);
+  return Number(data ?? 0);
+}
+
+export async function salvarAmbiente(
+  pmocId: string,
+  dados: Omit<PmocEnvironment, 'id'> & { id?: string },
+): Promise<void> {
+  const campos = {
+    pmoc_id: pmocId,
+    activity: dados.activity,
+    name: dados.name,
+    occupants_fixed: dados.occupants_fixed,
+    occupants_floating: dados.occupants_floating,
+    area_m2: dados.area_m2,
+    thermal_load_btu: dados.thermal_load_btu,
+    ordem: dados.ordem,
+  };
+  const q = (supabase as any).from('pmoc_environments');
+  const { error } = dados.id ? await q.update(campos).eq('id', dados.id) : await q.insert(campos);
+  if (error) throw new Error(error.message);
+}
+
+export async function removerAmbiente(id: string): Promise<void> {
+  const { error } = await (supabase as any).from('pmoc_environments').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+/** Agrupa as rotinas do plano por grupo da norma, para a tabela do documento. */
+export function agruparPorGrupo(itens: PmocItem[], catalogo: RotinaDoCatalogo[]) {
+  const porCodigo = new Map(catalogo.map((c) => [c.code, c]));
+  const grupos = new Map<number, { nome: string; linhas: { code: string; descricao: string; periodicidade: string }[] }>();
+
+  for (const item of itens) {
+    if (!item.catalog_code) continue;
+    const ref = porCodigo.get(item.catalog_code);
+    if (!ref) continue;
+    if (!grupos.has(ref.grupo)) grupos.set(ref.grupo, { nome: ref.grupo_nome, linhas: [] });
+    const grupo = grupos.get(ref.grupo);
+    if (!grupo || grupo.linhas.some((l) => l.code === ref.code)) continue;
+    grupo.linhas.push({
+      code: ref.code,
+      descricao: ref.descricao,
+      periodicidade: item.periodicidade ?? ref.periodicidade,
+    });
+  }
+
+  return [...grupos.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([numero, g]) => ({
+      numero,
+      nome: g.nome,
+      linhas: g.linhas.sort((a, b) => a.code.localeCompare(b.code, 'pt-BR', { numeric: true })),
+    }));
 }

@@ -15,6 +15,11 @@ import { colors } from '@/theme/tokens';
 
 const dataBR = (valor: string | null | undefined) => {
   if (!valor) return '—';
+  // Data pura ('2026-01-15') lida por new Date() vira meia-noite UTC e, no
+  // fuso de Brasília, volta um dia. O período do certificado é justamente
+  // um par de datas puras.
+  const soData = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valor);
+  if (soData) return `${soData[3]}/${soData[2]}/${soData[1]}`;
   const d = new Date(valor);
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleDateString('pt-BR');
 };
