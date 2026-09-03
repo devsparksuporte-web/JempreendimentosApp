@@ -10,6 +10,7 @@ import {
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { MenuLateral, useMenuLateral, type ItemDoMenu } from '@/components/MenuLateral';
 import { D, elevacaoSuave } from '@/theme/paletaMapa';
 
 /**
@@ -25,19 +26,28 @@ function Icone({ Glifo, ativo }: { Glifo: typeof LayoutGrid; ativo: boolean }) {
   );
 }
 
+const ITENS_DO_MENU: ItemDoMenu[] = [
+  { rota: '/(admin)', rotulo: 'Início', icone: LayoutGrid },
+  { rota: '/(admin)/tecnicos', rotulo: 'Mapa da equipe', icone: MapPin },
+  { rota: '/(admin)/pmoc', rotulo: 'PMOC', icone: FileCheck2 },
+  { rota: '/(admin)/estoque', rotulo: 'Estoque', icone: PackageSearch },
+  { rota: '/(admin)/distribuicao', rotulo: 'Distribuição', icone: BrainCircuit },
+  { rota: '/(admin)/configuracoes', rotulo: 'Perfil', icone: ShieldCheck },
+];
+
 export default function AdminLayout() {
   const insets = useSafeAreaInsets();
+  const noDesktop = useMenuLateral();
 
-  return (
+  const abas = (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: D.azul900,
         tabBarInactiveTintColor: D.slate300,
-        tabBarStyle: [
-          styles.tabBar,
-          { height: 78 + insets.bottom, paddingBottom: insets.bottom + 8 },
-        ],
+        tabBarStyle: noDesktop
+          ? styles.semBarra
+          : [styles.tabBar, { height: 78 + insets.bottom, paddingBottom: insets.bottom + 8 }],
         tabBarItemStyle: styles.tabItem,
         tabBarLabelStyle: styles.tabLabel,
         sceneStyle: { backgroundColor: D.fundo },
@@ -89,9 +99,21 @@ export default function AdminLayout() {
       <Tabs.Screen name="equipamento/[id]" options={{ href: null }} />
     </Tabs>
   );
+
+  if (!noDesktop) return abas;
+
+  return (
+    <View style={styles.desktop}>
+      <MenuLateral itens={ITENS_DO_MENU} />
+      <View style={styles.conteudo}>{abas}</View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
+  desktop: { flex: 1, flexDirection: 'row', backgroundColor: D.fundo },
+  conteudo: { flex: 1 },
+  semBarra: { display: 'none' },
   tabBar: {
     backgroundColor: D.branco,
     borderTopWidth: 1,

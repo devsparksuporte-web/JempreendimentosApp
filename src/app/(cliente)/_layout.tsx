@@ -1,18 +1,29 @@
 import { Tabs } from 'expo-router';
 import { AirVent, ClipboardList, LayoutDashboard, Sparkles, User } from 'lucide-react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { MenuLateral, useMenuLateral, type ItemDoMenu } from '@/components/MenuLateral';
 import { colors, fonts, spacing } from '@/theme/tokens';
+
+const ITENS_DO_MENU: ItemDoMenu[] = [
+  { rota: '/(cliente)', rotulo: 'Início', icone: LayoutDashboard },
+  { rota: '/(cliente)/equipamentos', rotulo: 'Equipamentos', icone: AirVent },
+  { rota: '/(cliente)/chamados', rotulo: 'Chamados', icone: ClipboardList },
+  { rota: '/(cliente)/ia', rotulo: 'Assistente', icone: Sparkles },
+  { rota: '/(cliente)/perfil', rotulo: 'Perfil', icone: User },
+];
 
 /** Tab bar do CLIENTE: Início | Equipamentos | Chamados | IA | Perfil */
 export default function ClienteLayout() {
-  return (
+  const noDesktop = useMenuLateral();
+
+  const abas = (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.brand,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: noDesktop ? styles.semBarra : styles.tabBar,
         tabBarItemStyle: styles.tabItem,
         tabBarLabelStyle: styles.tabLabel,
         sceneStyle: { backgroundColor: colors.bgApp },
@@ -62,9 +73,21 @@ export default function ClienteLayout() {
       <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
     </Tabs>
   );
+
+  if (!noDesktop) return abas;
+
+  return (
+    <View style={styles.desktop}>
+      <MenuLateral itens={ITENS_DO_MENU} />
+      <View style={styles.conteudo}>{abas}</View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
+  desktop: { flex: 1, flexDirection: 'row', backgroundColor: colors.bgApp },
+  conteudo: { flex: 1 },
+  semBarra: { display: 'none' },
   tabBar: {
     backgroundColor: colors.bgSurface,
     borderTopWidth: 1,

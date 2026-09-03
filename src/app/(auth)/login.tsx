@@ -8,11 +8,13 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
+import { SplitComVento } from '@/components/Abertura';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/context/AuthContext';
@@ -39,6 +41,10 @@ export default function LoginScreen() {
   const { signIn, signUp } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Acima disso há espaço para duas colunas. Abaixo, é celular ou
+  // tablet em pé, e empilhar continua sendo o certo.
+  const { width } = useWindowDimensions();
+  const emDuasColunas = width >= 900;
   const [mode, setMode] = useState<'entrar' | 'criar'>('entrar');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -115,14 +121,15 @@ export default function LoginScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
+        <View style={[styles.miolo, emDuasColunas && styles.mioloLargo]}>
         <Snowflake size={26} color={colors.brand} style={[styles.floco, styles.floco1]} />
         <Snowflake size={40} color={colors.brand} style={[styles.floco, styles.floco2]} />
         <Snowflake size={18} color={colors.brand} style={[styles.floco, styles.floco3]} />
 
-        <View style={styles.marca}>
+        <View style={[styles.marca, emDuasColunas && styles.marcaLado]}>
           <Image
             source={require('@/assets/images/logo-j.png')}
-            style={styles.logo}
+            style={[styles.logo, emDuasColunas && styles.logoGrande]}
             resizeMode="contain"
             accessibilityLabel="JEmpreendimentos"
           />
@@ -132,20 +139,14 @@ export default function LoginScreen() {
           <Text variant="body" color={colors.textSecondary}>
             Gestão Inteligente de Climatização
           </Text>
+          {emDuasColunas ? (
+            <View style={styles.ilustracao}>
+              <SplitComVento largura={220} />
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.conteudo}>
-          <View style={styles.titulo}>
-            <Text variant="screenTitle" color={colors.brandStrong}>
-              {criando ? 'Criar sua conta' : 'Acesse sua conta'}
-            </Text>
-            <Text variant="body" color={colors.textSecondary}>
-              {criando
-                ? 'Preencha os dados para começar'
-                : 'Entre para gerenciar ordens de serviço'}
-            </Text>
-          </View>
-
           {criando ? (
             <Campo
               label="NOME COMPLETO"
@@ -269,9 +270,16 @@ export default function LoginScreen() {
           ) : null}
         </View>
 
-        <Text variant="microLabel" color={colors.textMuted} style={styles.rodape}>
-          © 2025 JEMPREENDIMENTOS
-        </Text>
+        </View>
+
+        <View style={styles.rodape}>
+          <Text variant="microLabel" color={colors.textMuted}>
+            © 2026 JEMPREENDIMENTOS
+          </Text>
+          <Text variant="microLabel" color={colors.textMuted}>
+            Desenvolvido por DevSpark Web
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -309,7 +317,21 @@ const styles = StyleSheet.create({
   floco2: { top: 190, right: 24 },
   floco3: { top: 320, left: 46 },
 
+  miolo: { width: '100%', alignItems: 'center', gap: spacing.xl },
+  mioloLargo: {
+    flexDirection: 'row',
+    // Cresce para ocupar a altura livre; com isso o `alignItems` centraliza
+    // as duas colunas na vertical em vez de deixá-las grudadas no topo.
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 72,
+    maxWidth: 1080,
+  },
   marca: { alignItems: 'center', gap: spacing.xs },
+  marcaLado: { flex: 1, maxWidth: 420 },
+  logoGrande: { width: 176, height: 176 },
+  ilustracao: { marginTop: spacing.xl },
   logo: { width: 132, height: 132 },
   nome: { marginTop: spacing.sm },
 
@@ -318,7 +340,6 @@ const styles = StyleSheet.create({
     maxWidth: layout.maxFormWidth,
     gap: spacing.md,
   },
-  titulo: { alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },
 
   grupo: { gap: spacing.xs },
   entrada: {
@@ -372,5 +393,5 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   digitalTocada: { opacity: 0.85, transform: [{ scale: 0.97 }] },
-  rodape: { marginTop: 'auto', paddingTop: spacing.lg },
+  rodape: { marginTop: 'auto', paddingTop: spacing.lg, alignItems: 'center', gap: 2 },
 });

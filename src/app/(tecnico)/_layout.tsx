@@ -1,10 +1,18 @@
 import { Tabs } from 'expo-router';
 import { useEffect } from 'react';
 import { ClipboardList, MapPinned, QrCode, Settings } from 'lucide-react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { MenuLateral, useMenuLateral, type ItemDoMenu } from '@/components/MenuLateral';
 import { reportarMinhaLocalizacao } from '@/services/equipe';
 import { colors, fonts, spacing } from '@/theme/tokens';
+
+const ITENS_DO_MENU: ItemDoMenu[] = [
+  { rota: '/(tecnico)', rotulo: 'Atendimentos', icone: ClipboardList },
+  { rota: '/(tecnico)/rota', rotulo: 'Rota', icone: MapPinned },
+  { rota: '/(tecnico)/qr', rotulo: 'Ler QR', icone: QrCode },
+  { rota: '/(tecnico)/configuracoes', rotulo: 'Configurações', icone: Settings },
+];
 
 /** De quanto em quanto tempo a posição do técnico é enviada. */
 const INTERVALO_LOCALIZACAO_MS = 2 * 60 * 1000;
@@ -20,13 +28,15 @@ export default function TechnicianLayout() {
     return () => clearInterval(timer);
   }, []);
 
-  return (
+  const noDesktop = useMenuLateral();
+
+  const abas = (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.brand,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: noDesktop ? styles.semBarra : styles.tabBar,
         tabBarItemStyle: styles.tabItem,
         tabBarLabelStyle: styles.tabLabel,
         sceneStyle: { backgroundColor: colors.bgApp },
@@ -45,9 +55,21 @@ export default function TechnicianLayout() {
       <Tabs.Screen name="equipamento/[id]" options={{ href: null }} />
     </Tabs>
   );
+
+  if (!noDesktop) return abas;
+
+  return (
+    <View style={styles.desktop}>
+      <MenuLateral itens={ITENS_DO_MENU} />
+      <View style={styles.conteudo}>{abas}</View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
+  desktop: { flex: 1, flexDirection: 'row', backgroundColor: colors.bgApp },
+  conteudo: { flex: 1 },
+  semBarra: { display: 'none' },
   tabBar: {
     backgroundColor: colors.bgSurface,
     borderTopWidth: 1,
