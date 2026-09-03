@@ -1,4 +1,3 @@
-import Mapbox, { Camera, MapView, MarkerView } from '@rnmapbox/maps';
 import { MessageSquare, Navigation, Phone, Search, Users } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -22,6 +21,9 @@ import {
   type TecnicoEmCampo,
 } from '@/services/equipe';
 import { D, elevacaoSuave } from '@/theme/paletaMapa';
+import { MapaDaEquipe } from '@/components/MapaDaEquipe';
+import type { PinoDaEquipe } from '@/components/MapaDaEquipe.tipos';
+import { fotoOuBoneco } from '@/services/perfil';
 import type { TechnicianStatus } from '@/types/database';
 
 /**
@@ -35,16 +37,6 @@ import type { TechnicianStatus } from '@/types/database';
 const TOKEN = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const CENTRO_PADRAO: [number, number] = [-47, -15];
 
-// Sem esta linha o aplicativo FECHA ao abrir o mapa. O SDK nativo do Mapbox
-// não avisa que falta token: ele lança MapboxConfigurationException no
-// momento em que o MapView é inflado, e isso derruba o processo inteiro.
-//
-// A chamada existia só dentro do MapboxRouteMap. Quem passasse antes por uma
-// rota de chamado carregava aquele módulo e o mapa daqui funcionava por
-// tabela; quem viesse direto para cá levava o app ao chão. É o mesmo token,
-// e configurá-lo é idempotente — repetir aqui é mais barato que depender da
-// ordem em que as telas foram abertas.
-Mapbox.setAccessToken(TOKEN ?? null);
 
 type Filtro = 'todos' | TechnicianStatus;
 
@@ -89,10 +81,6 @@ function estilosDoStatus(status: TechnicianStatus) {
  * pelo <Image> do React Native, então usamos `/png` do mesmo serviço e com a
  * mesma semente — o desenho é idêntico.
  */
-function avatarUrl(nome: string): string {
-  return `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(nome)}`;
-}
-
 /**
  * Ciclo de 2s com a curva `cubic-bezier(0.4, 0, 0.6, 1)` do design. Serve às
  * duas animações da tela: o `pin-pulse` dos marcadores e o `animate-pulse`
@@ -133,11 +121,6 @@ export default function TecnicosScreen() {
   const insets = useSafeAreaInsets();
   const ciclo = useCicloPulso();
 
-  /** `pin-pulse`: escala 1 -> 1.1 e opacidade 1 -> 0.8. */
-  const pulsoPino = {
-    transform: [{ scale: ciclo.interpolate({ inputRange: [0, 1], outputRange: [1, 1.1] }) }],
-    opacity: ciclo.interpolate({ inputRange: [0, 1], outputRange: [1, 0.8] }),
-  };
   /** `animate-pulse` do Tailwind: opacidade 1 -> 0.5. */
   const pulsoLive = {
     opacity: ciclo.interpolate({ inputRange: [0, 1], outputRange: [1, 0.5] }),
@@ -193,6 +176,17 @@ export default function TecnicosScreen() {
   }, [comPosicao]);
 
   const foco = comPosicao.find((t) => t.id === selecionado) ?? comPosicao[0] ?? null;
+
+  // Os pinos saem prontos daqui: a regra de cor por status mora nesta tela,
+  // e não duplicada nas duas versões do mapa.
+  const pinos: PinoDaEquipe[] = comPosicao.map((t) => ({
+    id: t.id,
+    nome: t.nome,
+    longitude: t.posicao!.longitude,
+    latitude: t.posicao!.latitude,
+    cor: estilosDoStatus(t.status).ponto,
+    avatar: fotoOuBoneco(t.fotoUrl, t.nome),
+  }));
 
   return (
     <View style={styles.raiz}>
@@ -253,51 +247,14 @@ export default function TecnicosScreen() {
                   que é onde o Mapbox desenha o logo e a atribuição. Como a
                   atribuição é exigência de licença e não pode sumir, quem se
                   muda é ela — para a direita, onde não há nada por cima. */}
-              <MapView
-                style={styles.mapaView}
-                styleURL={Mapbox.StyleURL.Street}
-                scaleBarEnabled={false}
-                logoPosition={{ bottom: 8, right: 44 }}
-                attributionPosition={{ bottom: 8, right: 8 }}>
-                {limites ? (
-                  <Camera
-                    bounds={{
-                      ne: limites.ne,
-                      sw: limites.sw,
-                      paddingTop: 60,
-                      paddingBottom: 60,
-                      paddingLeft: 60,
-                      paddingRight: 60,
-                    }}
-                    animationDuration={700}
-                  />
-                ) : (
-                  <Camera
-                    zoomLevel={13}
-                    centerCoordinate={
-                      foco ? [foco.posicao!.longitude, foco.posicao!.latitude] : CENTRO_PADRAO
-                    }
-                    animationDuration={700}
-                  />
-                )}
-
-                {comPosicao.map((t) => {
-                  const s = estilosDoStatus(t.status);
-                  return (
-                    <MarkerView
-                      key={t.id}
-                      coordinate={[t.posicao!.longitude, t.posicao!.latitude]}
-                      anchor={{ x: 0.5, y: 0.5 }}>
-                      <Animated.View style={pulsoPino}>
-                        <Pressable onPress={() => setSelecionado(t.id)} style={styles.pino}>
-                          <Image source={{ uri: avatarUrl(t.nome) }} style={styles.pinoAvatar} />
-                          <View style={[styles.pinoStatus, { backgroundColor: s.ponto }]} />
-                        </Pressable>
-                      </Animated.View>
-                    </MarkerView>
-                  );
-                })}
-              </MapView>
+              <MapaDaEquipe
+                pinos={pinos}
+                limites={limites}
+                centro={
+                  foco ? [foco.posicao!.longitude, foco.posicao!.latitude] : CENTRO_PADRAO
+                }
+                onSelecionar={setSelecionado}
+              />
 
               {/* Botão de recentrar, canto inferior esquerdo */}
               <Pressable
@@ -361,7 +318,7 @@ export default function TecnicosScreen() {
                     pressed && styles.cartaoPressionado,
                   ]}>
                   <View style={styles.avatarArea}>
-                    <Image source={{ uri: avatarUrl(t.nome) }} style={styles.avatar} />
+                    <Image source={{ uri: fotoOuBoneco(t.fotoUrl, t.nome) }} style={styles.avatar} />
                     <View style={[styles.avatarStatus, { backgroundColor: s.ponto }]} />
                   </View>
 

@@ -110,7 +110,21 @@ function AuthGate() {
     const emRotaCompartilhada = ['notificacoes', 'chamado', 'trocar-senha', 'agenda'].includes(
       (segments as string[])[0],
     );
-    const destination = role === 'admin' ? '/(admin)' : role === 'tecnico' ? '/(tecnico)' : '/(cliente)';
+    // No navegador o técnico é mandado para uma tela de aviso, e não para o
+    // painel dele. O trabalho de campo depende de câmera, GPS e da mão do
+    // cliente na tela — nada disso existe num monitor, e um técnico que
+    // entra e não acha o leitor de QR conclui que o sistema quebrou.
+    // Isto é orientação de uso; quem barra acesso a dado é a RLS.
+    const tecnicoNoNavegador = Platform.OS === 'web' && role === 'tecnico';
+    const noAvisoDoApp = (segments as string[])[0] === 'acesso-pelo-app';
+
+    const destination = tecnicoNoNavegador
+      ? '/acesso-pelo-app'
+      : role === 'admin'
+        ? '/(admin)'
+        : role === 'tecnico'
+          ? '/(tecnico)'
+          : '/(cliente)';
 
     // A ordem é: apresentação, permissões, login. Cada etapa só sai do
     // caminho depois de concluída, e quem já entrou nunca mais as vê.
@@ -122,9 +136,15 @@ function AuthGate() {
       router.replace('/(auth)/permissoes' as never);
     } else if (apresentacaoOk && permissoesDone && !session && (!inAuthGroup || inOnboarding || inPermissoes)) {
       router.replace('/(auth)/login');
+    } else if (session && tecnicoNoNavegador && !noAvisoDoApp) {
+      router.replace('/acesso-pelo-app' as never);
     } else if (
       session &&
       !emRotaCompartilhada &&
+      // A tela de aviso só retém quem ela existe para atender. Qualquer
+      // outro perfil que caia nela é devolvido ao painel dele, em vez de
+      // ficar preso num aviso que não é sobre ele.
+      !(noAvisoDoApp && tecnicoNoNavegador) &&
       (inAuthGroup ||
         (role === 'admin' && !inAdminGroup) ||
         (role === 'tecnico' && !inTechnicianGroup) ||
@@ -144,6 +164,7 @@ function AuthGate() {
       <Stack.Screen name="(auth)/recuperar-senha" />
       <Stack.Screen name="trocar-senha" />
       <Stack.Screen name="agenda" />
+      <Stack.Screen name="acesso-pelo-app" />
       <Stack.Screen name="(cliente)" />
       <Stack.Screen name="(admin)" />
       <Stack.Screen name="(tecnico)" />

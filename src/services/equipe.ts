@@ -17,6 +17,8 @@ export type TecnicoEmCampo = {
   registration: string | null;
   status: TechnicianStatus;
   nome: string;
+  /** Foto do perfil, quando a pessoa enviou uma. Null cai no boneco. */
+  fotoUrl: string | null;
   /** Contatos diretos do cartão: ligar e mandar mensagem. */
   telefone: string | null;
   whatsapp: string | null;
@@ -46,7 +48,7 @@ export async function fetchEquipeEmCampo(): Promise<TecnicoEmCampo[]> {
     .from('technicians')
     .select(
       `id, registration, status,
-       profile:profile_id ( full_name, phone, whatsapp ),
+       profile:profile_id ( full_name, phone, whatsapp, avatar_url ),
        localizacao:technician_locations ( latitude, longitude, updated_at )`,
     )
     .eq('active', true);
@@ -57,7 +59,7 @@ export async function fetchEquipeEmCampo(): Promise<TecnicoEmCampo[]> {
     id: string;
     registration: string | null;
     status: TechnicianStatus;
-    profile: { full_name: string; phone: string | null; whatsapp: string | null } | null;
+    profile: { full_name: string; phone: string | null; whatsapp: string | null; avatar_url: string | null } | null;
     localizacao: { latitude: number; longitude: number; updated_at: string }[] | null;
   }[];
 
@@ -93,6 +95,7 @@ export async function fetchEquipeEmCampo(): Promise<TecnicoEmCampo[]> {
       registration: t.registration,
       status: t.status,
       nome: t.profile?.full_name ?? 'Técnico sem nome',
+      fotoUrl: t.profile?.avatar_url ?? null,
       telefone: t.profile?.phone ?? null,
       whatsapp: t.profile?.whatsapp ?? null,
       posicao: loc
