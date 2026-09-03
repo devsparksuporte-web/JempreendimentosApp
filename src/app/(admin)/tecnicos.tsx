@@ -344,7 +344,22 @@ export default function TecnicosScreen() {
               const telefone = somenteDigitos(t.telefone ?? t.whatsapp);
               const zap = somenteDigitos(t.whatsapp ?? t.telefone);
               return (
-                <View key={t.id} style={[styles.cartao, s.esmaecido && styles.cartaoEsmaecido]}>
+                <Pressable
+                  key={t.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Ver ${t.nome} no mapa`}
+                  accessibilityState={{ selected: selecionado === t.id }}
+                  // Sem posição reportada não há para onde levar o mapa. O
+                  // toque fica inerte em vez de mover a câmera para o técnico
+                  // errado, que é o que aconteceria caindo no primeiro da lista.
+                  disabled={!t.posicao}
+                  onPress={() => setSelecionado(t.id)}
+                  style={({ pressed }) => [
+                    styles.cartao,
+                    s.esmaecido && styles.cartaoEsmaecido,
+                    selecionado === t.id && styles.cartaoSelecionado,
+                    pressed && styles.cartaoPressionado,
+                  ]}>
                   <View style={styles.avatarArea}>
                     <Image source={{ uri: avatarUrl(t.nome) }} style={styles.avatar} />
                     <View style={[styles.avatarStatus, { backgroundColor: s.ponto }]} />
@@ -384,7 +399,7 @@ export default function TecnicosScreen() {
                       }
                     />
                   </View>
-                </View>
+                </Pressable>
               );
             })
           )}
@@ -428,6 +443,8 @@ function Acao({
 
 const styles = StyleSheet.create({
   raiz: { flex: 1, backgroundColor: D.fundo },
+  cartaoSelecionado: { borderColor: D.azul900, borderWidth: 1.5 },
+  cartaoPressionado: { opacity: 0.9 },
 
   cabecalho: {
     backgroundColor: D.branco,

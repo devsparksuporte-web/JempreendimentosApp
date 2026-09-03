@@ -272,14 +272,9 @@ export default function LoginScreen() {
 
         </View>
 
-        <View style={styles.rodape}>
-          <Text variant="microLabel" color={colors.textMuted}>
-            © 2026 JEMPREENDIMENTOS
-          </Text>
-          <Text variant="microLabel" color={colors.textMuted}>
-            Desenvolvido por DevSpark Web
-          </Text>
-        </View>
+        <Text variant="microLabel" color={colors.textMuted} style={styles.rodape}>
+          © 2026 DevSpark Web
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );

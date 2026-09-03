@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Activity, AlertCircle, AlertTriangle, ArrowLeft, Calendar, Camera, CheckCircle2, ClipboardCheck, ClipboardList, FileText, Info, MapPin, Phone, Play, SearchCheck, Square, UserCheck } from 'lucide-react-native';
+import { Activity, AlertCircle, AlertTriangle, ArrowLeft, Calendar, Camera, CheckCircle2, ClipboardCheck, ClipboardList, FileText, Info, MapPin, PenLine, Phone, Play, SearchCheck, Square, UserCheck } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
@@ -276,6 +276,21 @@ export default function TechnicianCallScreen() {
         <Card><Text variant="microLabel" color={colors.textSecondary}>Equipamento</Text><Text variant="screenTitle">{call.equipment?.brand ?? 'Sem marca'} {call.equipment?.model ?? ''}</Text><Text variant="body" color={colors.textSecondary}>{call.equipment?.environment ?? 'Ambiente não informado'} · {call.equipment?.btu_capacity ? `${call.equipment.btu_capacity} BTU` : 'BTU não informado'} · Gás {call.equipment?.gas_type ?? 'não informado'}</Text></Card>
         <View style={styles.section}><Text variant="microLabel" color={colors.textSecondary}>Evidências obrigatórias</Text><View style={styles.photoGrid}><PhotoAction label={`Antes (${beforeCount})`} onPress={() => addPhoto('antes')} complete={beforeCount > 0} /><PhotoAction label={`Depois (${afterCount})`} onPress={() => addPhoto('depois')} complete={afterCount > 0} /></View></View>
         <View style={styles.section}><View style={styles.rowBetween}><Text variant="microLabel" color={colors.textSecondary}>Checklist técnico</Text><Badge label={`${Object.values(results).filter(Boolean).length}/${items.length}`} tone={checklistComplete ? 'success' : 'warning'} /></View>{items.length === 0 ? <Card><Text variant="body" color={colors.textSecondary}>Nenhum checklist cadastrado para este tipo de serviço.</Text></Card> : items.map((item) => <Pressable key={item.id} onPress={() => toggleItem(item)} style={({ pressed }) => [styles.checkRow, pressed && styles.pressed]}><CheckCircle2 size={22} color={results[item.id] ? colors.success : colors.borderStrong} fill={results[item.id] ? colors.successSoft : 'transparent'} /><View style={styles.flex}><Text variant="bodyStrong">{item.label}</Text>{item.help_text ? <Text variant="meta" color={colors.textSecondary}>{item.help_text}</Text> : null}</View></Pressable>)}</View>
+
+        {/* A tela de assinatura existia desde o começo e nenhum caminho levava
+            até ela — o técnico não tinha como colher a assinatura do cliente.
+            Fica aqui, depois das evidências: é o aceite do que foi feito. */}
+        <View style={styles.section}>
+          <Text variant="microLabel" color={colors.textSecondary}>
+            Aceite do cliente
+          </Text>
+          <Button
+            label="Colher assinatura do cliente"
+            icon={PenLine}
+            variant="secondary"
+            onPress={() => router.push(`/(tecnico)/assinatura/${call.id}` as never)}
+          />
+        </View>
 
         {id ? <ConversaChamado callId={id} /> : null}
       </View>

@@ -91,7 +91,7 @@ export function MenuLateral({ itens }: { itens: ItemDoMenu[] }) {
       </View>
 
       <Text variant="microLabel" color={colors.textMuted} style={styles.rodape}>
-        DEVSPARK WEB
+        © 2026 DevSpark Web
       </Text>
     </View>
   );

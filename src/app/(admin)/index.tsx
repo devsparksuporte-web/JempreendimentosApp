@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { AlertCircle, BarChart3, CalendarClock, CheckCircle2, ChevronRight, ClipboardList, FileCheck2, HardHat, LayoutGrid, MessageCircle, MonitorPlay, PackageCheck, PackageSearch, RefreshCw, Truck, UserRound } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import type { ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
@@ -13,11 +14,16 @@ import { LoadingState, ErrorState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
 import { formatTime } from '@/lib/format';
 import { fetchAdminDashboard, technicianStatusLabel, type AdminDashboard } from '@/services/admin';
+import { useMenuLateral } from '@/components/MenuLateral';
 import { colors, layout, radius, spacing } from '@/theme/tokens';
 
 export default function AdminHomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // Em tela larga o painel deixa de ser uma pilha: indicadores lado a
+  // lado e atalhos em duas colunas. Empilhar tudo num monitor deixa
+  // metade da largura vazia e obriga a rolar por atalho.
+  const emGrade = useMenuLateral();
   const [data, setData] = useState<AdminDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -76,8 +82,9 @@ export default function AdminHomeScreen() {
 
           {loading ? <LoadingState /> : error ? <ErrorState message={error} onRetry={load} /> : data ? (
             <>
-              <View style={styles.destaques}>
+              <View style={[styles.destaques, emGrade && styles.destaquesEmGrade]}>
                 <Destaque
+                  estilo={emGrade ? styles.celula : undefined}
                   icon={LayoutGrid}
                   rotulo="Chamados abertos"
                   valor={String(data.totals.open)}
@@ -90,6 +97,7 @@ export default function AdminHomeScreen() {
                 />
 
                 <Destaque
+                  estilo={emGrade ? styles.celula : undefined}
                   icon={CalendarClock}
                   rotulo="Próximo serviço"
                   valor={proximo?.client?.name ?? 'Nada agendado'}
@@ -103,6 +111,7 @@ export default function AdminHomeScreen() {
                 />
 
                 <Destaque
+                  estilo={emGrade ? styles.celula : undefined}
                   icon={HardHat}
                   rotulo="Equipe disponível"
                   valor={String(data.totals.techniciansAvailable)}
@@ -121,19 +130,19 @@ export default function AdminHomeScreen() {
                 </View>
               </Card>
 
-              <View style={styles.operationLinks}>
-                <Pressable onPress={() => router.push('/(admin)/clientes' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><UserRound size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Clientes e equipamentos</Text><Text variant="meta" color={colors.textSecondary}>Cadastro, endereços e aparelhos</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/chamados' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><ClipboardList size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Chamados</Text><Text variant="meta" color={colors.textSecondary}>Histórico completo, abertos e encerrados</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/tecnicos' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><HardHat size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Técnicos em tempo real</Text><Text variant="meta" color={colors.textSecondary}>Equipe no mapa e status</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/equipe' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><HardHat size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Equipe técnica</Text><Text variant="meta" color={colors.textSecondary}>Vínculos, matrícula e especialidades</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/agenda' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><CalendarClock size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Agenda de visitas</Text><Text variant="meta" color={colors.textSecondary}>Dia a dia da equipe em campo</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/pmoc' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><FileCheck2 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">PMOC e conformidade</Text><Text variant="meta" color={colors.textSecondary}>Rotinas e próximas execuções</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/estoque' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><PackageSearch size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Controle de estoque</Text><Text variant="meta" color={colors.textSecondary}>Saldo mínimo e reposição</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/reposicao' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><Truck size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Reposição de estoque</Text><Text variant="meta" color={colors.textSecondary}>Solicitações e fornecedores</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/recebimento' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><PackageCheck size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Recebimento de mercadoria</Text><Text variant="meta" color={colors.textSecondary}>Pedidos de compra e entrada no estoque</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/relatorios' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><BarChart3 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Relatórios</Text><Text variant="meta" color={colors.textSecondary}>Performance e analytics</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/whatsapp' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><MessageCircle size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Central WhatsApp</Text><Text variant="meta" color={colors.textSecondary}>Triagem de conversas</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
-                <Pressable onPress={() => router.push('/(admin)/painel' as never)} style={({ pressed }) => [styles.operationLink, pressed && styles.pressed]}><MonitorPlay size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Painel de operação</Text><Text variant="meta" color={colors.textSecondary}>Modo TV, leitura à distância</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+              <View style={[styles.operationLinks, emGrade && styles.operationLinksEmGrade]}>
+                <Pressable onPress={() => router.push('/(admin)/clientes' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><UserRound size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Clientes e equipamentos</Text><Text variant="meta" color={colors.textSecondary}>Cadastro, endereços e aparelhos</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/chamados' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><ClipboardList size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Chamados</Text><Text variant="meta" color={colors.textSecondary}>Histórico completo, abertos e encerrados</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/tecnicos' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><HardHat size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Técnicos em tempo real</Text><Text variant="meta" color={colors.textSecondary}>Equipe no mapa e status</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/equipe' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><HardHat size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Equipe técnica</Text><Text variant="meta" color={colors.textSecondary}>Vínculos, matrícula e especialidades</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/agenda' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><CalendarClock size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Agenda de visitas</Text><Text variant="meta" color={colors.textSecondary}>Dia a dia da equipe em campo</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/pmoc' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><FileCheck2 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">PMOC e conformidade</Text><Text variant="meta" color={colors.textSecondary}>Rotinas e próximas execuções</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/estoque' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><PackageSearch size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Controle de estoque</Text><Text variant="meta" color={colors.textSecondary}>Saldo mínimo e reposição</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/reposicao' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><Truck size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Reposição de estoque</Text><Text variant="meta" color={colors.textSecondary}>Solicitações e fornecedores</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/recebimento' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><PackageCheck size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Recebimento de mercadoria</Text><Text variant="meta" color={colors.textSecondary}>Pedidos de compra e entrada no estoque</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/relatorios' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><BarChart3 size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Relatórios</Text><Text variant="meta" color={colors.textSecondary}>Performance e analytics</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/whatsapp' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><MessageCircle size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Central WhatsApp</Text><Text variant="meta" color={colors.textSecondary}>Triagem de conversas</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
+                <Pressable onPress={() => router.push('/(admin)/painel' as never)} style={({ pressed }) => [styles.operationLink, emGrade && styles.operationLinkEmGrade, pressed && styles.pressed]}><MonitorPlay size={20} color={colors.brandStrong} /><View style={styles.flex}><Text variant="bodyStrong">Painel de operação</Text><Text variant="meta" color={colors.textSecondary}>Modo TV, leitura à distância</Text></View><ChevronRight size={18} color={colors.slate300} /></Pressable>
               </View>
 
               <View style={styles.sectionHeader}><Text variant="microLabel" color={colors.textSecondary}>Fila de atendimento</Text><Badge label={`${data.calls.length} ativos`} tone={data.calls.length ? 'info' : 'success'} /></View>
@@ -183,6 +192,7 @@ function Destaque({
   apoio,
   destaqueApoio,
   valorPequeno = false,
+  estilo,
 }: {
   icon: typeof ClipboardList;
   rotulo: string;
@@ -190,9 +200,10 @@ function Destaque({
   apoio: string;
   destaqueApoio: string;
   valorPequeno?: boolean;
+  estilo?: ViewStyle;
 }) {
   return (
-    <Card>
+    <Card style={estilo}>
       <View style={styles.rowBetween}>
         <View style={styles.destaqueTextos}>
           <Text variant="microLabel" color={colors.textSecondary}>{rotulo}</Text>
@@ -213,6 +224,8 @@ const styles = StyleSheet.create({
   container: { width: '100%', maxWidth: layout.maxContentWidth, paddingHorizontal: layout.screenPadding, paddingTop: spacing.xl, gap: spacing.lg },
   intro: { gap: spacing.xs },
   destaques: { gap: spacing.md },
+  destaquesEmGrade: { flexDirection: 'row', flexWrap: 'wrap' },
+  celula: { flexGrow: 1, flexBasis: 260 },
   destaqueTextos: { flex: 1, gap: 2 },
   destaqueIcone: {
     width: 56,
@@ -244,6 +257,8 @@ const styles = StyleSheet.create({
   callMain: { flex: 1, gap: spacing.xs },
   flex: { flex: 1, gap: spacing.xs },
   operationLinks: { gap: spacing.sm },
+  operationLinksEmGrade: { flexDirection: 'row', flexWrap: 'wrap' },
+  operationLinkEmGrade: { flexGrow: 1, flexBasis: 340, maxWidth: '49%' },
   operationLink: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border, borderRadius: radius.xl, padding: spacing.lg },
   pressed: { opacity: 0.82, transform: [{ scale: 0.99 }] },
   empty: { alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.lg },
