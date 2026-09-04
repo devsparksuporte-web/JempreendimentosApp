@@ -84,6 +84,7 @@ export default function AdminLayout() {
           Sem href:null o Expo Router cria uma aba para cada arquivo de
           rota do grupo, e elas aparecem sem icone nem rotulo. */}
       <Tabs.Screen name="inicio" options={{ href: null }} />
+      <Tabs.Screen name="agenda-tecnico" options={{ href: null }} />
       <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
       <Tabs.Screen name="pmoc/[id]" options={{ href: null }} />
       <Tabs.Screen name="relatorios" options={{ href: null }} />
