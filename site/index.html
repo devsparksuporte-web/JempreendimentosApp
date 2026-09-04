@@ -198,6 +198,33 @@ section{padding:100px 0}
 .etiqueta--antes{background:#C2410C}
 .etiqueta--depois{background:var(--ok)}
 
+/* ---------- galeria de serviços feitos ---------- */
+.galeria{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.trabalho{
+  position:relative;border-radius:var(--raio-g);overflow:hidden;
+  border:1px solid var(--linha);background:var(--surface);
+  aspect-ratio:4/3;transition:.28s ease;
+}
+.trabalho:hover{transform:translateY(-5px);box-shadow:var(--sombra)}
+/* A primeira ocupa duas colunas e duas linhas: dá hierarquia à melhor foto
+   e evita a monotonia de seis retângulos iguais. */
+.trabalho--destaque{grid-column:span 2;grid-row:span 2;aspect-ratio:auto}
+.trabalho__txt{
+  position:absolute;left:0;right:0;bottom:0;z-index:4;padding:20px 22px;
+  background:linear-gradient(to top,rgba(6,21,46,.92),rgba(6,21,46,.55) 55%,transparent);
+  color:#fff;
+}
+.trabalho__txt b{display:block;font-size:1rem;font-weight:700}
+.trabalho__txt span{font-size:.82rem;color:#B9CCE6}
+@media (max-width:900px){
+  .galeria{grid-template-columns:repeat(2,1fr)}
+  .trabalho--destaque{grid-column:span 2;grid-row:auto;aspect-ratio:4/3}
+}
+@media (max-width:560px){
+  .galeria{grid-template-columns:1fr}
+  .trabalho--destaque{grid-column:auto}
+}
+
 /* ---------- passos ---------- */
 .passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px;counter-reset:p}
 .passo{position:relative;padding:34px 28px;background:var(--surface);border:1px solid var(--linha);border-radius:var(--raio-g)}
@@ -305,6 +332,7 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
     <nav>
       <a href="#servicos">Serviços</a>
       <a href="#preventiva">Preventiva</a>
+      <a href="#trabalhos">Trabalhos</a>
       <a href="#como">Como funciona</a>
       <a href="#planos">Planos</a>
       <a href="#contato">Contato</a>
@@ -503,6 +531,59 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
   </div>
 </section>
 
+<!-- ================= SERVIÇO FEITO ================= -->
+<section id="trabalhos">
+  <div class="env">
+    <div class="cabeca cabeca--centro revela">
+      <span class="olho">Nosso trabalho</span>
+      <h2>Serviço feito é serviço mostrado</h2>
+      <p class="lead">Instalações, manutenções e higienizações executadas pela nossa equipe.</p>
+    </div>
+
+    <div class="galeria">
+      <article class="trabalho trabalho--destaque revela">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Instalação concluída</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M5 16.5c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0"/></svg>
+        </div>
+        <div class="trabalho__txt"><b>Instalação de split</b><span>Residencial</span></div>
+      </article>
+      <article class="trabalho  revela">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Higienização</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 2.5c2.6 3.4 4 6 4 8a4 4 0 0 1-8 0c0-2 1.4-4.6 4-8z"/><path d="M4 20c2-1.4 4-1.4 6 0M14 20c2-1.4 4-1.4 6 0"/></svg>
+        </div>
+        <div class="trabalho__txt"><b>Higienização completa</b><span>Evaporadora e filtros</span></div>
+      </article>
+      <article class="trabalho  revela">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Manutenção</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14.7 6.3a4 4 0 0 1 5.3 5.3l-8.2 8.2a2.6 2.6 0 0 1-3.7-3.7z"/><path d="M9 5 5 9l-2.5-2.5a2 2 0 0 1 0-2.8l1.2-1.2a2 2 0 0 1 2.8 0z"/></svg>
+        </div>
+        <div class="trabalho__txt"><b>Manutenção corretiva</b><span>Diagnóstico e reparo</span></div>
+      </article>
+      <article class="trabalho  revela">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Obra comercial</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5"/></svg>
+        </div>
+        <div class="trabalho__txt"><b>Instalação comercial</b><span>Loja e escritório</span></div>
+      </article>
+      <article class="trabalho  revela">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Preventiva</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M5 16.5c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0"/></svg>
+        </div>
+        <div class="trabalho__txt"><b>Preventiva programada</b><span>Contrato de manutenção</span></div>
+      </article>
+    </div>
+
+    <p style="text-align:center;margin-top:34px">
+      <a class="btn btn--zap js-zap" href="#contato">Quero um serviço assim</a>
+    </p>
+  </div>
+</section>
+
 <!-- ================= COMO FUNCIONA ================= -->
 <section id="como" style="background:var(--surface);border-block:1px solid var(--linha)">
   <div class="env">
@@ -668,6 +749,7 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
           <li><a href="#servicos">Serviços</a></li>
           <li><a href="#preventiva">Manutenção preventiva</a></li>
           <li><a href="#antes">Antes e depois</a></li>
+          <li><a href="#trabalhos">Serviços feitos</a></li>
           <li><a href="#como">Como funciona</a></li>
           <li><a href="#planos">Planos</a></li>
           <li><a href="/login">Área do cliente</a></li>
