@@ -1,4 +1,4 @@
-import { copyFile, rename, access } from 'node:fs/promises';
+import { copyFile, rename, access, cp } from 'node:fs/promises';
 import { join } from 'node:path';
 
 /**
@@ -51,5 +51,14 @@ if (await existe(appHtml)) {
 
 await rename(indexHtml, appHtml);
 await copyFile(siteHtml, indexHtml);
+
+// As fotos do site vão junto. Sem isto o site sobe com todas as imagens
+// quebradas: o `expo export` só conhece os assets do aplicativo, e a pasta
+// `site/fotos` nunca chega ao `dist`.
+const fotosOrigem = join(raiz, 'site', 'fotos');
+if (await existe(fotosOrigem)) {
+  await cp(fotosOrigem, join(dist, 'fotos'), { recursive: true });
+  console.log('fotos do site copiadas para dist/fotos');
+}
 
 console.log('site em /  ·  app em /app.html (servido por rewrite)');

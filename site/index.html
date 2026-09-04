@@ -129,22 +129,13 @@ nav a:hover{color:var(--marca)}
 .ponto{width:26px;height:4px;border-radius:2px;background:rgba(255,255,255,.34);border:0;cursor:pointer;transition:.25s;padding:0}
 .ponto.on{background:#fff;width:38px}
 
-/* ---------- slot de foto ---------- */
-/* Cada .foto é um lugar reservado para IMAGEM REAL. Para publicar, troque
-   o conteúdo por <img src="..." alt="..."> — o enquadramento já está pronto. */
-.foto{
-  position:absolute;inset:0;
-  background:linear-gradient(150deg,#0A2A5C,#12467F 55%,#0A2A5C);
-  display:flex;align-items:center;justify-content:center;
-}
-.foto svg{width:46%;max-width:220px;height:auto;opacity:.5;color:#7FC0FF}
-.foto__marca{
-  position:absolute;top:14px;left:14px;z-index:5;
-  background:rgba(255,122,0,.94);color:#fff;font-size:.62rem;font-weight:800;
-  letter-spacing:.1em;text-transform:uppercase;padding:6px 11px;border-radius:7px;
-}
-.foto--claro{background:linear-gradient(150deg,#DDEBFB,#EFF6FF 55%,#DDEBFB)}
-.foto--claro svg{color:#7FA8DC;opacity:.65}
+/* ---------- fotos ---------- */
+/* As imagens vivem em site/fotos/ e são servidas junto com a página: não
+   dependem de CDN de terceiro continuar no ar nem mudam sem aviso.
+   Para trocar por uma foto sua, substitua só o arquivo — o recorte é feito
+   por object-fit e nada no CSS precisa mudar. */
+.foto{position:absolute;inset:0;background:#0A2A5C;overflow:hidden}
+.foto img{width:100%;height:100%;object-fit:cover;display:block}
 
 /* ---------- blocos ---------- */
 section{padding:100px 0}
@@ -375,8 +366,7 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
     <div class="carrossel" id="carrossel">
       <div class="slide on">
         <div class="foto">
-          <span class="foto__marca">Foto real · Instalação</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 16c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0M6.5 19.5c1.3 1.3 2.6 1.3 3.9 0s2.6-1.3 3.9 0"/><path d="M5 10h10"/></svg>
+          <img src="fotos/32497161.jpg" alt="Técnico inspecionando a unidade externa de um ar-condicionado residencial" />
         </div>
         <div class="slide__legenda">Instalação de ar-condicionado
           <small>Split, multi-split e janela — residencial e comercial</small>
@@ -385,8 +375,7 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
 
       <div class="slide">
         <div class="foto">
-          <span class="foto__marca">Foto real · Manutenção</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14.7 6.3a4 4 0 0 1 5.3 5.3l-8.2 8.2a2.6 2.6 0 0 1-3.7-3.7z"/><path d="M9 5 5 9l-2.5-2.5a2 2 0 0 1 0-2.8l1.2-1.2a2 2 0 0 1 2.8 0z"/></svg>
+          <img src="fotos/5463575.jpg" alt="Técnico fazendo manutenção em condensadora com ferramentas e manifold" loading="lazy" />
         </div>
         <div class="slide__legenda">Manutenção técnica
           <small>Diagnóstico, medições elétricas e correção de falhas</small>
@@ -395,8 +384,7 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
 
       <div class="slide">
         <div class="foto">
-          <span class="foto__marca">Foto real · Higienização</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 2.5c2.6 3.4 4 6 4 8a4 4 0 0 1-8 0c0-2 1.4-4.6 4-8z"/><path d="M4 20c2-1.4 4-1.4 6 0M14 20c2-1.4 4-1.4 6 0"/></svg>
+          <img src="fotos/5463576.jpg" alt="Técnico lavando a unidade externa durante higienização" loading="lazy" />
         </div>
         <div class="slide__legenda">Higienização preventiva
           <small>Limpeza de evaporadora, filtros e bandeja</small>
@@ -466,9 +454,8 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
   <div class="env duas">
     <div class="moldura revela">
       <div class="foto foto--claro">
-        <span class="foto__marca">Foto real · Técnico em manutenção</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="7" r="3.4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/><path d="M17 12.5l3.2 3.2M20.2 12.5 17 15.7"/></svg>
-      </div>
+          <img src="fotos/6471912.jpg" alt="Manifold de refrigeração em uso durante medição de pressão" loading="lazy" />
+        </div>
     </div>
 
     <div class="revela">
@@ -503,10 +490,9 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
       <article class="lado revela">
         <div class="lado__foto">
           <span class="etiqueta etiqueta--antes">Antes</span>
-          <div class="foto" style="background:linear-gradient(150deg,#3B2A1E,#5A4030 55%,#3B2A1E)">
-            <span class="foto__marca">Foto real · Evaporadora suja</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="color:#C9A98F"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M4 17.5c1 .8 2 .4 3-.4M9 18.6c1 .8 2 .4 3-.4M14 17.5c1 .8 2 .4 3-.4"/></svg>
-          </div>
+          <div class="foto">
+          <img src="fotos/5463580.jpg" alt="Aletas da serpentina com sujeira acumulada, medidas com alicate amperímetro" loading="lazy" />
+        </div>
         </div>
         <div class="lado__txt">
           <b>Filtro e serpentina saturados</b>
@@ -518,9 +504,8 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
         <div class="lado__foto">
           <span class="etiqueta etiqueta--depois">Depois</span>
           <div class="foto foto--claro">
-            <span class="foto__marca">Foto real · Após higienização</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M5 16.5c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0"/></svg>
-          </div>
+          <img src="fotos/38788452.jpg" alt="Evaporadora de parede limpa, instalada em ambiente residencial" loading="lazy" />
+        </div>
         </div>
         <div class="lado__txt">
           <b>Componentes limpos e testados</b>
@@ -528,53 +513,57 @@ footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92
         </div>
       </article>
     </div>
+    <p style="text-align:center;margin-top:22px;font-size:.84rem;color:var(--texto3)">
+      Imagens ilustrativas.
+    </p>
   </div>
 </section>
 
-<!-- ================= SERVIÇO FEITO ================= -->
+<!-- ================= SERVIÇO FEITO =================
+     ATENÇÃO: as fotos desta seção são de banco de imagens e mostram
+     serviços de ar-condicionado em geral — NÃO são atendimentos da
+     JEmpreendimentos. Enquanto for assim, o texto fala do tipo de serviço,
+     não de autoria. Ao trocar por fotos dos seus próprios atendimentos,
+     troque também o subtítulo por "executadas pela nossa equipe".
+     Os arquivos ficam em site/fotos/ — basta substituir mantendo o nome.  -->
 <section id="trabalhos">
   <div class="env">
     <div class="cabeca cabeca--centro revela">
       <span class="olho">Nosso trabalho</span>
       <h2>Serviço feito é serviço mostrado</h2>
-      <p class="lead">Instalações, manutenções e higienizações executadas pela nossa equipe.</p>
+      <p class="lead">Instalação, manutenção e higienização — residencial e comercial.</p>
     </div>
 
     <div class="galeria">
       <article class="trabalho trabalho--destaque revela">
         <div class="foto">
-          <span class="foto__marca">Foto real · Instalação concluída</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M5 16.5c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0"/></svg>
+          <img src="fotos/5463581.jpg" alt="Instalação e manutenção de conjunto de condensadoras em cobertura comercial" loading="lazy" />
         </div>
-        <div class="trabalho__txt"><b>Instalação de split</b><span>Residencial</span></div>
+        <div class="trabalho__txt"><b>Manutenção comercial</b><span>Central de ar em cobertura</span></div>
       </article>
       <article class="trabalho  revela">
         <div class="foto">
-          <span class="foto__marca">Foto real · Higienização</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 2.5c2.6 3.4 4 6 4 8a4 4 0 0 1-8 0c0-2 1.4-4.6 4-8z"/><path d="M4 20c2-1.4 4-1.4 6 0M14 20c2-1.4 4-1.4 6 0"/></svg>
-        </div>
-        <div class="trabalho__txt"><b>Higienização completa</b><span>Evaporadora e filtros</span></div>
-      </article>
-      <article class="trabalho  revela">
-        <div class="foto">
-          <span class="foto__marca">Foto real · Manutenção</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14.7 6.3a4 4 0 0 1 5.3 5.3l-8.2 8.2a2.6 2.6 0 0 1-3.7-3.7z"/><path d="M9 5 5 9l-2.5-2.5a2 2 0 0 1 0-2.8l1.2-1.2a2 2 0 0 1 2.8 0z"/></svg>
+          <img src="fotos/5463583.jpg" alt="Técnico atendendo unidade externa em área externa" loading="lazy" />
         </div>
         <div class="trabalho__txt"><b>Manutenção corretiva</b><span>Diagnóstico e reparo</span></div>
       </article>
       <article class="trabalho  revela">
         <div class="foto">
-          <span class="foto__marca">Foto real · Obra comercial</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5"/></svg>
+          <img src="fotos/5463587.jpg" alt="Manutenção de central de ar em laje técnica" loading="lazy" />
         </div>
-        <div class="trabalho__txt"><b>Instalação comercial</b><span>Loja e escritório</span></div>
+        <div class="trabalho__txt"><b>Preventiva programada</b><span>Contrato de manutenção</span></div>
       </article>
       <article class="trabalho  revela">
         <div class="foto">
-          <span class="foto__marca">Foto real · Preventiva</span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M5 16.5c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0"/></svg>
+          <img src="fotos/7347538.jpg" alt="Atendimento em condensadora fixada na fachada" loading="lazy" />
         </div>
-        <div class="trabalho__txt"><b>Preventiva programada</b><span>Contrato de manutenção</span></div>
+        <div class="trabalho__txt"><b>Atendimento em fachada</b><span>Condensadora de parede</span></div>
+      </article>
+      <article class="trabalho  revela">
+        <div class="foto">
+          <img src="fotos/6588599.jpg" alt="Sala com evaporadora de parede instalada" loading="lazy" />
+        </div>
+        <div class="trabalho__txt"><b>Instalação residencial</b><span>Split de parede</span></div>
       </article>
     </div>
 
