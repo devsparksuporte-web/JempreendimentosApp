@@ -3,12 +3,13 @@ import { useEffect } from 'react';
 import { ClipboardList, MapPinned, QrCode, Settings } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
+import { BarraSuperior } from '@/components/BarraSuperior';
 import { MenuLateral, useMenuLateral, type ItemDoMenu } from '@/components/MenuLateral';
 import { reportarMinhaLocalizacao } from '@/services/equipe';
 import { colors, fonts, spacing } from '@/theme/tokens';
 
 const ITENS_DO_MENU: ItemDoMenu[] = [
-  { rota: '/(tecnico)', rotulo: 'Atendimentos', icone: ClipboardList },
+  { rota: '/(tecnico)/inicio', rotulo: 'Atendimentos', icone: ClipboardList },
   { rota: '/(tecnico)/rota', rotulo: 'Rota', icone: MapPinned },
   { rota: '/(tecnico)/qr', rotulo: 'Ler QR', icone: QrCode },
   { rota: '/(tecnico)/configuracoes', rotulo: 'Configurações', icone: Settings },
@@ -48,6 +49,7 @@ export default function TechnicianLayout() {
       {/* Telas de detalhe: acessadas por navegacao, nunca como aba.
           Sem href:null o Expo Router cria uma aba para cada arquivo de
           rota do grupo, e elas aparecem sem icone nem rotulo. */}
+      <Tabs.Screen name="inicio" options={{ href: null }} />
       <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
       <Tabs.Screen name="checklist/[id]" options={{ href: null }} />
       <Tabs.Screen name="fotos/[id]" options={{ href: null }} />
@@ -61,7 +63,10 @@ export default function TechnicianLayout() {
   return (
     <View style={styles.desktop}>
       <MenuLateral itens={ITENS_DO_MENU} />
-      <View style={styles.conteudo}>{abas}</View>
+      <View style={styles.conteudo}>
+        <BarraSuperior />
+        <View style={styles.tela}>{abas}</View>
+      </View>
     </View>
   );
 }
@@ -69,6 +74,7 @@ export default function TechnicianLayout() {
 const styles = StyleSheet.create({
   desktop: { flex: 1, flexDirection: 'row', backgroundColor: colors.bgApp },
   conteudo: { flex: 1 },
+  tela: { flex: 1 },
   semBarra: { display: 'none' },
   tabBar: {
     backgroundColor: colors.bgSurface,

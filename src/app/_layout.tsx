@@ -118,13 +118,18 @@ function AuthGate() {
     const tecnicoNoNavegador = Platform.OS === 'web' && role === 'tecnico';
     const noAvisoDoApp = (segments as string[])[0] === 'acesso-pelo-app';
 
+    // No navegador o destino é `/inicio`, não a raiz do grupo: a raiz resolve
+    // para a URL `/`, e `/` no domínio publicado é o site institucional. Sem
+    // isto, entrar no sistema deixava a barra de endereços em `/` — e o
+    // primeiro F5 jogava a pessoa para fora, na página de vendas.
+    const inicioDoPerfil =
+      role === 'admin' ? '/(admin)' : role === 'tecnico' ? '/(tecnico)' : '/(cliente)';
+
     const destination = tecnicoNoNavegador
       ? '/acesso-pelo-app'
-      : role === 'admin'
-        ? '/(admin)'
-        : role === 'tecnico'
-          ? '/(tecnico)'
-          : '/(cliente)';
+      : Platform.OS === 'web'
+        ? `${inicioDoPerfil}/inicio`
+        : inicioDoPerfil;
 
     // A ordem é: apresentação, permissões, login. Cada etapa só sai do
     // caminho depois de concluída, e quem já entrou nunca mais as vê.
@@ -150,7 +155,7 @@ function AuthGate() {
         (role === 'tecnico' && !inTechnicianGroup) ||
         (role === 'cliente' && (inAdminGroup || inTechnicianGroup)))
     ) {
-      router.replace(destination);
+      router.replace(destination as never);
     }
   }, [session, initializing, role, segments, router, onboardingReady, onboardingDone, permissoesReady, permissoesDone]);
 

@@ -10,6 +10,7 @@ import {
 import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BarraSuperior } from '@/components/BarraSuperior';
 import { MenuLateral, useMenuLateral, type ItemDoMenu } from '@/components/MenuLateral';
 import { D, elevacaoSuave } from '@/theme/paletaMapa';
 
@@ -27,7 +28,7 @@ function Icone({ Glifo, ativo }: { Glifo: typeof LayoutGrid; ativo: boolean }) {
 }
 
 const ITENS_DO_MENU: ItemDoMenu[] = [
-  { rota: '/(admin)', rotulo: 'Início', icone: LayoutGrid },
+  { rota: '/(admin)/inicio', rotulo: 'Início', icone: LayoutGrid },
   { rota: '/(admin)/tecnicos', rotulo: 'Mapa da equipe', icone: MapPin },
   { rota: '/(admin)/pmoc', rotulo: 'PMOC', icone: FileCheck2 },
   { rota: '/(admin)/estoque', rotulo: 'Estoque', icone: PackageSearch },
@@ -79,6 +80,7 @@ export default function AdminLayout() {
       {/* Telas de detalhe: acessadas por navegacao, nunca como aba.
           Sem href:null o Expo Router cria uma aba para cada arquivo de
           rota do grupo, e elas aparecem sem icone nem rotulo. */}
+      <Tabs.Screen name="inicio" options={{ href: null }} />
       <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
       <Tabs.Screen name="pmoc/[id]" options={{ href: null }} />
       <Tabs.Screen name="relatorios" options={{ href: null }} />
@@ -105,7 +107,10 @@ export default function AdminLayout() {
   return (
     <View style={styles.desktop}>
       <MenuLateral itens={ITENS_DO_MENU} />
-      <View style={styles.conteudo}>{abas}</View>
+      <View style={styles.conteudo}>
+        <BarraSuperior />
+        <View style={styles.tela}>{abas}</View>
+      </View>
     </View>
   );
 }
@@ -113,6 +118,7 @@ export default function AdminLayout() {
 const styles = StyleSheet.create({
   desktop: { flex: 1, flexDirection: 'row', backgroundColor: D.fundo },
   conteudo: { flex: 1 },
+  tela: { flex: 1 },
   semBarra: { display: 'none' },
   tabBar: {
     backgroundColor: D.branco,
