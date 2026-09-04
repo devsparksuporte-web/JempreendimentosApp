@@ -1,4 +1,4 @@
-import { ArrowRight, Eye, EyeOff, Fingerprint, Lock, Mail, Snowflake, User } from 'lucide-react-native';
+import { ArrowRight, Clock4, Eye, EyeOff, Fingerprint, Lock, Mail, ShieldCheck, Snowflake, User, Wifi } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import {
   Image,
@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { SplitComVento } from '@/components/Abertura';
+import { PainelDaMarca } from '@/components/PainelDaMarca';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import { useAuth } from '@/context/AuthContext';
@@ -126,27 +127,45 @@ export default function LoginScreen() {
         <Snowflake size={40} color={colors.brand} style={[styles.floco, styles.floco2]} />
         <Snowflake size={18} color={colors.brand} style={[styles.floco, styles.floco3]} />
 
-        <View style={[styles.marca, emDuasColunas && styles.marcaLado]}>
-          <Image
-            source={require('@/assets/images/logo-j.png')}
-            style={[styles.logo, emDuasColunas && styles.logoGrande]}
-            resizeMode="contain"
-            accessibilityLabel="JEmpreendimentos"
-          />
-          <Text variant="screenTitle" color={colors.brandStrong} style={styles.nome}>
-            JEmpreendimentos
-          </Text>
-          <Text variant="body" color={colors.textSecondary}>
-            Gestão Inteligente de Climatização
-          </Text>
-          {emDuasColunas ? (
+        {emDuasColunas ? (
+          <PainelDaMarca />
+        ) : (
+          <View style={styles.marca}>
+            <Image
+              source={require('@/assets/images/logo-j.png')}
+              style={styles.logo}
+              resizeMode="contain"
+              accessibilityLabel="JEmpreendimentos"
+            />
+            <Text variant="screenTitle" color={colors.brandStrong} style={styles.nome}>
+              JEmpreendimentos
+            </Text>
+            <Text variant="body" color={colors.textSecondary}>
+              Gestão Inteligente de Serviços
+            </Text>
             <View style={styles.ilustracao}>
-              <SplitComVento largura={220} />
+              <SplitComVento largura={190} />
+            </View>
+          </View>
+        )}
+
+        <View style={[styles.conteudo, emDuasColunas && styles.conteudoLado]}>
+          {emDuasColunas ? (
+            <View style={styles.marcaForm}>
+              <Image
+                source={require('@/assets/images/logo-j.png')}
+                style={styles.logoForm}
+                resizeMode="contain"
+              />
+              <Text variant="screenTitle" color={colors.brandStrong}>
+                JEmpreendimentos
+              </Text>
+              <Text variant="body" color={colors.textSecondary}>
+                Gestão Inteligente de Serviços
+              </Text>
             </View>
           ) : null}
-        </View>
 
-        <View style={styles.conteudo}>
           {criando ? (
             <Campo
               label="NOME COMPLETO"
@@ -272,11 +291,29 @@ export default function LoginScreen() {
 
         </View>
 
-        <Text variant="microLabel" color={colors.textMuted} style={styles.rodape}>
-          © 2026 DevSpark Web
-        </Text>
+        <View style={[styles.rodape, emDuasColunas && styles.rodapeLargo]}>
+          <View style={styles.confianca}>
+            <Garantia icone={ShieldCheck} texto="Seus dados protegidos" />
+            <Garantia icone={Lock} texto="Conexão segura" />
+            <Garantia icone={Clock4} texto="Disponível 24/7" />
+          </View>
+          <Text variant="microLabel" color={colors.textMuted}>
+            © 2026 DevSpark Web
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
+  );
+}
+
+function Garantia({ icone: Glifo, texto }: { icone: typeof ShieldCheck; texto: string }) {
+  return (
+    <View style={styles.garantia}>
+      <Glifo size={15} color={colors.textMuted} />
+      <Text variant="microLabel" color={colors.textMuted}>
+        {texto}
+      </Text>
+    </View>
   );
 }
 
@@ -315,17 +352,20 @@ const styles = StyleSheet.create({
   miolo: { width: '100%', alignItems: 'center', gap: spacing.xl },
   mioloLargo: {
     flexDirection: 'row',
+    // `stretch` para o painel e o formulário terminarem na mesma linha; com
+    // `center` o painel ficava flutuando ao lado de um formulário curto.
+    alignItems: 'stretch',
     // Cresce para ocupar a altura livre; com isso o `alignItems` centraliza
     // as duas colunas na vertical em vez de deixá-las grudadas no topo.
     flexGrow: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    gap: 72,
+    gap: 56,
     maxWidth: 1080,
   },
   marca: { alignItems: 'center', gap: spacing.xs },
-  marcaLado: { flex: 1, maxWidth: 420 },
-  logoGrande: { width: 176, height: 176 },
+  marcaForm: { alignItems: 'center', gap: 2, marginBottom: spacing.md },
+  logoForm: { width: 84, height: 84, marginBottom: spacing.xs },
+  conteudoLado: { flex: 1, maxWidth: 440, justifyContent: 'center' },
   ilustracao: { marginTop: spacing.xl },
   logo: { width: 132, height: 132 },
   nome: { marginTop: spacing.sm },
@@ -388,5 +428,17 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   digitalTocada: { opacity: 0.85, transform: [{ scale: 0.97 }] },
-  rodape: { marginTop: 'auto', paddingTop: spacing.lg, alignItems: 'center', gap: 2 },
+  rodape: { marginTop: 'auto', paddingTop: spacing.lg, alignItems: 'center', gap: spacing.sm },
+  rodapeLargo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    maxWidth: 1160,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginTop: spacing.xl,
+  },
+  confianca: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg, justifyContent: 'center' },
+  garantia: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
 });

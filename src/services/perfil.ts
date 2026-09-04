@@ -110,3 +110,57 @@ export function fotoOuBoneco(avatarUrl: string | null | undefined, nome: string)
   if (avatarUrl) return avatarUrl;
   return `https://api.dicebear.com/7.x/avataaars/png?seed=${encodeURIComponent(nome)}`;
 }
+
+/**
+ * Atualiza os dados que a própria pessoa mantém.
+ *
+ * Email fica de fora de propósito: trocá-lo no Supabase dispara confirmação
+ * nos dois endereços, e uma falha no meio do caminho deixa alguém sem
+ * acesso. Isso merece fluxo próprio, com aviso — não um campo no meio de
+ * outros dois.
+ *
+ * O WhatsApp acompanha o telefone quando ainda não foi preenchido: na
+ * prática é o mesmo número, e pedir duas vezes a mesma coisa é o tipo de
+ * atrito que faz a pessoa desistir de completar o cadastro.
+ */
+export async function atualizarPerfil(dados: {
+  nome: string;
+  telefone: string | null;
+}): Promise<void> {
+  const nome = dados.nome.trim();
+  if (nome.length < 2) throw new Error('Informe o nome completo.');
+
+  const telefone = dados.telefone?.replace(/\D/g, '') || null;
+  if (telefone && telefone.length < 10) {
+    throw new Error('Telefone incompleto. Use DDD e número.');
+  }
+
+  const { data: auth } = await supabase.auth.getUser();
+  const eu = auth.user?.id;
+  if (!eu) throw new Error('Sessão expirada. Entre de novo.');
+
+  const { data: atualPerfil } = await (supabase as any)
+    .from('profiles')
+    .select('whatsapp')
+    .eq('id', eu)
+    .single();
+
+  const { error } = await (supabase as any)
+    .from('profiles')
+    .update({
+      full_name: nome,
+      phone: telefone,
+      whatsapp: (atualPerfil?.whatsapp as string | null) ?? telefone,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', eu);
+  if (error) throw new Error(error.message);
+}
+
+/** Telefone no formato (31) 99999-9999, para exibir. */
+export function telefoneBonito(valor: string | null | undefined): string {
+  const d = (valor ?? '').replace(/\D/g, '');
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  return valor || '';
+}
