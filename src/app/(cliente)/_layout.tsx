@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { AirVent, CalendarClock, ClipboardList, LayoutDashboard, Sparkles, User } from 'lucide-react-native';
+import { AirVent, CalendarClock, ClipboardList, LayoutDashboard, ReceiptText, Sparkles, User } from 'lucide-react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { BarraSuperior } from '@/components/BarraSuperior';
@@ -12,6 +12,7 @@ const ITENS_DO_MENU: ItemDoMenu[] = [
   { rota: '/(cliente)/equipamentos', rotulo: 'Equipamentos', icone: AirVent },
   { rota: '/(cliente)/chamados', rotulo: 'Chamados', icone: ClipboardList },
   { rota: '/(cliente)/agendamentos', rotulo: 'Agendamentos', icone: CalendarClock },
+  { rota: '/(cliente)/faturas', rotulo: 'Faturas', icone: ReceiptText },
   { rota: '/(cliente)/ia', rotulo: 'Assistente', icone: Sparkles },
   { rota: '/(cliente)/perfil', rotulo: 'Perfil', icone: User },
 ];
@@ -75,6 +76,7 @@ export default function ClienteLayout() {
           rota do grupo, e elas aparecem sem icone nem rotulo. */}
       <Tabs.Screen name="inicio" options={{ href: null }} />
       <Tabs.Screen name="agendamentos" options={{ href: null }} />
+      <Tabs.Screen name="faturas" options={{ href: null }} />
       <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
     </Tabs>
   );

@@ -164,9 +164,9 @@
     <h2>Conteúdo</h2>
     <div class="sumario">
       <div class="sumario-linha"><b>1</b><span>Entrar no sistema — login, senha e quem cria as contas</span></div>
-      <div class="sumario-linha"><b>2</b><span>Guia do cliente — abrir chamado, acompanhar, agendamentos e conversar</span></div>
+      <div class="sumario-linha"><b>2</b><span>Guia do cliente — abrir chamado, acompanhar, agendamentos e faturas</span></div>
       <div class="sumario-linha"><b>3</b><span>Guia do técnico — do aceite à assinatura</span></div>
-      <div class="sumario-linha"><b>4</b><span>Guia da administração — cadastros, equipe, agenda, estoque e compras</span></div>
+      <div class="sumario-linha"><b>4</b><span>Guia da administração — cadastros, equipe, agenda, financeiro e estoque</span></div>
       <div class="sumario-linha"><b>5</b><span>Quando algo dá errado</span></div>
       <div class="sumario-linha"><b>6</b><span>Limites de hoje</span></div>
     </div>
@@ -315,6 +315,17 @@
     <p class="nota">
       Você enxerga apenas se a faixa está livre ou ocupada. Chamado e nome de
       outro cliente nunca aparecem na agenda do técnico.
+    </p>
+
+    <h3>Minhas faturas</h3>
+    <p>
+      Em <b>Faturas</b> ficam as cobranças do seu contrato e dos atendimentos:
+      valor, vencimento e situação — em aberto, pago ou atrasado. No topo, o
+      total em aberto, o próximo vencimento e o que está vencido.
+    </p>
+    <p class="nota">
+      É uma tela de consulta: o sistema não processa pagamento. Dúvida sobre
+      uma cobrança, fale com a equipe pela conversa do chamado.
     </p>
 
   </section>
@@ -482,6 +493,53 @@
 <div class="pagina">
   <section style="margin-top:0">
     <span class="perfil-tarja">Perfil administração</span>
+    <h2>Financeiro</h2>
+    <p>
+      Em <b>Início → Financeiro</b>. A tela abre no mês corrente e mostra o que
+      <b>vence</b> nele — não o que foi digitado nele. No topo: a receber,
+      recebido, a pagar e atrasado.
+    </p>
+
+    <h3>Contratos</h3>
+    <p>
+      O contrato é o que alimenta o faturamento. Em <b>Contratos</b>, o botão
+      <b>+</b> abre o cadastro: cliente, descrição, valor mensal, dia do
+      vencimento e data de início. Tocar na etiqueta <b>Ativo</b> encerra o
+      contrato — e tocar de novo reativa.
+    </p>
+    <p class="nota">
+      Contrato encerrado para de gerar fatura, mas as faturas já emitidas
+      continuam onde estão. Encerrar não apaga cobrança.
+    </p>
+
+    <h3>Gerar as faturas do mês</h3>
+    <p>
+      O botão <b>Gerar faturas do mês</b> percorre todos os contratos ativos e
+      cria uma cobrança para cada um, com o vencimento no dia configurado.
+    </p>
+    <p class="nota">
+      Pode apertar sem medo: rodar de novo no mesmo mês <b>não duplica</b> nada.
+      O banco tem trava por contrato e vencimento. Se aparecer "nenhuma fatura
+      nova", é porque os contratos daquele mês já estavam faturados.
+    </p>
+
+    <h3>Dar baixa e cancelar</h3>
+    <ul>
+      <li><b>Dar baixa</b> registra que entrou, com a data de hoje. É essa data que diz se o cliente pagou em dia — e não a de vencimento.</li>
+      <li><b>Cancelar</b> marca a cobrança como cancelada. Ela continua no histórico, e some dos totais.</li>
+    </ul>
+    <p class="nota">
+      Despesa da empresa — o que tem tipo <i>a pagar</i> — nunca aparece para o
+      cliente. Ele enxerga apenas as cobranças dele.
+    </p>
+
+  </section>
+</div>
+
+<!-- ==================== 4d. ESTOQUE E COMPRAS ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="perfil-tarja">Perfil administração</span>
     <h2>Estoque, reposição e compras</h2>
     <p class="conduz">
       O ciclo vai do saldo baixo até a mercadoria entrando no estoque, sem
@@ -599,7 +657,6 @@
 
     <ul class="simples">
       <li><b>Um acesso por cliente.</b> Cada cadastro de cliente se liga a uma conta. Um condomínio com síndico e zelador teria hoje só um acesso.</li>
-      <li><b>Financeiro sem tela.</b> Contratos, faturamento mensal e contas a receber já existem no banco de dados, mas ainda não há tela para operá-los.</li>
       <li><b>Vibração depende do aparelho.</b> Boa parte dos tablets não tem motor de vibração. Neles o aviso chega com som e na barra de status.</li>
       <li><b>Localização em segundo plano.</b> No navegador, o acompanhamento da equipe só atualiza com a aba aberta. Em campo, use o aplicativo.</li>
       <li><b>Sem iPhone.</b> O sistema roda em Android e no navegador. A versão para iOS usaria o mesmo código, mas ainda não foi publicada.</li>

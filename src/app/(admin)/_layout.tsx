@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import {
   BrainCircuit,
   CalendarClock,
+  CircleDollarSign,
   FileCheck2,
   LayoutGrid,
   MapPin,
@@ -35,6 +36,7 @@ const ITENS_DO_MENU: ItemDoMenu[] = [
   { rota: '/(admin)/agenda-tecnico', rotulo: 'Agenda da equipe', icone: CalendarClock },
   { rota: '/(admin)/pmoc', rotulo: 'PMOC', icone: FileCheck2 },
   { rota: '/(admin)/estoque', rotulo: 'Estoque', icone: PackageSearch },
+  { rota: '/(admin)/financeiro', rotulo: 'Financeiro', icone: CircleDollarSign },
   { rota: '/(admin)/distribuicao', rotulo: 'Distribuição', icone: BrainCircuit },
   { rota: '/(admin)/configuracoes', rotulo: 'Perfil', icone: ShieldCheck },
 ];
@@ -85,6 +87,8 @@ export default function AdminLayout() {
           rota do grupo, e elas aparecem sem icone nem rotulo. */}
       <Tabs.Screen name="inicio" options={{ href: null }} />
       <Tabs.Screen name="agenda-tecnico" options={{ href: null }} />
+      <Tabs.Screen name="financeiro" options={{ href: null }} />
+      <Tabs.Screen name="contratos" options={{ href: null }} />
       <Tabs.Screen name="chamado/[id]" options={{ href: null }} />
       <Tabs.Screen name="pmoc/[id]" options={{ href: null }} />
       <Tabs.Screen name="relatorios" options={{ href: null }} />
