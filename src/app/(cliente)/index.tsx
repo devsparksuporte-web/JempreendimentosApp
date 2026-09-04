@@ -3,6 +3,7 @@ import {
   AirVent,
   CalendarClock,
   ChevronRight,
+  ClipboardList,
   HardHat,
   Plus,
 } from 'lucide-react-native';
@@ -14,6 +15,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Header } from '@/components/ui/Header';
+import { CartoesDeResumo } from '@/components/CartoesDeResumo';
 import { SinoNotificacoes } from '@/components/ui/SinoNotificacoes';
 import { IconTile } from '@/components/ui/IconTile';
 import { ListRow } from '@/components/ui/ListRow';
@@ -30,7 +32,7 @@ import {
   STATUS_LIVE,
   STATUS_TONE,
 } from '@/lib/format';
-import { fetchClienteHome, type ClienteHome } from '@/services/client';
+import { fetchClienteHome, resumoDoCliente, type ClienteHome } from '@/services/client';
 import { colors, layout, radius, spacing } from '@/theme/tokens';
 
 export default function ClienteHomeScreen() {
@@ -60,6 +62,7 @@ export default function ClienteHomeScreen() {
   }, [load]);
 
   const nome = firstName(profile?.full_name) || 'cliente';
+  const resumo = data ? resumoDoCliente(data) : null;
 
   return (
     <View style={styles.root}>
@@ -102,6 +105,41 @@ export default function ClienteHomeScreen() {
             />
           ) : (
             <>
+              <CartoesDeResumo
+                itens={[
+                  {
+                    icone: AirVent,
+                    rotulo: 'Equipamentos',
+                    valor: resumo!.equipamentos,
+                    apoio: 'Aparelhos no seu cadastro',
+                  },
+                  {
+                    icone: ClipboardList,
+                    rotulo: 'Chamados abertos',
+                    valor: resumo!.abertos,
+                    apoio: resumo!.abertos > 0 ? 'Em acompanhamento' : 'Nenhum em aberto',
+                    apoioCor: resumo!.abertos > 0 ? colors.brand : colors.textMuted,
+                  },
+                  {
+                    icone: HardHat,
+                    rotulo: 'Em andamento',
+                    valor: resumo!.emAndamento,
+                    apoio: resumo!.emAndamento > 0 ? 'Técnico a caminho ou no local' : 'Nada em execução',
+                    apoioCor: resumo!.emAndamento > 0 ? colors.successStrong : colors.textMuted,
+                  },
+                  {
+                    icone: CalendarClock,
+                    rotulo: 'Próxima visita',
+                    valor: resumo!.proximaVisita ? formatDate(resumo!.proximaVisita) : 'Nada agendado',
+                    valorPequeno: true,
+                    apoio: resumo!.proximaVisita
+                      ? daysUntilLabel(resumo!.proximaVisita)
+                      : 'Sem agendamento',
+                    apoioCor: colors.brand,
+                  },
+                ]}
+              />
+
               {data.activeCall ? (
                 <Section label="Atendimento em andamento">
                   <Card
@@ -146,6 +184,23 @@ export default function ClienteHomeScreen() {
                   ))
                 )}
               </Section>
+
+              {data.recentes.length > 0 ? (
+                <Section label="Chamados recentes">
+                  {data.recentes.map((c) => (
+                    <ListRow
+                      key={c.id}
+                      icon={ClipboardList}
+                      title={`#${c.code} · ${c.title}`}
+                      subtitle={formatDate(c.created_at)}
+                      trailing={
+                        <Badge label={STATUS_LABEL[c.status]} tone={STATUS_TONE[c.status]} />
+                      }
+                      onPress={() => router.push(`/chamado/${c.id}`)}
+                    />
+                  ))}
+                </Section>
+              ) : null}
 
               {data.nextMaintenance ? (
                 <Section label="Próxima manutenção">

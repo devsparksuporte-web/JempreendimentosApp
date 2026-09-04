@@ -27,9 +27,17 @@ export type ServiceCallDetailed = ServiceCall & {
 export type ClienteHome = {
   client: Client | null;
   equipment: Equipment[];
+  /** Primeiro dos abertos. Mantido porque telas antigas já leem daqui. */
   activeCall: ServiceCallDetailed | null;
+  /** Todos os chamados em aberto, para contar e listar no painel. */
+  abertos: ServiceCallDetailed[];
+  /** Últimos chamados, de qualquer status — o histórico curto do painel. */
+  recentes: ServiceCallDetailed[];
   nextMaintenance: (MaintenanceSchedule & { equipment: Pick<Equipment, 'brand' | 'environment'> | null }) | null;
 };
+
+/** Em campo agora: o técnico saiu ou já está no local. */
+const STATUS_EM_ANDAMENTO: ServiceStatus[] = ['a_caminho', 'em_atendimento'];
 
 /** Status considerados "em aberto" — alimentam o card de atendimento na Home. */
 const ACTIVE_STATUSES: ServiceStatus[] = [
@@ -73,9 +81,18 @@ export async function fetchClienteHome(): Promise<ClienteHome> {
     .maybeSingle();
 
   if (clientError) throw new Error(clientError.message);
-  if (!client) return { client: null, equipment: [], activeCall: null, nextMaintenance: null };
+  if (!client) {
+    return {
+      client: null,
+      equipment: [],
+      activeCall: null,
+      abertos: [],
+      recentes: [],
+      nextMaintenance: null,
+    };
+  }
 
-  const [equipmentRes, callRes, maintenanceRes] = await Promise.all([
+  const [equipmentRes, abertosRes, recentesRes, maintenanceRes] = await Promise.all([
     supabase
       .from('equipment')
       .select('*')
@@ -83,13 +100,19 @@ export async function fetchClienteHome(): Promise<ClienteHome> {
       .eq('active', true)
       .order('created_at', { ascending: true }),
 
+    // Todos os abertos, não só o primeiro: o painel conta e lista.
     supabase
       .from('service_calls')
       .select(CALL_SELECT)
       .in('status', ACTIVE_STATUSES)
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+      .limit(20),
+
+    supabase
+      .from('service_calls')
+      .select(CALL_SELECT)
+      .order('created_at', { ascending: false })
+      .limit(5),
 
     supabase
       .from('maintenance_schedules')
@@ -102,10 +125,14 @@ export async function fetchClienteHome(): Promise<ClienteHome> {
 
   if (equipmentRes.error) throw new Error(equipmentRes.error.message);
 
+  const abertos = (abertosRes.data as ServiceCallDetailed[] | null) ?? [];
+
   return {
     client,
     equipment: equipmentRes.data ?? [],
-    activeCall: (callRes.data as ServiceCallDetailed | null) ?? null,
+    activeCall: abertos[0] ?? null,
+    abertos,
+    recentes: (recentesRes.data as ServiceCallDetailed[] | null) ?? [],
     nextMaintenance: (maintenanceRes.data as ClienteHome['nextMaintenance']) ?? null,
   };
 }
@@ -210,4 +237,27 @@ export async function adminUpdateServiceCall(input: {
     p_status: input.status ?? null,
   });
   if (error) throw new Error(error.message);
+}
+
+
+/** Números do painel do cliente, calculados uma vez sobre o que já veio. */
+export function resumoDoCliente(home: ClienteHome) {
+  const emAndamento = home.abertos.filter((c) => STATUS_EM_ANDAMENTO.includes(c.status)).length;
+
+  // A próxima visita é a data mais próxima entre os chamados agendados e a
+  // preventiva programada — o cliente não distingue as duas origens, ele só
+  // quer saber quando alguém aparece.
+  const datas = [
+    ...home.abertos.map((c) => c.scheduled_for).filter(Boolean),
+    home.nextMaintenance?.next_due_at,
+  ].filter(Boolean) as string[];
+
+  const proxima = datas.sort()[0] ?? null;
+
+  return {
+    equipamentos: home.equipment.length,
+    abertos: home.abertos.length,
+    emAndamento,
+    proximaVisita: proxima,
+  };
 }

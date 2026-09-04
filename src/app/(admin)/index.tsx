@@ -2,10 +2,10 @@ import { useRouter } from 'expo-router';
 import { AlertCircle, BarChart3, CalendarClock, CheckCircle2, ChevronRight, ClipboardList, FileCheck2, HardHat, LayoutGrid, MessageCircle, MonitorPlay, PackageCheck, PackageSearch, RefreshCw, Truck, UserRound } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import type { ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Badge } from '@/components/ui/Badge';
+import { CartoesDeResumo } from '@/components/CartoesDeResumo';
 import { Card } from '@/components/ui/Card';
 import { CardGrid } from '@/components/ui/CardGrid';
 import { Header } from '@/components/ui/Header';
@@ -82,43 +82,38 @@ export default function AdminHomeScreen() {
 
           {loading ? <LoadingState /> : error ? <ErrorState message={error} onRetry={load} /> : data ? (
             <>
-              <View style={[styles.destaques, emGrade && styles.destaquesEmGrade]}>
-                <Destaque
-                  estilo={emGrade ? styles.celula : undefined}
-                  icon={LayoutGrid}
-                  rotulo="Chamados abertos"
-                  valor={String(data.totals.open)}
-                  apoio={
-                    data.totals.urgent > 0
-                      ? `${data.totals.urgent} urgente(s) na fila`
-                      : 'Aguardando alocação técnica'
-                  }
-                  destaqueApoio={data.totals.urgent > 0 ? colors.dangerStrong : colors.textMuted}
-                />
-
-                <Destaque
-                  estilo={emGrade ? styles.celula : undefined}
-                  icon={CalendarClock}
-                  rotulo="Próximo serviço"
-                  valor={proximo?.client?.name ?? 'Nada agendado'}
-                  valorPequeno
-                  apoio={
-                    proximo?.scheduled_for
+              <CartoesDeResumo
+                emGrade={emGrade}
+                itens={[
+                  {
+                    icone: LayoutGrid,
+                    rotulo: 'Chamados abertos',
+                    valor: data.totals.open,
+                    apoio:
+                      data.totals.urgent > 0
+                        ? `${data.totals.urgent} urgente(s) na fila`
+                        : 'Aguardando alocação técnica',
+                    apoioCor: data.totals.urgent > 0 ? colors.dangerStrong : colors.textMuted,
+                  },
+                  {
+                    icone: CalendarClock,
+                    rotulo: 'Próximo serviço',
+                    valor: proximo?.client?.name ?? 'Nada agendado',
+                    valorPequeno: true,
+                    apoio: proximo?.scheduled_for
                       ? `Agendamento: ${formatTime(proximo.scheduled_for)}`
-                      : 'Sem horário definido'
-                  }
-                  destaqueApoio={colors.brand}
-                />
-
-                <Destaque
-                  estilo={emGrade ? styles.celula : undefined}
-                  icon={HardHat}
-                  rotulo="Equipe disponível"
-                  valor={String(data.totals.techniciansAvailable)}
-                  apoio={`${data.technicians.length} técnico(s) ativos`}
-                  destaqueApoio={colors.successStrong}
-                />
-              </View>
+                      : 'Sem horário definido',
+                    apoioCor: colors.brand,
+                  },
+                  {
+                    icone: HardHat,
+                    rotulo: 'Equipe disponível',
+                    valor: data.totals.techniciansAvailable,
+                    apoio: `${data.technicians.length} técnico(s) ativos`,
+                    apoioCor: colors.successStrong,
+                  },
+                ]}
+              />
 
               <Card style={styles.maintenanceCard}>
                 <View style={styles.rowBetween}>
@@ -185,56 +180,11 @@ export default function AdminHomeScreen() {
  * Cartão grande do painel: rótulo pequeno, número gigante e uma linha de
  * apoio. É a unidade de leitura do design do dashboard.
  */
-function Destaque({
-  icon: Icon,
-  rotulo,
-  valor,
-  apoio,
-  destaqueApoio,
-  valorPequeno = false,
-  estilo,
-}: {
-  icon: typeof ClipboardList;
-  rotulo: string;
-  valor: string;
-  apoio: string;
-  destaqueApoio: string;
-  valorPequeno?: boolean;
-  estilo?: ViewStyle;
-}) {
-  return (
-    <Card style={estilo}>
-      <View style={styles.rowBetween}>
-        <View style={styles.destaqueTextos}>
-          <Text variant="microLabel" color={colors.textSecondary}>{rotulo}</Text>
-          <Text variant={valorPequeno ? 'cardTitle' : 'kpi'} numberOfLines={1}>{valor}</Text>
-          <Text variant="meta" color={destaqueApoio}>{apoio}</Text>
-        </View>
-        <View style={styles.destaqueIcone}>
-          <Icon size={26} color={colors.brand} />
-        </View>
-      </View>
-    </Card>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgApp },
   scroll: { flexGrow: 1, alignItems: 'center' },
   container: { width: '100%', maxWidth: layout.maxContentWidth, paddingHorizontal: layout.screenPadding, paddingTop: spacing.xl, gap: spacing.lg },
   intro: { gap: spacing.xs },
-  destaques: { gap: spacing.md },
-  destaquesEmGrade: { flexDirection: 'row', flexWrap: 'wrap' },
-  celula: { flexGrow: 1, flexBasis: 260 },
-  destaqueTextos: { flex: 1, gap: 2 },
-  destaqueIcone: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.lg,
-    backgroundColor: colors.brandTint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   headerAcoes: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   operacao: {
     flexDirection: 'row',
