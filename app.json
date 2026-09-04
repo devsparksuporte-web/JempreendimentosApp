@@ -8,6 +8,13 @@
     "scheme": "jempreendimentos",
     "userInterfaceStyle": "light",
     "locales": {},
+    "updates": {
+      "url": "https://u.expo.dev/d07c1c26-b3b9-440a-8478-b0a252faea90",
+      "fallbackToCacheTimeout": 0
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "br.com.jempreendimentos.app",

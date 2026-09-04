@@ -6,6 +6,7 @@
   "build": {
     "development": {
       "environment": "development",
+      "channel": "development",
       "developmentClient": true,
       "distribution": "internal",
       "android": {
@@ -19,6 +20,7 @@
     },
     "preview": {
       "environment": "preview",
+      "channel": "preview",
       "distribution": "internal",
       "android": {
         "buildType": "apk"
@@ -31,6 +33,7 @@
     },
     "production": {
       "environment": "production",
+      "channel": "production",
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://gahbxnjgldmosowgiksc.supabase.co",
