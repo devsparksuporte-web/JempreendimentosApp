@@ -164,9 +164,9 @@
     <h2>Conteúdo</h2>
     <div class="sumario">
       <div class="sumario-linha"><b>1</b><span>Entrar no sistema — login, senha e quem cria as contas</span></div>
-      <div class="sumario-linha"><b>2</b><span>Guia do cliente — abrir chamado, acompanhar e conversar</span></div>
+      <div class="sumario-linha"><b>2</b><span>Guia do cliente — abrir chamado, acompanhar, agendamentos e conversar</span></div>
       <div class="sumario-linha"><b>3</b><span>Guia do técnico — do aceite à assinatura</span></div>
-      <div class="sumario-linha"><b>4</b><span>Guia da administração — cadastros, equipe, estoque e compras</span></div>
+      <div class="sumario-linha"><b>4</b><span>Guia da administração — cadastros, equipe, agenda, estoque e compras</span></div>
       <div class="sumario-linha"><b>5</b><span>Quando algo dá errado</span></div>
       <div class="sumario-linha"><b>6</b><span>Limites de hoje</span></div>
     </div>
@@ -219,6 +219,26 @@
         <p>Do próximo login em diante ela já enxerga o que é dela.</p>
       </li>
     </ol>
+
+    <h3>Quando a administração convida</h3>
+    <p>
+      Em <b>Início → Equipe técnica</b> existe o bloco <b>Convidar para a
+      equipe</b>: informe o email e envie. A pessoa recebe a mensagem, define a
+      própria senha e já aparece na lista de vínculo. Continua valendo a mesma
+      regra — quem escolhe a senha é ela, nunca quem convidou.
+    </p>
+    <p class="nota">
+      A conta convidada nasce como cliente. Para virar técnico, use
+      <b>Vincular técnico</b> depois que a pessoa aceitar.
+    </p>
+
+    <h3>Entrar com a digital</h3>
+    <p>
+      Depois do primeiro login no aparelho, o aplicativo oferece entrar por
+      digital ou reconhecimento facial. É a biometria do próprio aparelho: o
+      sistema não guarda nem enxerga a sua digital, apenas pergunta ao Android
+      se é você. Em campo, evita digitar senha a cada uso.
+    </p>
 
     <h3>Esqueci minha senha</h3>
     <ol class="passos">
@@ -282,6 +302,21 @@
       A aba <b>Equipamentos</b> lista os aparelhos cadastrados, com marca,
       modelo, ambiente e o histórico de atendimentos de cada um.
     </p>
+    <h3>Meus agendamentos</h3>
+    <p>
+      Quando a equipe marca a visita, ela aparece em <b>Meus agendamentos</b>,
+      com o técnico responsável, a data, o horário de início e fim, o endereço
+      e as observações do chamado.
+    </p>
+    <ul>
+      <li><b>Reagendar.</b> Abre a grade de horários do técnico. Faixa ocupada aparece marcada e não pode ser escolhida. Ao confirmar, o horário antigo é liberado automaticamente.</li>
+      <li><b>Cancelar horário.</b> Libera a faixa e devolve o chamado para a fila de agendamento. <b>Não cancela o atendimento</b> — é para quando você não pode receber a equipe naquele dia.</li>
+    </ul>
+    <p class="nota">
+      Você enxerga apenas se a faixa está livre ou ocupada. Chamado e nome de
+      outro cliente nunca aparecem na agenda do técnico.
+    </p>
+
   </section>
 </div>
 
@@ -413,6 +448,40 @@
 <div class="pagina">
   <section style="margin-top:0">
     <span class="perfil-tarja">Perfil administração</span>
+    <h2>Agenda e agendamento</h2>
+    <p>
+      No chamado, em <b>Agendamento</b>, toque em <b>Agendar atendimento</b>.
+      Escolha o técnico, o dia e a faixa livre. O sistema mostra a agenda real
+      dele, com o chamado e o cliente de cada horário ocupado.
+    </p>
+    <ol class="passos">
+      <li><b>Um técnico não fica em dois lugares.</b> Se o horário já estiver tomado, o sistema recusa: <i>"Este técnico já possui um atendimento agendado para este horário."</i></li>
+      <li><b>Duas pessoas marcando ao mesmo tempo.</b> Quem confirmar primeiro fica com o horário; a segunda recebe a recusa. A trava é do banco de dados, não da tela — não existe janela de tempo em que as duas passem.</li>
+      <li><b>Horários encostados podem.</b> Um serviço das 14h às 15h não impede outro começando às 15h.</li>
+      <li><b>Reagendar libera o antigo.</b> Não é preciso desmarcar antes: gravar o novo horário devolve o anterior para a equipe.</li>
+      <li><b>Cancelar ou finalizar o chamado libera a faixa</b> na hora, para qualquer outro atendimento.</li>
+    </ol>
+
+    <h3>Agenda da equipe</h3>
+    <p>
+      Em <b>Início → Agenda da equipe</b>: escolha o técnico e o dia para ver a
+      grade completa, faixa a faixa, com o chamado e o cliente de cada horário
+      ocupado. É a visão para saber quem tem espaço antes de prometer data ao
+      cliente.
+    </p>
+    <p class="nota">
+      A grade sai do expediente configurado em <b>Distribuição → horário de
+      trabalho</b>. Se estiver como 00:00 às 23:59, a tela mostra as 24 horas
+      do dia. Ajuste para o horário real da empresa.
+    </p>
+
+  </section>
+</div>
+
+<!-- ==================== 4c. ESTOQUE E COMPRAS ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="perfil-tarja">Perfil administração</span>
     <h2>Estoque, reposição e compras</h2>
     <p class="conduz">
       O ciclo vai do saldo baixo até a mercadoria entrando no estoque, sem
@@ -465,12 +534,18 @@
     </p>
 
     <h3>Notificações</h3>
-    <p style="font-size:9.5pt;color:var(--tinta-2)">
-      O sino no topo mostra as não lidas. Em <b>Perfil → Notificações</b> dá
-      para desligar categorias inteiras — chamados, mensagens, estoque,
-      agendamentos, financeiro, serviços e equipe. A preferência vale para a
-      sua conta em qualquer aparelho. Avisos críticos continuam chegando mesmo
-      desligados.
+    <p>
+      O aviso chega ao aparelho <b>mesmo com o aplicativo fechado</b>. Com ele
+      aberto, a lista e o número no sino atualizam sozinhos, sem recarregar a
+      tela. Em <b>Perfil → Notificações</b> dá para desligar categorias
+      inteiras — chamados, mensagens, estoque, agendamentos, financeiro,
+      serviços e equipe. A preferência vale para a sua conta em qualquer
+      aparelho. Avisos críticos continuam chegando mesmo desligados.
+    </p>
+    <p>
+      O aparelho vibra ao receber, quando tem motor de vibração. Boa parte dos
+      tablets não tem — nesses, o aviso chega com som e na barra de status, e
+      não há ajuste no sistema que mude isso.
     </p>
   </section>
 </div>
@@ -523,16 +598,17 @@
     </p>
 
     <ul class="simples">
-      <li><b>Aviso só com o aplicativo aberto.</b> As notificações aparecem dentro do sistema. Notificação que toca no celular com o aplicativo fechado ainda não está implantada.</li>
       <li><b>Um acesso por cliente.</b> Cada cadastro de cliente se liga a uma conta. Um condomínio com síndico e zelador teria hoje só um acesso.</li>
-      <li><b>Sem agenda própria.</b> O agendamento é registrado no chamado; não existe calendário de visitas.</li>
-      <li><b>Sem módulo financeiro.</b> Contas a receber e faturamento por contrato não fazem parte do sistema.</li>
+      <li><b>Financeiro sem tela.</b> Contratos, faturamento mensal e contas a receber já existem no banco de dados, mas ainda não há tela para operá-los.</li>
+      <li><b>Vibração depende do aparelho.</b> Boa parte dos tablets não tem motor de vibração. Neles o aviso chega com som e na barra de status.</li>
       <li><b>Localização em segundo plano.</b> No navegador, o acompanhamento da equipe só atualiza com a aba aberta. Em campo, use o aplicativo.</li>
+      <li><b>Sem iPhone.</b> O sistema roda em Android e no navegador. A versão para iOS usaria o mesmo código, mas ainda não foi publicada.</li>
+      <li><b>Sem nota fiscal.</b> O sistema não emite NFS-e.</li>
     </ul>
 
     <div class="rodape-doc">
       <span>Manual do sistema — JEmpreendimentos Climatização</span>
-      <span>Versão 1.0</span>
+      <span>Versão 1.1 · 04/09/2026</span>
     </div>
   </section>
 </div>
