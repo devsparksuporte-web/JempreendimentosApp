@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Header } from '@/components/ui/Header';
 import { CartoesDeResumo } from '@/components/CartoesDeResumo';
+import { useMenuLateral } from '@/components/MenuLateral';
 import { SinoNotificacoes } from '@/components/ui/SinoNotificacoes';
 import { IconTile } from '@/components/ui/IconTile';
 import { ListRow } from '@/components/ui/ListRow';
@@ -62,6 +63,7 @@ export default function ClienteHomeScreen() {
   }, [load]);
 
   const nome = firstName(profile?.full_name) || 'cliente';
+  const naBarraDeCima = useMenuLateral();
   const resumo = data ? resumoDoCliente(data) : null;
 
   return (
@@ -69,7 +71,10 @@ export default function ClienteHomeScreen() {
       <Header
         title="JEmpreendimentos"
         eyebrow="Soluções Técnicas"
-        trailing={<SinoNotificacoes />}
+        // Na web em tela larga o sino já está na barra de cima. Dois sinos
+        // com o mesmo número na mesma tela é ruído; no celular, onde aquela
+        // barra não existe, este é o único caminho para os avisos.
+        trailing={naBarraDeCima ? undefined : <SinoNotificacoes />}
       />
 
       <ScrollView

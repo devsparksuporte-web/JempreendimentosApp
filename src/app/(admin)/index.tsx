@@ -63,7 +63,8 @@ export default function AdminHomeScreen() {
               <View style={styles.operacaoPonto} />
               <Text variant="meta" color={colors.brandStrong}>Operação ativa</Text>
             </View>
-            <SinoNotificacoes />
+            {/* Na web em tela larga o sino já está na barra de cima. */}
+            {emGrade ? null : <SinoNotificacoes />}
             <Pressable accessibilityRole="button" accessibilityLabel="Atualizar" onPress={load} style={styles.refresh}>
               <RefreshCw size={18} color={colors.brand} />
             </Pressable>
