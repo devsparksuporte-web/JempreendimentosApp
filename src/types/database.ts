@@ -147,6 +147,8 @@ export type ServiceCall = {
    */
   equipment_condition: EquipmentConditionLevel | null;
   scheduled_for: string | null;
+  /** Fim previsto. Com scheduled_for forma o intervalo reservado (migração 0034). */
+  scheduled_end: string | null;
   started_at: string | null;
   finished_at: string | null;
   created_by: string | null;

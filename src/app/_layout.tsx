@@ -107,7 +107,7 @@ function AuthGate() {
     // `(admin)` no mesmo instante em que abre o sino, e a tela pisca sem
     // dizer por quê. Quem decide o que cada um enxerga é a RLS, não isto
     // aqui — isto é só para onde a navegação leva.
-    const emRotaCompartilhada = ['notificacoes', 'chamado', 'trocar-senha', 'agenda', 'editar-perfil'].includes(
+    const emRotaCompartilhada = ['notificacoes', 'chamado', 'trocar-senha', 'agenda', 'agendar', 'editar-perfil'].includes(
       (segments as string[])[0],
     );
     // No navegador o técnico é mandado para uma tela de aviso, e não para o

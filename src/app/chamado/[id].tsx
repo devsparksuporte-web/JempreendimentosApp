@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AirVent, Check, HardHat, MapPin, MessageCircle, Phone, Sparkles } from 'lucide-react-native';
+import { AirVent, CalendarClock, Check, HardHat, MapPin, MessageCircle, Phone, Sparkles } from 'lucide-react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { Linking, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
@@ -17,12 +17,14 @@ import { ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
 import {
   equipmentName,
+  formatDate,
   formatTime,
   STATUS_LABEL,
   STATUS_LIVE,
   STATUS_TONE,
 } from '@/lib/format';
 import { Alert } from '@/lib/alerta';
+import { faixaBonita } from '@/services/agenda';
 import { adminUpdateServiceCall, cancelMyServiceCall, fetchServiceCall, fetchStatusHistory, type ServiceCallDetailed } from '@/services/client';
 import { fetchDistributionTechnicians, type DistributionTechnician } from '@/services/distribution';
 import { useAuth } from '@/context/AuthContext';
@@ -231,6 +233,32 @@ export default function AcompanharChamadoScreen() {
                   {canCancel ? <Button label="Cancelar chamado" variant="danger" loading={saving} onPress={() => Alert.alert('Cancelar chamado', 'Deseja realmente cancelar este chamado?', [{ text: 'Voltar', style: 'cancel' }, { text: 'Cancelar chamado', style: 'destructive', onPress: () => { void cancelCall(); } }])} /> : null}
                 </Card>
               </Section>
+
+              {call.status !== 'cancelado' && call.status !== 'finalizado' ? (
+                <Section label="Agendamento">
+                  <Card>
+                    <View style={styles.row}>
+                      <IconTile icon={CalendarClock} />
+                      <View style={styles.flex}>
+                        <Text variant="cardTitle">
+                          {call.scheduled_for
+                            ? `${formatDate(call.scheduled_for)} · ${faixaBonita(call.scheduled_for, call.scheduled_end)}`
+                            : 'Sem horário marcado'}
+                        </Text>
+                        <Text variant="meta" color={colors.textSecondary}>
+                          {call.technician?.profile?.full_name ?? 'Técnico a definir'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Button
+                      label={call.scheduled_for ? 'REAGENDAR' : 'AGENDAR ATENDIMENTO'}
+                      icon={CalendarClock}
+                      variant="secondary"
+                      onPress={() => router.push(`/agendar/${call.id}` as never)}
+                    />
+                  </Card>
+                </Section>
+              ) : null}
 
               {canAdminEdit ? <Section label="Ajustes administrativos"><Card><Text variant="microLabel" color={colors.textSecondary}>Prioridade</Text><View style={styles.choiceRow}>{(['baixa', 'normal', 'alta', 'urgente'] as const).map((value) => <Pressable key={value} onPress={() => setPriorityDraft(value)} style={[styles.choice, priorityDraft === value && styles.choiceActive]}><Text variant="meta" color={priorityDraft === value ? colors.textOnBrand : colors.textSecondary}>{value}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Status permitido</Text><View style={styles.choiceWrap}>{(['aberto', 'em_analise', 'aguardando_tecnico', 'tecnico_atribuido', 'a_caminho', 'em_atendimento', 'aguardando_peca', 'aguardando_aprovacao', 'finalizado', 'cancelado'] as const).map((value) => <Pressable key={value} onPress={() => setStatusDraft(value)} style={[styles.choice, statusDraft === value && styles.choiceActive]}><Text variant="meta" color={statusDraft === value ? colors.textOnBrand : colors.textSecondary}>{value.replaceAll('_', ' ')}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Técnico responsável</Text><View style={styles.choiceWrap}><Pressable onPress={() => setTechnicianDraft(null)} style={[styles.choice, technicianDraft === null && styles.choiceActive]}><Text variant="meta" color={technicianDraft === null ? colors.textOnBrand : colors.textSecondary}>Sem técnico</Text></Pressable>{technicians.map((tech) => <Pressable key={tech.technician_id} onPress={() => setTechnicianDraft(tech.technician_id)} style={[styles.choice, technicianDraft === tech.technician_id && styles.choiceActive]}><Text variant="meta" color={technicianDraft === tech.technician_id ? colors.textOnBrand : colors.textSecondary}>{tech.profile?.full_name ?? 'Técnico'}</Text></Pressable>)}</View><Text variant="microLabel" color={colors.textSecondary}>Agendamento</Text><SeletorDeVisita valor={agendaDraft} onChange={setAgendaDraft} /><TextInput value={titleDraft} onChangeText={setTitleDraft} placeholder="Título" placeholderTextColor={colors.textMuted} style={styles.editorInput} /><TextInput value={descriptionDraft} onChangeText={setDescriptionDraft} placeholder="Descrição" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={diagnosisDraft} onChangeText={setDiagnosisDraft} placeholder="Diagnóstico" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><TextInput value={solutionDraft} onChangeText={setSolutionDraft} placeholder="Solução" placeholderTextColor={colors.textMuted} multiline style={[styles.editorInput, styles.multiline]} /><Button label="Salvar ajustes" loading={saving} onPress={() => { void saveAdminChanges(); }} /></Card></Section> : null}
 

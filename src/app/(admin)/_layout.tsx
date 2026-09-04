@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import {
   BrainCircuit,
+  CalendarClock,
   FileCheck2,
   LayoutGrid,
   MapPin,
@@ -31,6 +32,7 @@ function Icone({ Glifo, ativo }: { Glifo: typeof LayoutGrid; ativo: boolean }) {
 const ITENS_DO_MENU: ItemDoMenu[] = [
   { rota: '/(admin)/inicio', rotulo: 'Início', icone: LayoutGrid },
   { rota: '/(admin)/tecnicos', rotulo: 'Mapa da equipe', icone: MapPin },
+  { rota: '/(admin)/agenda-tecnico', rotulo: 'Agenda da equipe', icone: CalendarClock },
   { rota: '/(admin)/pmoc', rotulo: 'PMOC', icone: FileCheck2 },
   { rota: '/(admin)/estoque', rotulo: 'Estoque', icone: PackageSearch },
   { rota: '/(admin)/distribuicao', rotulo: 'Distribuição', icone: BrainCircuit },
