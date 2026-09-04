@@ -1,984 +1,747 @@
 <!doctype html>
-<!--
-  Site público da JEmpreendimentos.
-
-  Estático de propósito: é a primeira coisa que a pessoa vê e o que o Google
-  lê. Ele ocupa a raiz do domínio; o sistema (app Expo) responde em todo
-  o resto, por rewrite. Ver scripts/pos-build-web.mjs e vercel.json.
-  Os links para o sistema são relativos (/login) de propósito: assim
-  continuam certos quando o domínio próprio entrar.
-
-  Sem arquivo externo nenhum além da fonte: todo visual aqui é CSS e SVG
-  escritos à mão. É o que mantém a página abrindo instantânea no 4G de
-  quem está parado na portaria decidindo se liga ou não.
-
-  PREENCHER ANTES DE DIVULGAR — procure por [PREENCHER no arquivo:
-    - telefone e WhatsApp
-    - cidades atendidas
-    - CNPJ
-  E procure por FOTO-REAL: são os lugares preparados para receber foto de
-  serviço seu. Enquanto não vierem, o desenho se sustenta sozinho.
-  Nada aqui foi inventado: o que não sei está marcado, não chutado.
--->
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JEmpreendimentos Climatização — Instalação, manutenção e PMOC</title>
-<meta name="description" content="Instalação, manutenção preventiva e corretiva de ar-condicionado para condomínios e empresas. PMOC conforme a Lei 13.589/2018, com relatório fotográfico e portal do cliente.">
-<meta name="theme-color" content="#06152E">
-<meta property="og:title" content="JEmpreendimentos Climatização">
-<meta property="og:description" content="Climatização para condomínios e empresas, com PMOC em dia e acompanhamento pelo portal do cliente.">
-<meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23062B68'/><text x='16' y='23' font-family='sans-serif' font-size='19' font-weight='800' fill='white' text-anchor='middle'>J</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JEmpreendimentos · Ar-Condicionado: Instalação, Manutenção e Higienização</title>
+<meta name="description" content="Instalação, manutenção preventiva e corretiva, higienização e suporte técnico em ar-condicionado para residências e empresas. Orçamento sem compromisso pelo WhatsApp." />
+<meta name="theme-color" content="#006BFF" />
+<meta property="og:title" content="JEmpreendimentos · Ar-Condicionado" />
+<meta property="og:description" content="Instalação, manutenção e higienização de ar-condicionado. Atendimento rápido e orçamento sem compromisso." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
-  :root {
-    --bg:        #F6F9FE;
-    --surface:   #FFFFFF;
-    --linha:     #E2ECF9;
-    --linha-2:   #CFE0F4;
-    --texto:     #06152E;
-    --texto-2:   #48617D;
-    --texto-3:   #8199B2;
-    --marca:     #006BFF;
-    --marca-2:   #0052CC;
-    --escuro:    #06152E;
-    --escuro-2:  #0B2350;
-    --tinta:     #E9F3FF;
-    --ok:        #00A878;
-    --alerta:    #FF7A00;
-    --r:   14px;
-    --r-g: 24px;
-    --r-gg: 34px;
-    --largura: 1160px;
+/* =====================================================================
+   JEmpreendimentos — Climatização
+   Paleta e tipografia iguais às do aplicativo, para que site e sistema
+   pareçam a mesma empresa. O laranja é acento, nunca fundo: ele marca o
+   que precisa de atenção e perde a força se aparecer em tudo.
+   ===================================================================== */
+:root{
+  --bg:#F6F9FE;
+  --surface:#FFFFFF;
+  --linha:#E2ECF9;
+  --texto:#06152E;
+  --texto2:#4A6285;
+  --texto3:#8AA0BD;
+  --marca:#006BFF;
+  --marca-esc:#0050C4;
+  --escuro:#06152E;
+  --tinta:#E9F3FF;
+  --laranja:#FF7A00;
+  --ok:#00A878;
+  --raio:18px;
+  --raio-g:26px;
+  --sombra:0 18px 48px rgba(6,43,104,.10);
+  --sombra-f:0 26px 70px rgba(6,43,104,.16);
+  --largura:1200px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans',-apple-system,Segoe UI,Roboto,sans-serif;
+  background:var(--bg);color:var(--texto);line-height:1.6;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+.env{width:100%;max-width:var(--largura);margin:0 auto;padding:0 24px}
 
-    /* Sombras em duas camadas: a rasa dá o contorno, a longa dá o peso.
-       Uma só, grande, sempre parece adesivo colado na tela. */
-    --sombra-1: 0 1px 2px rgba(6,21,46,.06), 0 8px 24px -8px rgba(6,21,46,.10);
-    --sombra-2: 0 1px 3px rgba(6,21,46,.07), 0 24px 56px -16px rgba(6,21,46,.18);
-    --sombra-3: 0 2px 6px rgba(6,21,46,.10), 0 40px 80px -24px rgba(6,21,46,.28);
-  }
+/* ---------- tipografia ---------- */
+h1,h2,h3{line-height:1.15;letter-spacing:-.02em;font-weight:800}
+h1{font-size:clamp(2rem,4.6vw,3.5rem)}
+h2{font-size:clamp(1.6rem,3.2vw,2.6rem)}
+h3{font-size:1.15rem;font-weight:700}
+.olho{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:.75rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--marca);
+}
+.olho::before{content:'';width:22px;height:2px;background:var(--laranja);border-radius:2px}
+.lead{font-size:clamp(1rem,1.6vw,1.18rem);color:var(--texto2);max-width:62ch}
 
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--texto);
-    line-height: 1.62;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-  a { color: inherit; text-decoration: none; }
-  h1, h2, h3 { line-height: 1.12; letter-spacing: -0.028em; margin: 0; font-weight: 800; }
-  p { margin: 0; }
+/* ---------- botões ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  padding:16px 28px;border-radius:999px;font-weight:700;font-size:.98rem;
+  border:1.5px solid transparent;cursor:pointer;transition:.22s ease;white-space:nowrap;
+}
+.btn--zap{background:#25D366;color:#06301A;box-shadow:0 12px 30px rgba(37,211,102,.34)}
+.btn--zap:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(37,211,102,.44)}
+.btn--marca{background:var(--marca);color:#fff;box-shadow:0 12px 30px rgba(0,107,255,.30)}
+.btn--marca:hover{background:var(--marca-esc);transform:translateY(-2px)}
+.btn--fantasma{background:transparent;color:#fff;border-color:rgba(255,255,255,.45)}
+.btn--fantasma:hover{background:rgba(255,255,255,.12);border-color:#fff}
+.btn--linha{background:var(--surface);color:var(--texto);border-color:var(--linha)}
+.btn--linha:hover{border-color:var(--marca);color:var(--marca)}
+.btn--g{padding:20px 40px;font-size:1.06rem}
 
-  .wrap { width: 100%; max-width: var(--largura); margin: 0 auto; padding: 0 24px; }
+/* ---------- cabeçalho ---------- */
+header{
+  position:sticky;top:0;z-index:60;background:rgba(255,255,255,.86);
+  backdrop-filter:blur(14px);border-bottom:1px solid var(--linha);
+}
+.topo{display:flex;align-items:center;gap:20px;height:74px}
+.marca{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.marca svg{width:34px;height:34px}
+.marca b{font-size:1.02rem;font-weight:800;letter-spacing:-.02em;display:block;line-height:1.1}
+.marca span{font-size:.6rem;font-weight:700;letter-spacing:.16em;color:var(--texto3)}
+nav{display:flex;gap:26px;margin-left:auto}
+nav a{font-size:.92rem;font-weight:600;color:var(--texto2);transition:color .2s}
+nav a:hover{color:var(--marca)}
+.topo .btn{padding:12px 22px;font-size:.88rem;flex-shrink:0}
+.menu-btn{display:none;margin-left:auto;background:none;border:0;padding:8px;cursor:pointer}
+.menu-btn span{display:block;width:24px;height:2px;background:var(--texto);border-radius:2px;margin:5px 0;transition:.25s}
 
-  /* Grão: tira o plástico das superfícies grandes sem pesar um byte de rede. */
-  .grao::before {
-    content: ''; position: absolute; inset: 0; pointer-events: none;
-    opacity: .5; mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.42'/%3E%3C/svg%3E");
-  }
+/* ---------- hero ---------- */
+.hero{position:relative;background:var(--escuro);color:#fff;overflow:hidden}
+.hero::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(1000px 520px at 88% 8%,rgba(0,107,255,.34),transparent 60%),
+             radial-gradient(760px 420px at 4% 92%,rgba(255,122,0,.14),transparent 62%);
+}
+.hero .env{position:relative;z-index:2;display:grid;grid-template-columns:1.02fr .98fr;gap:56px;align-items:center;padding-top:84px;padding-bottom:84px}
+.hero h1{color:#fff;margin-bottom:20px}
+.hero h1 em{font-style:normal;color:#7FC0FF}
+.hero .lead{color:#B9CCE6;max-width:52ch;margin-bottom:32px}
+.hero-acoes{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:34px}
+.selos{display:flex;gap:10px;flex-wrap:wrap}
+.selo{
+  display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);
+  font-size:.8rem;font-weight:600;color:#DCE9F9;
+}
+.selo svg{width:15px;height:15px;flex-shrink:0;color:#7FC0FF}
 
-  /* ---------------- cabeçalho ---------------- */
-  header {
-    position: sticky; top: 0; z-index: 50;
-    background: rgba(246,249,254,.72);
-    backdrop-filter: saturate(180%) blur(16px);
-    -webkit-backdrop-filter: saturate(180%) blur(16px);
-    border-bottom: 1px solid transparent;
-    transition: border-color .25s ease, background .25s ease;
-  }
-  header.preso { border-bottom-color: var(--linha); background: rgba(246,249,254,.92); }
-  .nav { display: flex; align-items: center; gap: 28px; height: 76px; }
-  .nav > .btn { flex-shrink: 0; }
+/* ---------- carrossel ---------- */
+.carrossel{position:relative;border-radius:var(--raio-g);overflow:hidden;box-shadow:var(--sombra-f);aspect-ratio:4/3.2}
+.slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;display:flex;flex-direction:column;justify-content:flex-end}
+.slide.on{opacity:1}
+.slide__legenda{
+  position:relative;z-index:3;padding:22px 24px;
+  background:linear-gradient(to top,rgba(6,21,46,.92),transparent);
+  font-weight:700;font-size:1.02rem;color:#fff;
+}
+.slide__legenda small{display:block;font-weight:500;font-size:.82rem;color:#B9CCE6;margin-top:2px}
+.pontos{position:absolute;left:24px;bottom:96px;z-index:4;display:flex;gap:7px}
+.ponto{width:26px;height:4px;border-radius:2px;background:rgba(255,255,255,.34);border:0;cursor:pointer;transition:.25s;padding:0}
+.ponto.on{background:#fff;width:38px}
 
-  .logo { display: flex; align-items: center; gap: 11px; flex-shrink: 0; }
-  .logo-selo {
-    width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
-    background: linear-gradient(145deg, #0A3F9E, var(--escuro));
-    display: grid; place-items: center;
-    box-shadow: 0 4px 14px -4px rgba(6,43,104,.6);
-  }
-  .logo-nome { font-weight: 800; font-size: 15px; letter-spacing: -0.01em; line-height: 1.15; }
-  .logo-nome small {
-    display: block; font-size: 9.5px; font-weight: 700;
-    letter-spacing: .17em; color: var(--texto-3);
-  }
+/* ---------- slot de foto ---------- */
+/* Cada .foto é um lugar reservado para IMAGEM REAL. Para publicar, troque
+   o conteúdo por <img src="..." alt="..."> — o enquadramento já está pronto. */
+.foto{
+  position:absolute;inset:0;
+  background:linear-gradient(150deg,#0A2A5C,#12467F 55%,#0A2A5C);
+  display:flex;align-items:center;justify-content:center;
+}
+.foto svg{width:46%;max-width:220px;height:auto;opacity:.5;color:#7FC0FF}
+.foto__marca{
+  position:absolute;top:14px;left:14px;z-index:5;
+  background:rgba(255,122,0,.94);color:#fff;font-size:.62rem;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;padding:6px 11px;border-radius:7px;
+}
+.foto--claro{background:linear-gradient(150deg,#DDEBFB,#EFF6FF 55%,#DDEBFB)}
+.foto--claro svg{color:#7FA8DC;opacity:.65}
 
-  .menu { display: flex; gap: 30px; margin-left: auto; font-size: 14px; font-weight: 600; color: var(--texto-2); }
-  .menu a { position: relative; padding: 4px 0; white-space: nowrap; }
-  .menu a::after {
-    content: ''; position: absolute; left: 0; right: 100%; bottom: 0; height: 1.5px;
-    background: var(--marca); transition: right .28s cubic-bezier(.2,.7,.3,1);
-  }
-  .menu a:hover { color: var(--texto); }
-  .menu a:hover::after { right: 0; }
+/* ---------- blocos ---------- */
+section{padding:100px 0}
+.cabeca{max-width:720px;margin-bottom:52px}
+.cabeca h2{margin:14px 0 16px}
+.cabeca--centro{margin-left:auto;margin-right:auto;text-align:center}
+.cabeca--centro .lead{margin-inline:auto}
+.cabeca--centro .olho{justify-content:center}
 
-  /* ---------------- botões ---------------- */
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-    padding: 13px 24px; border-radius: 999px; border: 1px solid transparent;
-    font-weight: 700; font-size: 14px; font-family: inherit; cursor: pointer;
-    white-space: nowrap;
-    transition: transform .16s cubic-bezier(.2,.7,.3,1), box-shadow .16s ease, background .16s ease, border-color .16s ease;
-  }
-  .btn:hover { transform: translateY(-1.5px); }
-  .btn:active { transform: translateY(0); }
-  .btn-p {
-    color: #fff;
-    background: linear-gradient(180deg, #1B7BFF, var(--marca-2));
-    box-shadow: 0 1px 2px rgba(0,82,204,.4), 0 10px 24px -8px rgba(0,107,255,.55);
-  }
-  .btn-p:hover { box-shadow: 0 1px 2px rgba(0,82,204,.4), 0 16px 32px -10px rgba(0,107,255,.6); }
-  .btn-zap {
-    color: #fff; background: linear-gradient(180deg, #12BE86, #00996B);
-    box-shadow: 0 1px 2px rgba(0,120,84,.4), 0 10px 24px -8px rgba(0,168,120,.5);
-  }
-  .btn-claro { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.22); }
-  .btn-claro:hover { background: rgba(255,255,255,.17); }
+/* ---------- serviços ---------- */
+.grade{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}
+.card{
+  background:var(--surface);border:1px solid var(--linha);border-radius:var(--raio-g);
+  padding:34px;transition:.28s ease;position:relative;overflow:hidden;
+}
+.card::before{content:'';position:absolute;left:0;top:0;width:100%;height:3px;background:var(--marca);transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.card:hover{transform:translateY(-6px);box-shadow:var(--sombra);border-color:#CFE2FA}
+.card:hover::before{transform:scaleX(1)}
+.card__icone{
+  width:56px;height:56px;border-radius:16px;background:var(--tinta);
+  display:flex;align-items:center;justify-content:center;margin-bottom:20px;color:var(--marca);
+}
+.card__icone svg{width:27px;height:27px}
+.card h3{margin-bottom:9px}
+.card p{color:var(--texto2);font-size:.96rem}
 
-  /* ---------------- hero ---------------- */
-  .hero {
-    position: relative; overflow: hidden; color: #fff;
-    background:
-      radial-gradient(900px 520px at 82% 8%,  rgba(0,107,255,.42), transparent 62%),
-      radial-gradient(700px 460px at 6% 92%,  rgba(0,168,120,.20), transparent 58%),
-      linear-gradient(168deg, #071B3D 0%, var(--escuro) 46%, #04101F 100%);
-    padding: 92px 0 104px;
-  }
-  /* Malha fina: dá escala e leitura de "engenharia" sem virar decoração. */
-  .hero-malha {
-    position: absolute; inset: 0; pointer-events: none; opacity: .5;
-    background-image:
-      linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
-    background-size: 76px 76px;
-    mask-image: radial-gradient(circle at 50% 40%, #000 20%, transparent 78%);
-    -webkit-mask-image: radial-gradient(circle at 50% 40%, #000 20%, transparent 78%);
-  }
-  .hero .wrap { position: relative; z-index: 2; }
-  .hero-grid { display: grid; grid-template-columns: 1.06fr .94fr; gap: 60px; align-items: center; }
+/* ---------- benefícios ---------- */
+.duas{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.moldura{position:relative;border-radius:var(--raio-g);overflow:hidden;aspect-ratio:4/3.4;box-shadow:var(--sombra)}
+.beneficios{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:30px}
+.beneficio{display:flex;gap:12px;align-items:flex-start}
+.beneficio i{
+  flex-shrink:0;width:26px;height:26px;border-radius:9px;background:rgba(0,168,120,.12);
+  display:flex;align-items:center;justify-content:center;color:var(--ok);margin-top:2px;
+}
+.beneficio i svg{width:15px;height:15px}
+.beneficio b{display:block;font-size:.96rem;font-weight:700}
+.beneficio span{font-size:.86rem;color:var(--texto2)}
 
-  .selo {
-    display: inline-flex; align-items: center; gap: 9px;
-    padding: 7px 14px 7px 8px; border-radius: 999px;
-    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14);
-    font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-    color: #CFE2FF;
-  }
-  .selo b {
-    background: var(--ok); color: #04241B; border-radius: 999px;
-    padding: 3px 9px; font-size: 10px; letter-spacing: .08em;
-  }
+/* ---------- antes e depois ---------- */
+.comparativo{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.lado{border-radius:var(--raio-g);overflow:hidden;border:1px solid var(--linha);background:var(--surface)}
+.lado__foto{position:relative;aspect-ratio:16/11}
+.lado__txt{padding:22px 24px}
+.lado__txt b{display:block;font-size:1.04rem;font-weight:800;margin-bottom:4px}
+.lado__txt p{font-size:.9rem;color:var(--texto2)}
+.etiqueta{
+  position:absolute;top:14px;right:14px;z-index:5;padding:7px 14px;border-radius:999px;
+  font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff;
+}
+.etiqueta--antes{background:#C2410C}
+.etiqueta--depois{background:var(--ok)}
 
-  .hero h1 { font-size: clamp(38px, 5.4vw, 62px); margin: 24px 0 20px; }
-  .hero h1 span {
-    background: linear-gradient(100deg, #7FC0FF, #E6F2FF 55%, #8FE8C8);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .hero .lead { font-size: 18.5px; color: #B9CEEA; max-width: 47ch; }
-  .hero-acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+/* ---------- passos ---------- */
+.passos{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:24px;counter-reset:p}
+.passo{position:relative;padding:34px 28px;background:var(--surface);border:1px solid var(--linha);border-radius:var(--raio-g)}
+.passo__n{
+  width:44px;height:44px;border-radius:14px;background:var(--escuro);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.02rem;margin-bottom:18px;
+}
+.passo h3{margin-bottom:7px}
+.passo p{font-size:.92rem;color:var(--texto2)}
 
-  .hero-provas { display: flex; gap: 30px; margin-top: 42px; flex-wrap: wrap; }
-  .prova { display: flex; align-items: center; gap: 11px; font-size: 13.5px; color: #9FBADB; }
-  .prova svg { flex-shrink: 0; }
+/* ---------- planos ---------- */
+.planos{display:grid;grid-template-columns:1fr 1fr;gap:26px;align-items:start}
+.plano{background:var(--surface);border:1.5px solid var(--linha);border-radius:var(--raio-g);padding:38px;position:relative}
+.plano--destaque{border-color:var(--marca);box-shadow:var(--sombra)}
+.plano__fita{
+  position:absolute;top:-13px;left:38px;background:var(--laranja);color:#fff;
+  font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+  padding:7px 15px;border-radius:8px;
+}
+.plano h3{font-size:1.35rem;margin-bottom:8px}
+.plano > p{color:var(--texto2);margin-bottom:22px}
+.plano ul{list-style:none;display:grid;gap:12px;margin-bottom:28px}
+.plano li{display:flex;gap:11px;align-items:flex-start;font-size:.94rem;color:var(--texto2)}
+.plano li svg{width:17px;height:17px;color:var(--marca);flex-shrink:0;margin-top:4px}
 
-  /* cartão de vidro */
-  .vidro {
-    position: relative; border-radius: var(--r-gg); padding: 26px;
-    background: linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.05));
-    border: 1px solid rgba(255,255,255,.18);
-    box-shadow: 0 40px 90px -30px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.22);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  }
-  .vidro-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
-  .vidro-etiqueta { font-size: 10.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #8FB6E8; }
-  .vidro h3 { font-size: 17px; margin: 4px 0 3px; }
-  .vidro .sub { font-size: 13px; color: #A8C3E4; }
+/* ---------- depoimentos ---------- */
+.depo{background:var(--surface);border:1px solid var(--linha);border-radius:var(--raio-g);padding:32px;display:flex;flex-direction:column;gap:16px}
+.estrelas{display:flex;gap:3px;color:var(--laranja)}
+.estrelas svg{width:17px;height:17px}
+.depo p{color:var(--texto2);font-size:.98rem;flex:1}
+.depo footer{display:flex;align-items:center;gap:12px;border-top:1px solid var(--linha);padding-top:16px}
+.depo footer div{width:42px;height:42px;border-radius:50%;background:var(--tinta);display:flex;align-items:center;justify-content:center;color:var(--marca);font-weight:800}
+.depo footer b{display:block;font-size:.92rem}
+.depo footer span{font-size:.8rem;color:var(--texto3)}
 
-  .passo { display: flex; align-items: center; gap: 13px; padding: 13px 0; border-top: 1px solid rgba(255,255,255,.1); }
-  .passo:first-of-type { border-top: 0; }
-  .passo-ico {
-    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
-    background: rgba(255,255,255,.1); display: grid; place-items: center;
-  }
-  .passo b { display: block; font-size: 13.5px; font-weight: 700; }
-  .passo span { font-size: 12px; color: #9FBADB; }
-  .fita {
-    margin-left: auto; font-size: 10.5px; font-weight: 800; letter-spacing: .05em;
-    padding: 5px 11px; border-radius: 999px; white-space: nowrap;
-    background: rgba(0,168,120,.22); color: #7EEBC4; border: 1px solid rgba(0,168,120,.35);
-  }
-  .fita.azul { background: rgba(0,107,255,.22); color: #A9CEFF; border-color: rgba(0,107,255,.4); }
+/* ---------- chamada final ---------- */
+.final{background:var(--escuro);color:#fff;position:relative;overflow:hidden;text-align:center}
+.final::after{content:'';position:absolute;inset:0;background:radial-gradient(760px 400px at 50% 0%,rgba(0,107,255,.34),transparent 62%)}
+.final .env{position:relative;z-index:2}
+.final h2{color:#fff;margin-bottom:16px}
+.final p{color:#B9CCE6;max-width:60ch;margin:0 auto 34px}
 
-  /* ---------------- seções ---------------- */
-  section { padding: 104px 0; position: relative; }
-  .cabeca { max-width: 640px; margin-bottom: 56px; }
-  .cabeca.centro { margin-left: auto; margin-right: auto; text-align: center; }
-  .olho {
-    font-size: 11.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase;
-    color: var(--marca); display: block; margin-bottom: 14px;
-  }
-  .cabeca h2 { font-size: clamp(29px, 3.8vw, 44px); }
-  .cabeca p { color: var(--texto-2); font-size: 17px; margin-top: 16px; }
+/* ---------- rodapé ---------- */
+footer.rodape{background:#03102A;color:#8FA9C9;padding:72px 0 30px;font-size:.92rem}
+.rodape-grade{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:48px;margin-bottom:44px}
+.rodape .marca b{color:#fff}
+.rodape .marca span{color:#5E7A9A}
+.rodape h4{color:#fff;font-size:.78rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px}
+.rodape ul{list-style:none;display:grid;gap:11px}
+.rodape a:hover{color:#7FC0FF}
+.rodape-fim{border-top:1px solid rgba(255,255,255,.09);padding-top:26px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:.84rem}
+.contato-linha{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.contato-linha svg{width:16px;height:16px;color:#7FC0FF;flex-shrink:0}
 
-  /* serviços */
-  .servicos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .serv {
-    position: relative; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--linha);
-    border-radius: var(--r-g); padding: 32px 28px 30px;
-    box-shadow: var(--sombra-1);
-    transition: transform .28s cubic-bezier(.2,.7,.3,1), box-shadow .28s ease, border-color .28s ease;
-  }
-  .serv::after {
-    content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px;
-    background: linear-gradient(90deg, var(--marca), #12BE86);
-    transform: scaleX(0); transform-origin: left;
-    transition: transform .32s cubic-bezier(.2,.7,.3,1);
-  }
-  .serv:hover { transform: translateY(-5px); box-shadow: var(--sombra-2); border-color: var(--linha-2); }
-  .serv:hover::after { transform: scaleX(1); }
-  .serv-n {
-    position: absolute; top: 26px; right: 28px;
-    font-size: 13px; font-weight: 800; color: var(--linha-2);
-  }
-  .serv-ico {
-    width: 50px; height: 50px; border-radius: 15px; margin-bottom: 20px;
-    background: linear-gradient(150deg, var(--tinta), #F4F9FF);
-    border: 1px solid #DCEBFF;
-    display: grid; place-items: center;
-  }
-  .serv h3 { font-size: 17.5px; margin-bottom: 9px; }
-  .serv p { color: var(--texto-2); font-size: 14.5px; }
+/* ---------- botão flutuante ---------- */
+.flutuante{
+  position:fixed;right:22px;bottom:22px;z-index:80;width:58px;height:58px;border-radius:50%;
+  background:#25D366;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 14px 34px rgba(37,211,102,.44);transition:transform .22s;
+}
+.flutuante:hover{transform:scale(1.08)}
+.flutuante svg{width:29px;height:29px;color:#fff}
 
-  /* pmoc */
-  .pmoc {
-    position: relative; overflow: hidden; color: #fff;
-    border-radius: 40px; padding: 68px 60px;
-    background:
-      radial-gradient(700px 400px at 88% 12%, rgba(0,107,255,.34), transparent 60%),
-      linear-gradient(160deg, var(--escuro-2), var(--escuro));
-    box-shadow: var(--sombra-3);
-  }
-  .pmoc-grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1.02fr .98fr; gap: 56px; align-items: center; }
-  .pmoc .olho { color: #8FE8C8; }
-  .pmoc h2 { font-size: clamp(27px, 3.5vw, 40px); margin-bottom: 20px; }
-  .pmoc p { color: #B9CEEA; margin: 18px 0 30px; font-size: 16.5px; }
-  .lei {
-    display: inline-flex; align-items: center; gap: 10px;
-    padding: 9px 16px; border-radius: 12px; font-size: 13px;
-    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); color: #CFE2FF;
-  }
-  .trilha { display: grid; gap: 14px; margin: 0; padding: 0; }
-  .trilha li {
-    display: flex; gap: 15px; align-items: flex-start; list-style: none;
-    padding: 17px 20px; border-radius: var(--r);
-    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
-    font-size: 14.5px;
-    transition: background .22s ease, border-color .22s ease, transform .22s ease;
-  }
-  .trilha li:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); transform: translateX(4px); }
-  .trilha svg { flex-shrink: 0; margin-top: 2px; }
+/* ---------- animação de entrada ---------- */
+.revela{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+.revela.vis{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .revela{opacity:1;transform:none;transition:none}
+  html{scroll-behavior:auto}
+}
 
-  /* como funciona */
-  .etapas { display: grid; grid-template-columns: repeat(4, 1fr); }
-  .etapa { position: relative; padding: 0 22px; }
-  .etapa:first-child { padding-left: 0; }
-  .etapa:last-child { padding-right: 0; }
-  .etapa-n {
-    width: 46px; height: 46px; border-radius: 50%; margin-bottom: 20px;
-    background: var(--surface); border: 1px solid var(--linha-2);
-    display: grid; place-items: center; position: relative; z-index: 2;
-    font-weight: 800; font-size: 15px; color: var(--marca);
-    box-shadow: var(--sombra-1);
-  }
-  .etapa::before {
-    content: ''; position: absolute; left: 46px; right: -24px; top: 23px; height: 1px;
-    background: repeating-linear-gradient(90deg, var(--linha-2) 0 6px, transparent 6px 12px);
-  }
-  .etapa:last-child::before { display: none; }
-  .etapa h3 { font-size: 16.5px; margin-bottom: 8px; }
-  .etapa p { color: var(--texto-2); font-size: 14px; }
-
-  /* portal */
-  .portal { background: var(--surface); border-top: 1px solid var(--linha); border-bottom: 1px solid var(--linha); }
-  .portal-grid { display: grid; grid-template-columns: .95fr 1.05fr; gap: 64px; align-items: center; }
-  .perfis { display: grid; gap: 14px; }
-  .perfil {
-    display: flex; gap: 16px; align-items: flex-start;
-    padding: 22px; border-radius: var(--r-g);
-    border: 1px solid var(--linha); background: var(--bg);
-    transition: border-color .24s ease, background .24s ease, transform .24s ease, box-shadow .24s ease;
-  }
-  .perfil:hover { border-color: var(--marca); background: var(--surface); transform: translateX(5px); box-shadow: var(--sombra-1); }
-  .perfil-ico {
-    width: 44px; height: 44px; border-radius: 13px; flex-shrink: 0;
-    background: var(--tinta); border: 1px solid #DCEBFF; display: grid; place-items: center;
-  }
-  .perfil h3 { font-size: 16px; margin-bottom: 6px; }
-  .perfil p { color: var(--texto-2); font-size: 14px; }
-
-  .tela-app { display: grid; place-items: center; }
-
-  /* galeria — pronta para foto real */
-  .galeria { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
-  .foto {
-    position: relative; overflow: hidden; border-radius: var(--r-g);
-    border: 1px solid var(--linha); background: var(--surface);
-    min-height: 210px; display: grid; place-items: center;
-    box-shadow: var(--sombra-1);
-  }
-  .foto.alta { grid-row: span 2; min-height: 436px; }
-  .foto-fundo {
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(420px 260px at 30% 20%, rgba(0,107,255,.12), transparent 62%),
-      linear-gradient(150deg, #EDF4FE, #F8FBFF);
-  }
-  .foto-conteudo { position: relative; z-index: 2; text-align: center; padding: 26px; }
-  .foto-conteudo b { display: block; font-size: 14px; margin-top: 14px; }
-  .foto-conteudo span { font-size: 12.5px; color: var(--texto-3); }
-  .foto img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-
-  /* contato */
-  .contato {
-    position: relative; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--linha);
-    border-radius: 40px; padding: 64px 60px; box-shadow: var(--sombra-2);
-  }
-  .contato::before {
-    content: ''; position: absolute; right: -140px; top: -140px; width: 420px; height: 420px;
-    border-radius: 50%; background: radial-gradient(circle, rgba(0,107,255,.1), transparent 66%);
-  }
-  .contato-grid { position: relative; z-index: 2; display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
-  .contato h2 { font-size: clamp(27px, 3.5vw, 40px); }
-  .contato p { color: var(--texto-2); margin: 16px 0 30px; font-size: 16.5px; }
-  .dados { display: grid; }
-  .dado { display: flex; gap: 15px; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--linha); }
-  .dado:last-child { border-bottom: 0; }
-  .dado-ico {
-    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
-    background: var(--bg); border: 1px solid var(--linha); display: grid; place-items: center;
-  }
-  .dado b { display: block; font-size: 10.5px; letter-spacing: .13em; text-transform: uppercase; color: var(--texto-3); }
-  .dado span { font-size: 15.5px; font-weight: 600; }
-  .pendente { color: var(--alerta); font-weight: 700; }
-
-  /* rodapé */
-  footer { background: var(--escuro); color: #93AECE; padding: 60px 0 40px; }
-  .rodape { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; }
-  .rodape .logo-nome { color: #fff; }
-  .rodape p { font-size: 14px; margin-top: 16px; max-width: 34ch; }
-  .rodape h4 { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: #6F8CAF; margin: 0 0 16px; font-weight: 800; }
-  .rodape nav { display: grid; gap: 11px; font-size: 14.5px; }
-  .rodape nav a:hover { color: #fff; }
-  .rodape-fim {
-    margin-top: 48px; padding-top: 26px; border-top: 1px solid rgba(255,255,255,.09);
-    font-size: 13px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  }
-
-  /* ---------------- movimento ---------------- */
-  .sobe { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1); }
-  .sobe.visivel { opacity: 1; transform: none; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    .sobe { opacity: 1; transform: none; transition: none; }
-    .btn:hover, .serv:hover, .perfil:hover, .trilha li:hover { transform: none; }
-  }
-
-  /* ---------------- responsivo ---------------- */
-  /* O menu sai bem antes de apertar o botão de entrar: link de navegação
-     tem âncora no rodapé, o botão de acesso não tem substituto. */
-  @media (max-width: 1080px) { .menu { display: none; } }
-
-  @media (max-width: 980px) {
-    .hero-grid, .pmoc-grid, .portal-grid, .contato-grid { grid-template-columns: 1fr; gap: 44px; }
-    .servicos { grid-template-columns: repeat(2, 1fr); }
-    .etapas { grid-template-columns: repeat(2, 1fr); row-gap: 40px; }
-    .etapa { padding: 0; }
-    .etapa::before { display: none; }
-    .galeria { grid-template-columns: 1fr 1fr; }
-    .foto.alta { grid-row: auto; min-height: 240px; }
-    .rodape { grid-template-columns: 1fr 1fr; }
-  }
-  @media (max-width: 640px) {
-    .menu { display: none; }
-    section { padding: 68px 0; }
-    .hero { padding: 60px 0 72px; }
-    .servicos, .galeria, .etapas, .rodape { grid-template-columns: 1fr; }
-    .pmoc, .contato { padding: 40px 26px; border-radius: 28px; }
-    .cabeca { margin-bottom: 40px; }
-    .hero-provas { gap: 16px; }
-  }
+/* ---------- responsivo ---------- */
+@media (max-width:1080px){
+  nav{display:none}
+  .menu-btn{display:block}
+  .topo .btn--zap{display:none}
+}
+@media (max-width:900px){
+  section{padding:72px 0}
+  .hero .env{grid-template-columns:1fr;gap:40px;padding-top:56px;padding-bottom:64px}
+  .duas,.comparativo,.planos,.rodape-grade{grid-template-columns:1fr;gap:34px}
+  .beneficios{grid-template-columns:1fr}
+  .carrossel{aspect-ratio:4/3}
+}
+@media (max-width:520px){
+  .hero-acoes .btn{width:100%}
+  .card,.plano,.passo{padding:26px}
+}
 </style>
 </head>
 <body>
 
-<header id="topo">
-  <div class="wrap nav">
-    <a class="logo" href="#topo" aria-label="JEmpreendimentos Climatização">
-      <span class="logo-selo" aria-hidden="true">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">
-          <path d="M3 8h12a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h9"/>
-        </svg>
+<!-- ================= CABEÇALHO ================= -->
+<header>
+  <div class="env topo">
+    <a href="#topo" class="marca" aria-label="JEmpreendimentos, página inicial">
+      <svg viewBox="0 0 92 92" fill="none" aria-hidden="true">
+        <path d="M71 14 L71 54 A25 25 0 0 1 21 54" stroke="#006BFF" stroke-width="13" stroke-linecap="round"/>
+      </svg>
+      <span style="display:block">
+        <b>JEmpreendimentos</b>
+        <span>CLIMATIZAÇÃO</span>
       </span>
-      <span class="logo-nome">JEMPREENDIMENTOS<small>CLIMATIZAÇÃO</small></span>
     </a>
-
-    <div class="menu">
+    <nav>
       <a href="#servicos">Serviços</a>
-      <a href="#pmoc">PMOC</a>
+      <a href="#preventiva">Preventiva</a>
       <a href="#como">Como funciona</a>
-      <a href="#portal">Portal</a>
+      <a href="#planos">Planos</a>
       <a href="#contato">Contato</a>
-    </div>
-
-    <a class="btn btn-p" href="/login">
-      Entrar no sistema
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <a href="/login">Área do cliente</a>
+    </nav>
+    <a class="btn btn--zap js-zap" href="#contato">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width:17px;height:17px"><path d="M17.5 14.4c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.6-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.4z"/><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2z"/></svg>
+      WhatsApp
     </a>
+    <button class="menu-btn" aria-label="Abrir menu" onclick="document.querySelector('nav').style.display=document.querySelector('nav').style.display==='flex'?'none':'flex';document.querySelector('nav').style.cssText+=';position:absolute;top:74px;left:0;right:0;background:#fff;flex-direction:column;padding:20px 24px;gap:16px;border-bottom:1px solid var(--linha)'">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </header>
 
-<main>
+<!-- ================= HERO ================= -->
+<div class="hero" id="topo">
+  <div class="env">
+    <div>
+      <span class="olho">Ar-condicionado · Residencial e comercial</span>
+      <h1 style="margin-top:18px">Ar-Condicionado com Instalação, Manutenção e <em>Suporte Especializado</em></h1>
+      <p class="lead">Cuidamos do seu ar-condicionado para garantir conforto, eficiência e maior vida útil do equipamento.</p>
 
-  <!-- ===================== HERO ===================== -->
-  <div class="hero grao">
-    <div class="hero-malha" aria-hidden="true"></div>
-    <div class="wrap hero-grid">
-      <div>
-        <span class="selo"><b>PMOC</b> Lei 13.589/2018</span>
+      <div class="hero-acoes">
+        <a class="btn btn--zap btn--g js-zap" href="#contato">
+          <svg viewBox="0 0 24 24" fill="currentColor" style="width:19px;height:19px"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm5.5-5.8c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.6-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.4z"/></svg>
+          Falar pelo WhatsApp
+        </a>
+        <a class="btn btn--fantasma btn--g" href="#contato">Solicitar Orçamento</a>
+      </div>
 
-        <h1>Climatização que você <span>acompanha</span>, não só contrata.</h1>
+      <div class="selos">
+        <span class="selo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M13 2 3 14h8l-1 8 10-12h-8z"/></svg> Atendimento rápido</span>
+        <span class="selo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6z"/></svg> Serviço profissional</span>
+        <span class="selo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg> Orçamento sem compromisso</span>
+      </div>
+    </div>
 
-        <p class="lead">
-          Instalação, manutenção preventiva e corretiva de ar-condicionado para
-          condomínios e empresas — com cada atendimento registrado em foto,
-          laudo e assinatura, no mesmo dia.
-        </p>
-
-        <div class="hero-acoes">
-          <!-- [PREENCHER: número do WhatsApp, formato 55DDDNUMERO] -->
-          <a class="btn btn-zap" href="https://wa.me/55[PREENCHER]">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm5.8 14.2c-.2.7-1.2 1.3-2 1.4-.5.1-1.2.2-3.5-.7-2.9-1.2-4.8-4.2-5-4.4-.1-.2-1.1-1.5-1.1-2.9 0-1.3.7-2 1-2.3.2-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2c.1.2.1.4 0 .6l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6 0l.9-1c.2-.2.4-.2.6-.1l2 1c.2.1.4.2.4.3.1.2.1.6 0 1Z"/></svg>
-            Falar no WhatsApp
-          </a>
-          <a class="btn btn-claro" href="#contato">Pedir orçamento</a>
+    <!-- Carrossel: três imagens reais. Ver instruções no bloco .foto -->
+    <div class="carrossel" id="carrossel">
+      <div class="slide on">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Instalação</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 16c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0M6.5 19.5c1.3 1.3 2.6 1.3 3.9 0s2.6-1.3 3.9 0"/><path d="M5 10h10"/></svg>
         </div>
-
-        <div class="hero-provas">
-          <span class="prova">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Equipe própria
-          </span>
-          <span class="prova">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Peças em estoque
-          </span>
-          <span class="prova">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-            Histórico por aparelho
-          </span>
+        <div class="slide__legenda">Instalação de ar-condicionado
+          <small>Split, multi-split e janela — residencial e comercial</small>
         </div>
       </div>
 
-      <!-- Não é enfeite: é a tela que o cliente realmente vê no portal. -->
-      <div class="vidro" role="img" aria-label="Exemplo de ordem de serviço acompanhada pelo cliente">
-        <div class="vidro-topo">
-          <div>
-            <span class="vidro-etiqueta">Ordem de serviço</span>
-            <h3>Preventiva · Torre B</h3>
-            <span class="sub">12 equipamentos · 3º pavimento</span>
-          </div>
-          <span class="fita azul">Hoje</span>
+      <div class="slide">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Manutenção</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M14.7 6.3a4 4 0 0 1 5.3 5.3l-8.2 8.2a2.6 2.6 0 0 1-3.7-3.7z"/><path d="M9 5 5 9l-2.5-2.5a2 2 0 0 1 0-2.8l1.2-1.2a2 2 0 0 1 2.8 0z"/></svg>
         </div>
+        <div class="slide__legenda">Manutenção técnica
+          <small>Diagnóstico, medições elétricas e correção de falhas</small>
+        </div>
+      </div>
 
-        <div class="passo">
-          <span class="passo-ico" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-          </span>
-          <span><b>Técnico a caminho</b><span>Rota acompanhada em tempo real</span></span>
-          <span class="fita">Em rota</span>
+      <div class="slide">
+        <div class="foto">
+          <span class="foto__marca">Foto real · Higienização</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M12 2.5c2.6 3.4 4 6 4 8a4 4 0 0 1-8 0c0-2 1.4-4.6 4-8z"/><path d="M4 20c2-1.4 4-1.4 6 0M14 20c2-1.4 4-1.4 6 0"/></svg>
         </div>
+        <div class="slide__legenda">Higienização preventiva
+          <small>Limpeza de evaporadora, filtros e bandeja</small>
+        </div>
+      </div>
 
-        <div class="passo">
-          <span class="passo-ico" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A9CEFF" stroke-width="2.1" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="12" cy="12" r="3.2"/></svg>
-          </span>
-          <span><b>Registro fotográfico</b><span>Antes e depois de cada aparelho</span></span>
-        </div>
-
-        <div class="passo">
-          <span class="passo-ico" aria-hidden="true">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A9CEFF" stroke-width="2.1" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>
-          </span>
-          <span><b>Laudo assinado</b><span>PDF enviado ao síndico no mesmo dia</span></span>
-          <span class="fita">PMOC</span>
-        </div>
+      <div class="pontos" role="tablist" aria-label="Imagens">
+        <button class="ponto on" aria-label="Imagem 1"></button>
+        <button class="ponto" aria-label="Imagem 2"></button>
+        <button class="ponto" aria-label="Imagem 3"></button>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- ===================== SERVIÇOS ===================== -->
-  <section id="servicos">
-    <div class="wrap">
-      <div class="cabeca sobe">
-        <span class="olho">O que fazemos</span>
-        <h2>Do dimensionamento à manutenção do ano inteiro</h2>
-        <p>
-          Equipe própria, peças em estoque e o histórico de cada aparelho guardado —
-          inclusive dos que você herdou de outra empresa.
+<!-- ================= SERVIÇOS ================= -->
+<section id="servicos">
+  <div class="env">
+    <div class="cabeca cabeca--centro revela">
+      <span class="olho">O que fazemos</span>
+      <h2>Tudo o que o seu ar-condicionado precisa</h2>
+      <p class="lead">Da instalação ao contrato de manutenção, com técnicos que registram cada serviço executado.</p>
+    </div>
+
+    <div class="grade">
+      <article class="card revela">
+        <div class="card__icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 16c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0"/><path d="M5 10h10"/></svg></div>
+        <h3>Instalação</h3>
+        <p>Instalação profissional de aparelhos de ar-condicionado, com dimensionamento correto e acabamento cuidadoso.</p>
+      </article>
+
+      <article class="card revela">
+        <div class="card__icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3.4"/></svg></div>
+        <h3>Manutenção Preventiva</h3>
+        <p>Evite problemas e aumente a vida útil do equipamento com rotinas periódicas de inspeção e limpeza.</p>
+      </article>
+
+      <article class="card revela">
+        <div class="card__icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 1 5.3 5.3l-8.2 8.2a2.6 2.6 0 0 1-3.7-3.7z"/><path d="M9 5 5 9l-2.5-2.5a2 2 0 0 1 0-2.8l1.2-1.2a2 2 0 0 1 2.8 0z"/></svg></div>
+        <h3>Manutenção Corretiva</h3>
+        <p>Identificação e solução de falhas e problemas — vazamento, ruído, gelo na serpentina ou aparelho que não liga.</p>
+      </article>
+
+      <article class="card revela">
+        <div class="card__icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.5c2.6 3.4 4 6 4 8a4 4 0 0 1-8 0c0-2 1.4-4.6 4-8z"/><path d="M4 20c2-1.4 4-1.4 6 0M14 20c2-1.4 4-1.4 6 0"/></svg></div>
+        <h3>Higienização</h3>
+        <p>Limpeza completa para melhorar a qualidade do ar, com produtos biodegradáveis registrados para essa finalidade.</p>
+      </article>
+
+      <article class="card revela">
+        <div class="card__icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4"/><path d="M12 2a7 7 0 0 0-4 12.7V16h8v-1.3A7 7 0 0 0 12 2z"/></svg></div>
+        <h3>Suporte Técnico</h3>
+        <p>Atendimento para diagnóstico e orientação — muitas vezes o problema se resolve antes de o técnico sair.</p>
+      </article>
+
+      <article class="card revela">
+        <div class="card__icone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 21v-5h6v5"/></svg></div>
+        <h3>Manutenção Comercial</h3>
+        <p>Soluções para empresas, lojas, escritórios e estabelecimentos, com plano de manutenção e relatórios por equipamento.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PREVENTIVA ================= -->
+<section id="preventiva" style="background:var(--surface);border-block:1px solid var(--linha)">
+  <div class="env duas">
+    <div class="moldura revela">
+      <div class="foto foto--claro">
+        <span class="foto__marca">Foto real · Técnico em manutenção</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="7" r="3.4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/><path d="M17 12.5l3.2 3.2M20.2 12.5 17 15.7"/></svg>
+      </div>
+    </div>
+
+    <div class="revela">
+      <span class="olho">Por que fazer</span>
+      <h2 style="margin:14px 0 16px">Por que fazer manutenção preventiva?</h2>
+      <p class="lead">Aparelho sem manutenção gasta mais energia, refrigera menos e quebra no dia mais quente do ano. A preventiva é o que evita a corretiva.</p>
+
+      <div class="beneficios">
+        <div class="beneficio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></i><span><b>Redução do consumo</b><span>Filtro limpo exige menos do compressor</span></span></div>
+        <div class="beneficio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></i><span><b>Melhor desempenho</b><span>O ambiente chega à temperatura mais rápido</span></span></div>
+        <div class="beneficio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></i><span><b>Maior vida útil</b><span>Peças trabalham dentro do previsto pelo fabricante</span></span></div>
+        <div class="beneficio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></i><span><b>Menos risco de falha</b><span>Problema pequeno é achado antes de virar parada</span></span></div>
+        <div class="beneficio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></i><span><b>Melhor qualidade do ar</b><span>Sem mofo, poeira acumulada e odor</span></span></div>
+        <div class="beneficio"><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></i><span><b>Mais conforto</b><span>Menos ruído e temperatura estável</span></span></div>
+      </div>
+
+      <a class="btn btn--marca js-zap" href="#contato" style="margin-top:32px">Agendar uma avaliação</a>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ANTES E DEPOIS ================= -->
+<section id="antes">
+  <div class="env">
+    <div class="cabeca cabeca--centro revela">
+      <span class="olho">Resultado</span>
+      <h2>Antes e depois da manutenção</h2>
+      <p class="lead">A diferença aparece no ar que você respira e na conta de energia no fim do mês.</p>
+    </div>
+
+    <div class="comparativo">
+      <article class="lado revela">
+        <div class="lado__foto">
+          <span class="etiqueta etiqueta--antes">Antes</span>
+          <div class="foto" style="background:linear-gradient(150deg,#3B2A1E,#5A4030 55%,#3B2A1E)">
+            <span class="foto__marca">Foto real · Evaporadora suja</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" style="color:#C9A98F"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M4 17.5c1 .8 2 .4 3-.4M9 18.6c1 .8 2 .4 3-.4M14 17.5c1 .8 2 .4 3-.4"/></svg>
+          </div>
+        </div>
+        <div class="lado__txt">
+          <b>Filtro e serpentina saturados</b>
+          <p>Poeira acumulada bloqueia a passagem de ar. O aparelho trabalha mais para gelar menos, e o cheiro de mofo aparece ao ligar.</p>
+        </div>
+      </article>
+
+      <article class="lado revela">
+        <div class="lado__foto">
+          <span class="etiqueta etiqueta--depois">Depois</span>
+          <div class="foto foto--claro">
+            <span class="foto__marca">Foto real · Após higienização</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="5" width="20" height="8" rx="2.4"/><path d="M5 10h10M5 16.5c1.6 1.7 3.2 1.7 4.8 0s3.2-1.7 4.8 0 3.2 1.7 4.8 0"/></svg>
+          </div>
+        </div>
+        <div class="lado__txt">
+          <b>Componentes limpos e testados</b>
+          <p>Fluxo de ar restabelecido, dreno desobstruído e medições elétricas dentro do nominal. O ambiente gela no tempo esperado.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= COMO FUNCIONA ================= -->
+<section id="como" style="background:var(--surface);border-block:1px solid var(--linha)">
+  <div class="env">
+    <div class="cabeca cabeca--centro revela">
+      <span class="olho">Simples assim</span>
+      <h2>Como funciona</h2>
+      <p class="lead">Do primeiro contato ao serviço executado, sem burocracia.</p>
+    </div>
+
+    <div class="passos">
+      <article class="passo revela"><div class="passo__n">1</div><h3>Solicite o atendimento</h3><p>Você entra em contato pelo WhatsApp e conta o que está acontecendo.</p></article>
+      <article class="passo revela"><div class="passo__n">2</div><h3>Avaliação</h3><p>O técnico identifica o problema ou a necessidade do equipamento.</p></article>
+      <article class="passo revela"><div class="passo__n">3</div><h3>Orçamento</h3><p>Você recebe a proposta do serviço, com escopo e valor definidos.</p></article>
+      <article class="passo revela"><div class="passo__n">4</div><h3>Execução</h3><p>Serviço realizado com qualidade e segurança, e registro do que foi feito.</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PLANOS ================= -->
+<section id="planos">
+  <div class="env">
+    <div class="cabeca cabeca--centro revela">
+      <span class="olho">Contrato de manutenção</span>
+      <h2>Planos de manutenção preventiva</h2>
+      <p class="lead">Manutenção programada, com visitas na periodicidade certa para o seu tipo de uso.</p>
+    </div>
+
+    <div class="planos">
+      <article class="plano revela">
+        <h3>Plano Residencial</h3>
+        <p>Manutenção periódica para garantir o funcionamento do aparelho em casa ou apartamento.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Visitas programadas ao longo do ano</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Limpeza de filtros, evaporadora e dreno</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Verificação de gás e medições elétricas</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Atendimento prioritário em corretiva</li>
+        </ul>
+        <a class="btn btn--linha js-zap" href="#contato" style="width:100%">Quero conhecer os planos</a>
+      </article>
+
+      <article class="plano plano--destaque revela">
+        <span class="plano__fita">Empresas</span>
+        <h3>Plano Comercial</h3>
+        <p>Manutenção programada para empresas e estabelecimentos, com histórico por equipamento.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Cronograma por ambiente e por aparelho</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Rotinas de PMOC conforme a norma</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Relatório de cada visita e das medições</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg> Portal do cliente para acompanhar chamados</li>
+        </ul>
+        <a class="btn btn--marca js-zap" href="#contato" style="width:100%">Quero conhecer os planos</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEPOIMENTOS =================
+     Os cartões abaixo estão VAZIOS de propósito. Depoimento inventado é
+     avaliação falsa: some com a confiança que o site existe para construir,
+     e ninguém consegue confirmar. Substitua pelo texto de clientes reais,
+     com autorização — ou apague a seção inteira até ter os primeiros.      -->
+<section id="depoimentos" style="background:var(--surface);border-block:1px solid var(--linha)">
+  <div class="env">
+    <div class="cabeca cabeca--centro revela">
+      <span class="olho">Quem já é cliente</span>
+      <h2>O que dizem sobre o nosso atendimento</h2>
+      <p class="lead">Avaliações de clientes atendidos em residências e empresas.</p>
+    </div>
+
+    <div class="grade">
+      <article class="depo revela">
+        <div class="estrelas" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+        </div>
+        <p>[PREENCHER: depoimento real de cliente, com autorização de uso]</p>
+        <footer><div>—</div><span><b>[PREENCHER: nome]</b><span>[PREENCHER: bairro ou empresa]</span></span></footer>
+      </article>
+
+      <article class="depo revela">
+        <div class="estrelas" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+        </div>
+        <p>[PREENCHER: depoimento real de cliente, com autorização de uso]</p>
+        <footer><div>—</div><span><b>[PREENCHER: nome]</b><span>[PREENCHER: bairro ou empresa]</span></span></footer>
+      </article>
+
+      <article class="depo revela">
+        <div class="estrelas" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.5 7 .9-5 4.8 1.2 7-6.2-3.4L5.8 21 7 14.2 2 9.4l7-.9z"/></svg>
+        </div>
+        <p>[PREENCHER: depoimento real de cliente, com autorização de uso]</p>
+        <footer><div>—</div><span><b>[PREENCHER: nome]</b><span>[PREENCHER: bairro ou empresa]</span></span></footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CHAMADA FINAL ================= -->
+<section class="final" id="contato">
+  <div class="env">
+    <h2>Seu ar-condicionado precisa de manutenção?</h2>
+    <p>Não espere o aparelho apresentar problemas. Solicite agora uma avaliação e mantenha seu ambiente confortável e climatizado.</p>
+    <a class="btn btn--zap btn--g js-zap" href="#contato">
+      <svg viewBox="0 0 24 24" fill="currentColor" style="width:20px;height:20px"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm5.5-5.8c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.6-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.4z"/></svg>
+      Solicitar Orçamento pelo WhatsApp
+    </a>
+  </div>
+</section>
+
+<!-- ================= RODAPÉ ================= -->
+<footer class="rodape">
+  <div class="env">
+    <div class="rodape-grade">
+      <div>
+        <div class="marca" style="margin-bottom:18px">
+          <svg viewBox="0 0 92 92" fill="none" aria-hidden="true">
+            <path d="M71 14 L71 54 A25 25 0 0 1 21 54" stroke="#7FC0FF" stroke-width="13" stroke-linecap="round"/>
+          </svg>
+          <span style="display:block"><b>JEmpreendimentos</b><span>CLIMATIZAÇÃO</span></span>
+        </div>
+        <p style="max-width:38ch">Instalação, manutenção preventiva e corretiva, higienização e suporte técnico em ar-condicionado.</p>
+        <p style="margin-top:16px;font-size:.86rem">
+          <b style="color:#fff;display:block;margin-bottom:4px">Região atendida</b>
+          [PREENCHER: cidades atendidas]
         </p>
       </div>
 
-      <div class="servicos">
-        <article class="serv sobe">
-          <span class="serv-n">01</span>
-          <span class="serv-ico" aria-hidden="true">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><rect x="2.5" y="5" width="19" height="8" rx="2.5"/><path d="M6 17c0 1.5 1 2 2 2M12 17c0 2.2 1.4 3 3 3M18 17v2"/><path d="M6 9h12"/></svg>
-          </span>
-          <h3>Instalação</h3>
-          <p>Split, cassete, piso-teto e multi-split. Dimensionamento pela carga térmica do ambiente, não pelo chute do metro quadrado.</p>
-        </article>
-
-        <article class="serv sobe">
-          <span class="serv-n">02</span>
-          <span class="serv-ico" aria-hidden="true">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg>
-          </span>
-          <h3>Manutenção preventiva</h3>
-          <p>Visitas programadas com checklist por equipamento. O sistema avisa antes de vencer — ninguém precisa lembrar de cabeça.</p>
-        </article>
-
-        <article class="serv sobe">
-          <span class="serv-n">03</span>
-          <span class="serv-ico" aria-hidden="true">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><path d="m14.7 6.3-1 1a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l1-1a6 6 0 0 1-7.9 7.9l-4.8 4.8a2.1 2.1 0 0 1-3-3l4.8-4.8a6 6 0 0 1 7.9-7.9Z"/></svg>
-          </span>
-          <h3>Corretiva de urgência</h3>
-          <p>Chamado aberto pelo portal ou WhatsApp. O técnico é alocado por proximidade, especialidade e disponibilidade real.</p>
-        </article>
-
-        <article class="serv sobe">
-          <span class="serv-n">04</span>
-          <span class="serv-ico" aria-hidden="true">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5S5 13 5 15a7 7 0 0 0 7 7Z"/></svg>
-          </span>
-          <h3>Higienização</h3>
-          <p>Limpeza técnica de serpentina, filtros e bandeja. Decisiva em clínica, escritório e sala de aula, onde a janela não abre.</p>
-        </article>
-
-        <article class="serv sobe">
-          <span class="serv-n">05</span>
-          <span class="serv-ico" aria-hidden="true">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><path d="M14 17.5h7M17.5 14v7"/></svg>
-          </span>
-          <h3>Gestão do parque</h3>
-          <p>Cada aparelho recebe etiqueta com QR. O técnico lê e abre o histórico completo ali, de pé na frente da máquina.</p>
-        </article>
-
-        <article class="serv sobe">
-          <span class="serv-n">06</span>
-          <span class="serv-ico" aria-hidden="true">
-            <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><path d="M12 2 3 6v6c0 5 3.8 9.4 9 10 5.2-.6 9-5 9-10V6Z"/><path d="m9 12 2 2 4-4"/></svg>
-          </span>
-          <h3>Contrato PMOC</h3>
-          <p>Plano de manutenção, operação e controle documentado, do jeito que a fiscalização pede para ver.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== PMOC ===================== -->
-  <section id="pmoc" style="padding-top:0">
-    <div class="wrap">
-      <div class="pmoc grao sobe">
-        <div class="pmoc-grid">
-          <div>
-            <span class="olho">Obrigação legal</span>
-            <h2>PMOC não é papelada. É o que a fiscalização pede para ver.</h2>
-            <span class="lei">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2" stroke-linecap="round"><path d="M12 3 3 7v6c0 5 3.8 9.4 9 10 5.2-.6 9-5 9-10V7Z"/></svg>
-              Lei 13.589/2018 · edifícios de uso público e coletivo
-            </span>
-            <p>
-              Sem o plano, o risco é multa. Antes da multa, é ar ruim circulando
-              o dia inteiro em ambiente fechado — e é isso que as pessoas sentem
-              muito antes de qualquer fiscal aparecer.
-            </p>
-            <a class="btn btn-p" href="#contato">
-              Quero meu PMOC em dia
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-            </a>
-          </div>
-
-          <ul class="trilha">
-            <li>
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-              <span>Plano escrito, com periodicidade por tipo de equipamento</span>
-            </li>
-            <li>
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-              <span>Registro de cada execução, com data, técnico e fotos</span>
-            </li>
-            <li>
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-              <span>Certificado em PDF, pronto para apresentar</span>
-            </li>
-            <li>
-              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#8FE8C8" stroke-width="2.3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-              <span>Aviso automático antes de cada vencimento</span>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== COMO FUNCIONA ===================== -->
-  <section id="como">
-    <div class="wrap">
-      <div class="cabeca centro sobe">
-        <span class="olho">Como funciona</span>
-        <h2>Quatro passos, e você vê todos eles</h2>
-        <p>Do pedido ao laudo, sem precisar ligar para perguntar em que pé está.</p>
-      </div>
-
-      <div class="etapas">
-        <div class="etapa sobe">
-          <div class="etapa-n">1</div>
-          <h3>Você abre o chamado</h3>
-          <p>Pelo portal ou pelo WhatsApp, com foto do problema se quiser.</p>
-        </div>
-        <div class="etapa sobe">
-          <div class="etapa-n">2</div>
-          <h3>Técnico é designado</h3>
-          <p>Por proximidade, especialidade e disponibilidade — e você vê quem é.</p>
-        </div>
-        <div class="etapa sobe">
-          <div class="etapa-n">3</div>
-          <h3>Serviço com registro</h3>
-          <p>Checklist, fotos antes e depois, peças usadas e sua assinatura.</p>
-        </div>
-        <div class="etapa sobe">
-          <div class="etapa-n">4</div>
-          <h3>Laudo no mesmo dia</h3>
-          <p>PDF assinado no seu email, e o histórico do aparelho atualizado.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== PORTAL ===================== -->
-  <section id="portal" class="portal">
-    <div class="wrap portal-grid">
       <div>
-        <div class="cabeca sobe" style="margin-bottom:36px">
-          <span class="olho">Portal e aplicativo</span>
-          <h2>Cada um enxerga o que é seu</h2>
-          <p>O mesmo sistema, três portas de entrada. O acesso é por login, e nenhum cliente vê o dado de outro.</p>
+        <h4>Contato</h4>
+        <div class="contato-linha">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2z"/></svg>
+          <a class="js-zap" href="#contato">[PREENCHER: WhatsApp]</a>
         </div>
-
-        <div class="perfis">
-          <article class="perfil sobe">
-            <span class="perfil-ico" aria-hidden="true">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
-            </span>
-            <div>
-              <h3>Cliente</h3>
-              <p>Abre chamado, acompanha o técnico no mapa, vê o laudo e o histórico dos seus equipamentos.</p>
-            </div>
-          </article>
-
-          <article class="perfil sobe">
-            <span class="perfil-ico" aria-hidden="true">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><path d="M2 17a10 10 0 0 1 20 0"/><path d="M2 17h20v3H2z"/><path d="M12 7V4"/></svg>
-            </span>
-            <div>
-              <h3>Técnico</h3>
-              <p>Recebe a ordem no celular, segue o checklist, fotografa, dá baixa nas peças e colhe a assinatura.</p>
-            </div>
-          </article>
-
-          <article class="perfil sobe">
-            <span class="perfil-ico" aria-hidden="true">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/><rect x="14" y="14" width="7" height="7" rx="1.6"/></svg>
-            </span>
-            <div>
-              <h3>Administração</h3>
-              <p>Distribui chamados, acompanha a equipe no mapa, controla estoque, compras e o PMOC de todo mundo.</p>
-            </div>
-          </article>
+        <div class="contato-linha">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.8a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.8 2.1z"/></svg>
+          <a href="tel:">[PREENCHER: telefone]</a>
         </div>
-
-        <div style="margin-top:32px">
-          <a class="btn btn-p" href="/login">
-            Acessar o sistema
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
+        <div class="contato-linha">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2.4"/><path d="m2 7 10 6 10-6"/></svg>
+          <a href="mailto:">[PREENCHER: e-mail]</a>
         </div>
-      </div>
-
-      <!-- Desenho do aplicativo: representa a tela real do técnico. -->
-      <div class="tela-app sobe">
-        <svg viewBox="0 0 340 500" width="100%" style="max-width:340px" role="img" aria-label="Aplicativo do técnico mostrando uma ordem de serviço">
-          <defs>
-            <linearGradient id="tela" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#0B2350"/><stop offset="1" stop-color="#06152E"/>
-            </linearGradient>
-            <filter id="sombraFone" x="-40%" y="-25%" width="180%" height="160%">
-              <feDropShadow dx="0" dy="26" stdDeviation="26" flood-color="#06152E" flood-opacity=".26"/>
-            </filter>
-          </defs>
-
-          <rect x="24" y="10" width="292" height="480" rx="38" fill="#0A1B36" filter="url(#sombraFone)"/>
-          <rect x="31" y="17" width="278" height="466" rx="32" fill="url(#tela)"/>
-          <rect x="140" y="27" width="60" height="6" rx="3" fill="#16305C"/>
-
-          <text x="52" y="72" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="800" fill="#7FA8DC" letter-spacing="1.6">ORDEM DE SERVIÇO</text>
-          <text x="52" y="94" font-family="Plus Jakarta Sans, sans-serif" font-size="17" font-weight="800" fill="#fff">Preventiva · Torre B</text>
-          <rect x="52" y="106" width="86" height="20" rx="10" fill="#0B3D2E" stroke="#12BE86" stroke-opacity=".5"/>
-          <text x="63" y="120" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="800" fill="#7EEBC4">EM ROTA</text>
-
-          <g>
-            <rect x="52" y="142" width="236" height="62" rx="16" fill="#0E2A55" stroke="#1B3E71"/>
-            <rect x="66" y="158" width="30" height="30" rx="9" fill="#12305F"/>
-            <path d="M74 173.5l4.5 4.5 9-9" stroke="#7EEBC4" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-            <text x="108" y="168" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#fff">Checklist do aparelho</text>
-            <text x="108" y="183" font-family="Plus Jakarta Sans, sans-serif" font-size="10" fill="#8FB0D8">8 de 12 concluídos</text>
-            <rect x="108" y="190" width="160" height="4" rx="2" fill="#16305C"/>
-            <rect x="108" y="190" width="107" height="4" rx="2" fill="#12BE86"/>
-          </g>
-
-          <g>
-            <rect x="52" y="216" width="236" height="62" rx="16" fill="#0E2A55" stroke="#1B3E71"/>
-            <rect x="66" y="232" width="30" height="30" rx="9" fill="#12305F"/>
-            <rect x="73" y="241" width="16" height="12" rx="3" stroke="#A9CEFF" stroke-width="1.8" fill="none"/>
-            <circle cx="81" cy="247" r="3.1" stroke="#A9CEFF" stroke-width="1.8" fill="none"/>
-            <text x="108" y="242" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#fff">Fotos antes e depois</text>
-            <text x="108" y="257" font-family="Plus Jakarta Sans, sans-serif" font-size="10" fill="#8FB0D8">6 imagens anexadas</text>
-            <rect x="108" y="264" width="26" height="8" rx="2.5" fill="#16305C"/>
-            <rect x="138" y="264" width="26" height="8" rx="2.5" fill="#16305C"/>
-            <rect x="168" y="264" width="26" height="8" rx="2.5" fill="#16305C"/>
-          </g>
-
-          <g>
-            <rect x="52" y="290" width="236" height="62" rx="16" fill="#0E2A55" stroke="#1B3E71"/>
-            <rect x="66" y="306" width="30" height="30" rx="9" fill="#12305F"/>
-            <path d="M75 313h9l4 4v10h-13z" stroke="#A9CEFF" stroke-width="1.8" fill="none" stroke-linejoin="round"/>
-            <text x="108" y="316" font-family="Plus Jakarta Sans, sans-serif" font-size="11.5" font-weight="700" fill="#fff">Peças utilizadas</text>
-            <text x="108" y="331" font-family="Plus Jakarta Sans, sans-serif" font-size="10" fill="#8FB0D8">Baixa automática no estoque</text>
-          </g>
-
-          <rect x="52" y="364" width="236" height="74" rx="16" fill="#0A1F42" stroke="#1B3E71" stroke-dasharray="5 5"/>
-          <text x="62" y="384" font-family="Plus Jakarta Sans, sans-serif" font-size="9.5" font-weight="800" fill="#7FA8DC" letter-spacing="1.4">ASSINATURA DO CLIENTE</text>
-          <path d="M76 418c14-16 22 6 34-6s16 10 30-4 20 8 34-2" stroke="#A9CEFF" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-
-          <rect x="52" y="450" width="236" height="20" rx="10" fill="#0052CC"/>
-          <text x="170" y="464" text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="800" fill="#fff">FINALIZAR ATENDIMENTO</text>
-        </svg>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== GALERIA ===================== -->
-  <section id="obras">
-    <div class="wrap">
-      <div class="cabeca centro sobe">
-        <span class="olho">Nosso trabalho</span>
-        <h2>Serviço feito é serviço mostrado</h2>
-        <p>Cada atendimento sai com registro fotográfico. Estes espaços são das suas obras.</p>
-      </div>
-
-      <!--
-        FOTO-REAL: troque o <span class="foto-conteudo"> de cada bloco por
-        <img src="fotos/nome-do-arquivo.jpg" alt="descrição do serviço">
-        e ponha os arquivos em site/fotos/. A moldura já recorta e arredonda.
-        Foto de obra sua vale mais que qualquer banco de imagem: mostra o
-        acabamento do dreno, a tubulação organizada, a máquina limpa.
-      -->
-      <div class="galeria">
-        <div class="foto alta sobe">
-          <span class="foto-fundo"></span>
-          <span class="foto-conteudo">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#B9CFE6" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="12" cy="12" r="3.4"/></svg>
-            <b>Instalação concluída</b>
-            <span>Espaço para foto do serviço</span>
-          </span>
+        <div class="contato-linha">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5.4"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.6" cy="6.4" r="1.1" fill="currentColor"/></svg>
+          <a href="#">[PREENCHER: Instagram]</a>
         </div>
-
-        <div class="foto sobe">
-          <span class="foto-fundo"></span>
-          <span class="foto-conteudo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B9CFE6" stroke-width="1.6" stroke-linecap="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5S5 13 5 15a7 7 0 0 0 7 7Z"/></svg>
-            <b>Higienização</b>
-            <span>Antes e depois</span>
-          </span>
-        </div>
-
-        <div class="foto sobe">
-          <span class="foto-fundo"></span>
-          <span class="foto-conteudo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B9CFE6" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.6"/><rect x="14" y="3" width="7" height="7" rx="1.6"/><rect x="3" y="14" width="7" height="7" rx="1.6"/></svg>
-            <b>Etiqueta QR</b>
-            <span>No aparelho</span>
-          </span>
-        </div>
-
-        <div class="foto sobe">
-          <span class="foto-fundo"></span>
-          <span class="foto-conteudo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B9CFE6" stroke-width="1.6" stroke-linecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/></svg>
-            <b>Condomínio atendido</b>
-            <span>Espaço para foto</span>
-          </span>
-        </div>
-
-        <div class="foto sobe">
-          <span class="foto-fundo"></span>
-          <span class="foto-conteudo">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#B9CFE6" stroke-width="1.6" stroke-linecap="round"><path d="M2 17a10 10 0 0 1 20 0"/><path d="M12 7V4"/></svg>
-            <b>Equipe em campo</b>
-            <span>Espaço para foto</span>
-          </span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===================== CONTATO ===================== -->
-  <section id="contato">
-    <div class="wrap">
-      <div class="contato sobe">
-        <div class="contato-grid">
-          <div>
-            <span class="olho">Fale com a gente</span>
-            <h2>Peça um orçamento sem compromisso</h2>
-            <p>
-              Conte quantos equipamentos você tem e onde ficam. A visita técnica
-              para levantamento é combinada na hora, pelo WhatsApp.
-            </p>
-            <!-- [PREENCHER: número do WhatsApp, formato 55DDDNUMERO] -->
-            <a class="btn btn-zap" href="https://wa.me/55[PREENCHER]">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2Zm5.8 14.2c-.2.7-1.2 1.3-2 1.4-.5.1-1.2.2-3.5-.7-2.9-1.2-4.8-4.2-5-4.4-.1-.2-1.1-1.5-1.1-2.9 0-1.3.7-2 1-2.3.2-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2c.1.2.1.4 0 .6l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.6 0l.9-1c.2-.2.4-.2.6-.1l2 1c.2.1.4.2.4.3.1.2.1.6 0 1Z"/></svg>
-              Chamar no WhatsApp
-            </a>
-          </div>
-
-          <div class="dados">
-            <div class="dado">
-              <span class="dado-ico" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2Z"/></svg>
-              </span>
-              <span><b>Telefone</b><span class="pendente">[PREENCHER: telefone]</span></span>
-            </div>
-
-            <div class="dado">
-              <span class="dado-ico" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2.5"/><path d="m2 7 10 6 10-6"/></svg>
-              </span>
-              <span><b>Email</b><span><a href="mailto:suporte@jempreendimentos.com.br">suporte@jempreendimentos.com.br</a></span></span>
-            </div>
-
-            <div class="dado">
-              <span class="dado-ico" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              </span>
-              <span><b>Atendimento</b><span class="pendente">[PREENCHER: cidades atendidas]</span></span>
-            </div>
-
-            <div class="dado">
-              <span class="dado-ico" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#006BFF" stroke-width="1.9" stroke-linecap="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M10 21v-6h4v6"/></svg>
-              </span>
-              <span><b>CNPJ</b><span class="pendente">[PREENCHER: CNPJ]</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<footer>
-  <div class="wrap">
-    <div class="rodape">
-      <div>
-        <a class="logo" href="#topo">
-          <span class="logo-selo" aria-hidden="true">
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round">
-              <path d="M3 8h12a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h9"/>
-            </svg>
-          </span>
-          <span class="logo-nome">JEMPREENDIMENTOS<small>CLIMATIZAÇÃO</small></span>
-        </a>
-        <p>Instalação, manutenção e PMOC de ar-condicionado para condomínios, empresas e clínicas.</p>
       </div>
 
       <div>
-        <h4>Serviços</h4>
-        <nav>
-          <a href="#servicos">Instalação</a>
-          <a href="#servicos">Manutenção preventiva</a>
-          <a href="#servicos">Corretiva de urgência</a>
-          <a href="#pmoc">Contrato PMOC</a>
-        </nav>
-      </div>
-
-      <div>
-        <h4>Acesso</h4>
-        <nav>
-          <a href="/login">Portal do cliente</a>
-          <a href="/login">Área do técnico</a>
-          <a href="#contato">Falar com a gente</a>
-          <a href="mailto:suporte@jempreendimentos.com.br">Suporte</a>
-        </nav>
+        <h4>Links rápidos</h4>
+        <ul>
+          <li><a href="#servicos">Serviços</a></li>
+          <li><a href="#preventiva">Manutenção preventiva</a></li>
+          <li><a href="#antes">Antes e depois</a></li>
+          <li><a href="#como">Como funciona</a></li>
+          <li><a href="#planos">Planos</a></li>
+          <li><a href="/login">Área do cliente</a></li>
+        </ul>
       </div>
     </div>
 
     <div class="rodape-fim">
-      <span>© 2025 JEmpreendimentos Climatização. Todos os direitos reservados.</span>
-      <span class="pendente">CNPJ [PREENCHER: CNPJ]</span>
+      <span>© 2026 JEmpreendimentos Climatização · CNPJ [PREENCHER: CNPJ]</span>
+      <span>Desenvolvido por DevSpark Web</span>
     </div>
   </div>
 </footer>
 
+<a class="flutuante js-zap" href="#contato" aria-label="Falar pelo WhatsApp">
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.5 15.2L2 22l4.9-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .9.9-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm5.5-5.8c-.3-.2-1.7-.9-2-1-.3-.1-.5-.2-.7.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-1.7-.9-2.9-1.6-4-3.6-.3-.5.3-.5.9-1.6.1-.2 0-.4 0-.5 0-.2-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.2.2 2.1 3.2 5.1 4.5 1.9.8 2.6.9 3.5.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.4z"/></svg>
+</a>
+
 <script>
-  // Sombra do cabeçalho só depois que a página sai do topo.
-  const cabecalho = document.querySelector('header');
-  const marcarTopo = () => cabecalho.classList.toggle('preso', window.scrollY > 8);
-  marcarTopo();
-  addEventListener('scroll', marcarTopo, { passive: true });
+/* =====================================================================
+   O número do WhatsApp fica AQUI, num lugar só.
+   Formato internacional, sem espaços nem símbolos: 55 + DDD + número.
+   Exemplo: '5531999999999'
+   Enquanto estiver vazio, todos os botões rolam até o rodapé em vez de
+   abrir um link quebrado — site no ar com wa.me inválido perde o cliente
+   no clique, que é justamente o momento que importa.
+   ===================================================================== */
+var WHATSAPP = '';
+var MENSAGEM = 'Olá! Vim pelo site e gostaria de um orçamento para ar-condicionado.';
 
-  // Entrada por scroll. Quem pediu menos movimento no sistema operacional não
-  // recebe nenhum: o CSS já deixa tudo visível e aqui nem observamos.
-  const querMovimento = !matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  if (querMovimento && 'IntersectionObserver' in window) {
-    const observador = new IntersectionObserver((entradas) => {
-      entradas.forEach((e, i) => {
-        if (!e.isIntersecting) return;
-        // Escalonar por posição faz a seção entrar como bloco, não como pipoca.
-        e.target.style.transitionDelay = Math.min(i * 70, 280) + 'ms';
-        e.target.classList.add('visivel');
-        observador.unobserve(e.target);
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-    document.querySelectorAll('.sobe').forEach((el) => observador.observe(el));
-  } else {
-    document.querySelectorAll('.sobe').forEach((el) => el.classList.add('visivel'));
+(function () {
+  if (WHATSAPP) {
+    var url = 'https://wa.me/' + WHATSAPP + '?text=' + encodeURIComponent(MENSAGEM);
+    document.querySelectorAll('.js-zap').forEach(function (a) {
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+    });
   }
-</script>
 
+  /* ---- carrossel do hero ---- */
+  var slides = document.querySelectorAll('#carrossel .slide');
+  var pontos = document.querySelectorAll('#carrossel .ponto');
+  var atual = 0;
+  var timer;
+
+  function mostrar(i) {
+    atual = i;
+    slides.forEach(function (s, n) { s.classList.toggle('on', n === i); });
+    pontos.forEach(function (p, n) { p.classList.toggle('on', n === i); });
+  }
+  function proximo() { mostrar((atual + 1) % slides.length); }
+  function reiniciar() { clearInterval(timer); timer = setInterval(proximo, 5200); }
+
+  pontos.forEach(function (p, n) {
+    p.addEventListener('click', function () { mostrar(n); reiniciar(); });
+  });
+  reiniciar();
+
+  /* ---- entrada suave das seções ---- */
+  var olho = new IntersectionObserver(function (itens) {
+    itens.forEach(function (item) {
+      if (item.isIntersecting) {
+        item.target.classList.add('vis');
+        olho.unobserve(item.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.revela').forEach(function (el, i) {
+    el.style.transitionDelay = (i % 3) * 90 + 'ms';
+    olho.observe(el);
+  });
+})();
+</script>
 </body>
 </html>
