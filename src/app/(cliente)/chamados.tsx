@@ -1,12 +1,10 @@
 import { useRouter } from 'expo-router';
-import { ClipboardList, MapPin, Plus, Search, Star } from 'lucide-react-native';
+import { ClipboardList, MapPin, Plus, Star } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +12,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { CardGrid } from '@/components/ui/CardGrid';
+import { Filtros } from '@/components/Filtros';
+import { Tabela, type Coluna } from '@/components/Tabela';
 import { Header } from '@/components/ui/Header';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
 import { Text } from '@/components/ui/Text';
@@ -30,7 +29,7 @@ import {
   notaDoChamado,
   type ServiceCallDetailed,
 } from '@/services/client';
-import { colors, fonts, layout, radius, spacing } from '@/theme/tokens';
+import { colors, layout, spacing } from '@/theme/tokens';
 
 type Filtro = 'todos' | 'andamento' | 'concluidos' | 'cancelados';
 
@@ -88,6 +87,83 @@ export default function ChamadosScreen() {
     });
   }, [calls, busca, filtro]);
 
+  const colunas: Coluna<ServiceCallDetailed>[] = [
+    {
+      titulo: 'Nº',
+      largura: 64,
+      celula: (c) => <Text variant="bodyStrong">#{c.code}</Text>,
+    },
+    {
+      titulo: 'Serviço',
+      peso: 2,
+      celula: (c) => (
+        <Text variant="body" numberOfLines={1}>
+          {c.title}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Local',
+      peso: 2,
+      celula: (c) => (
+        <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+          {c.address
+            ? `${c.address.street}${c.address.number ? `, ${c.address.number}` : ''}`
+            : c.equipment
+              ? equipmentName(c.equipment)
+              : '—'}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Abertura',
+      largura: 100,
+      celula: (c) => (
+        <Text variant="meta" color={colors.textMuted}>
+          {formatDate(c.created_at)}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Avaliação',
+      largura: 96,
+      celula: (c) => {
+        const nota = notaDoChamado(c);
+        if (!nota) {
+          return (
+            <Text variant="meta" color={colors.textMuted}>
+              —
+            </Text>
+          );
+        }
+        return (
+          <View style={styles.estrelas}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <Star
+                key={n}
+                size={13}
+                color={n <= nota ? colors.brand : colors.slate300}
+                fill={n <= nota ? colors.brand : 'transparent'}
+              />
+            ))}
+          </View>
+        );
+      },
+    },
+    {
+      titulo: 'Situação',
+      largura: 132,
+      aoDireita: true,
+      celula: (c) => (
+        <Badge
+          label={STATUS_LABEL[c.status]}
+          tone={STATUS_TONE[c.status]}
+          live={STATUS_LIVE.includes(c.status)}
+        />
+      ),
+    },
+  ];
+
   const concluidos = useMemo(
     () => calls.filter((c) => c.status === 'finalizado').length,
     [calls],
@@ -125,38 +201,16 @@ export default function ChamadosScreen() {
             />
           ) : (
             <>
-              <View style={styles.busca}>
-                <Search size={18} color={colors.textMuted} />
-                <TextInput
-                  value={busca}
-                  onChangeText={setBusca}
-                  placeholder="Pesquisar por serviço ou número…"
-                  placeholderTextColor={colors.textMuted}
-                  selectionColor={colors.brand}
-                  style={styles.buscaInput}
-                />
-              </View>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.filtros}>
-                {FILTROS.map((f) => {
-                  const ativo = filtro === f.chave;
-                  return (
-                    <Pressable
-                      key={f.chave}
-                      onPress={() => setFiltro(f.chave)}
-                      style={[styles.filtro, ativo ? styles.filtroAtivo : styles.filtroInativo]}>
-                      <Text
-                        variant="microLabel"
-                        color={ativo ? colors.textOnBrand : colors.textSecondary}>
-                        {f.rotulo}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </ScrollView>
+              <Filtros
+                opcoes={FILTROS}
+                valor={filtro}
+                aoTrocar={setFiltro}
+                busca={{
+                  valor: busca,
+                  aoDigitar: setBusca,
+                  dica: 'Pesquisar por serviço ou número',
+                }}
+              />
 
               {/* Resumo do período, centralizado como no design. */}
               <View style={styles.resumo}>
@@ -186,8 +240,13 @@ export default function ChamadosScreen() {
                   </Text>
                 </Card>
               ) : (
-                <CardGrid>
-                  {filtrados.map((c) => {
+                <Tabela
+                  itens={filtrados}
+                  colunas={colunas}
+                  chave={(c) => c.id}
+                  emColunas
+                  aoAbrir={(c) => router.push(`/(cliente)/chamado/${c.id}` as never)}
+                  cartao={(c) => {
                     const nota = notaDoChamado(c);
                     return (
                       <Card
@@ -237,8 +296,8 @@ export default function ChamadosScreen() {
                         </View>
                       </Card>
                     );
-                  })}
-                </CardGrid>
+                  }}
+                />
               )}
             </>
           )}
@@ -259,34 +318,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
 
-  busca: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    minHeight: 50,
-    paddingHorizontal: spacing.lg,
-    backgroundColor: colors.slate50,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.xl,
-  },
-  buscaInput: {
-    flex: 1,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    color: colors.textPrimary,
-    padding: 0,
-  },
 
-  filtros: { gap: spacing.sm, paddingVertical: 2 },
-  filtro: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-  },
-  filtroAtivo: { backgroundColor: colors.brand, borderColor: colors.brand },
-  filtroInativo: { backgroundColor: colors.bgSurface, borderColor: colors.border },
 
   resumo: {
     backgroundColor: colors.bgSurface,

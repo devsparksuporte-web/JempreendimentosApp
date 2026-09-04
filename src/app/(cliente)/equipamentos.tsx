@@ -1,11 +1,12 @@
 import { AirVent, Snowflake } from 'lucide-react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { comparavel, Filtros } from '@/components/Filtros';
+import { Tabela, type Coluna } from '@/components/Tabela';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { CardGrid } from '@/components/ui/CardGrid';
 import { Header } from '@/components/ui/Header';
 import { IconTile } from '@/components/ui/IconTile';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
@@ -21,6 +22,7 @@ export default function EquipamentosScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [texto, setTexto] = useState('');
 
   const load = useCallback(async () => {
     setError(null);
@@ -39,6 +41,79 @@ export default function EquipamentosScreen() {
     load();
   }, [load]);
 
+  const filtrados = useMemo(() => {
+    const alvo = comparavel(texto);
+    if (!alvo) return items;
+    return items.filter((e) =>
+      comparavel(
+        [e.brand, e.model, e.environment, e.serial_number, e.technology].filter(Boolean).join(' '),
+      ).includes(alvo),
+    );
+  }, [items, texto]);
+
+  const colunas: Coluna<Equipment>[] = [
+    {
+      titulo: 'Aparelho',
+      peso: 2,
+      celula: (e) => (
+        <Text variant="bodyStrong" numberOfLines={1}>
+          {equipmentName(e)}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Ambiente',
+      peso: 1.4,
+      celula: (e) => (
+        <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+          {e.environment ?? 'Não informado'}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Nº de série',
+      peso: 1.2,
+      celula: (e) => (
+        <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+          {e.serial_number ?? '—'}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Gás',
+      largura: 90,
+      celula: (e) => (
+        <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+          {e.gas_type ?? '—'}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Instalado',
+      largura: 100,
+      celula: (e) => (
+        <Text variant="meta" color={colors.textMuted}>
+          {formatDate(e.installed_at)}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Garantia',
+      largura: 100,
+      celula: (e) => (
+        <Text variant="meta" color={colors.textMuted}>
+          {formatDate(e.warranty_until)}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Situação',
+      largura: 92,
+      aoDireita: true,
+      celula: () => <Badge label="Em dia" tone="success" />,
+    },
+  ];
+
   return (
     <View style={styles.root}>
       <Header title="Equipamentos" />
@@ -56,19 +131,37 @@ export default function EquipamentosScreen() {
           />
         }>
         <View style={[styles.container, { paddingBottom: spacing.xxl + insets.bottom }]}>
+          {!loading && !error && items.length > 0 ? (
+            <Filtros
+              busca={{
+                valor: texto,
+                aoDigitar: setTexto,
+                dica: 'Filtrar por marca, ambiente ou série',
+              }}
+            />
+          ) : null}
+
           {loading ? (
             <LoadingState />
           ) : error ? (
             <ErrorState message={error} onRetry={load} />
-          ) : items.length === 0 ? (
+          ) : filtrados.length === 0 ? (
             <EmptyState
               icon={AirVent}
-              title="Nenhum equipamento cadastrado"
-              description="Assim que a equipe cadastrar seus aparelhos, eles aparecem aqui com todo o histórico."
+              title={texto ? 'Nada encontrado' : 'Nenhum equipamento cadastrado'}
+              description={
+                texto
+                  ? `Nenhum aparelho seu combina com “${texto}”.`
+                  : 'Assim que a equipe cadastrar seus aparelhos, eles aparecem aqui com todo o histórico.'
+              }
             />
           ) : (
-            <CardGrid>
-            {items.map((e) => (
+            <Tabela
+              itens={filtrados}
+              colunas={colunas}
+              chave={(e) => e.id}
+              emColunas
+              cartao={(e) => (
               <Card key={e.id}>
                 <View style={styles.card}>
                   <View style={styles.row}>
@@ -92,8 +185,8 @@ export default function EquipamentosScreen() {
                   </View>
                 </View>
               </Card>
-            ))}
-            </CardGrid>
+              )}
+            />
           )}
         </View>
       </ScrollView>

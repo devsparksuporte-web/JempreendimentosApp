@@ -4,6 +4,8 @@ import { useCallback, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { comparavel, Filtros } from '@/components/Filtros';
+import { Tabela, type Coluna } from '@/components/Tabela';
 import { Badge } from '@/components/ui/Badge';
 import { Header } from '@/components/ui/Header';
 import { EmptyState, ErrorState, LoadingState } from '@/components/ui/States';
@@ -23,6 +25,7 @@ export default function ChamadosAdminScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>('abertos');
+  const [texto, setTexto] = useState('');
 
   const load = useCallback(async () => {
     setError(null);
@@ -43,10 +46,82 @@ export default function ChamadosAdminScreen() {
   );
 
   const filtrados = useMemo(() => {
-    if (filtro === 'todos') return itens;
     const aberto = (c: AdminCall) => STATUS_ABERTOS.includes(c.status);
-    return itens.filter((c) => (filtro === 'abertos' ? aberto(c) : !aberto(c)));
-  }, [itens, filtro]);
+    const porStatus =
+      filtro === 'todos'
+        ? itens
+        : itens.filter((c) => (filtro === 'abertos' ? aberto(c) : !aberto(c)));
+
+    const alvo = comparavel(texto);
+    if (!alvo) return porStatus;
+    // Procura no que a pessoa lê na tela: número, cliente, aparelho e técnico.
+    return porStatus.filter((c) =>
+      comparavel(
+        [
+          c.code,
+          c.title,
+          c.client?.name,
+          c.equipment?.brand,
+          c.equipment?.model,
+          c.equipment?.environment,
+          c.technician?.profile?.full_name,
+        ]
+          .filter(Boolean)
+          .join(' '),
+      ).includes(alvo),
+    );
+  }, [itens, filtro, texto]);
+
+  const colunas: Coluna<AdminCall>[] = [
+    {
+      titulo: 'Código',
+      largura: 78,
+      celula: (c) => <Text variant="bodyStrong">#{c.code}</Text>,
+    },
+    {
+      titulo: 'Cliente',
+      peso: 2,
+      celula: (c) => (
+        <Text variant="body" numberOfLines={1}>
+          {c.client?.name ?? 'Cliente'}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Equipamento',
+      peso: 2,
+      celula: (c) => (
+        <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+          {[c.equipment?.brand, c.equipment?.model].filter(Boolean).join(' ') || 'Sem equipamento'}
+          {c.equipment?.environment ? ` · ${c.equipment.environment}` : ''}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Técnico',
+      peso: 1.4,
+      celula: (c) => (
+        <Text variant="meta" color={colors.textSecondary} numberOfLines={1}>
+          {c.technician?.profile?.full_name ?? 'Sem técnico'}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Abertura',
+      largura: 132,
+      celula: (c) => (
+        <Text variant="meta" color={colors.textMuted} numberOfLines={1}>
+          {`${formatDate(c.created_at)} ${formatTime(c.created_at)}`}
+        </Text>
+      ),
+    },
+    {
+      titulo: 'Situação',
+      largura: 132,
+      aoDireita: true,
+      celula: (c) => <Badge label={STATUS_LABEL[c.status]} tone={STATUS_TONE[c.status]} />,
+    },
+  ];
 
   return (
     <View style={styles.root}>
@@ -79,27 +154,20 @@ export default function ChamadosAdminScreen() {
           />
         }>
         <View style={styles.container}>
-          <View style={styles.filtros}>
-            {(
-              [
-                ['abertos', 'Em aberto'],
-                ['encerrados', 'Encerrados'],
-                ['todos', 'Todos'],
-              ] as [Filtro, string][]
-            ).map(([chave, rotulo]) => {
-              const ativo = filtro === chave;
-              return (
-                <Pressable
-                  key={chave}
-                  onPress={() => setFiltro(chave)}
-                  style={[styles.filtro, ativo ? styles.filtroAtivo : styles.filtroInativo]}>
-                  <Text variant="meta" color={ativo ? colors.textOnBrand : colors.textSecondary}>
-                    {rotulo}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <Filtros
+            valor={filtro}
+            aoTrocar={setFiltro}
+            opcoes={[
+              { chave: 'abertos', rotulo: 'Em aberto' },
+              { chave: 'encerrados', rotulo: 'Encerrados' },
+              { chave: 'todos', rotulo: 'Todos' },
+            ]}
+            busca={{
+              valor: texto,
+              aoDigitar: setTexto,
+              dica: 'Filtrar por cliente, aparelho ou nº',
+            }}
+          />
 
           {loading ? (
             <LoadingState />
@@ -108,11 +176,20 @@ export default function ChamadosAdminScreen() {
           ) : filtrados.length === 0 ? (
             <EmptyState
               icon={ClipboardList}
-              title="Nenhum chamado"
-              description="Chamado encerrado continua aqui: é onde se consulta o laudo e a conversa depois que o serviço acabou."
+              title={texto ? 'Nada encontrado' : 'Nenhum chamado'}
+              description={
+                texto
+                  ? `Nenhum chamado deste recorte combina com “${texto}”.`
+                  : 'Chamado encerrado continua aqui: é onde se consulta o laudo e a conversa depois que o serviço acabou.'
+              }
             />
           ) : (
-            filtrados.map((c) => (
+            <Tabela
+              itens={filtrados}
+              colunas={colunas}
+              chave={(c) => c.id}
+              aoAbrir={(c) => router.push(`/(admin)/chamado/${c.id}` as never)}
+              cartao={(c) => (
               <Pressable
                 key={c.id}
                 onPress={() => router.push(`/(admin)/chamado/${c.id}` as never)}
@@ -142,7 +219,8 @@ export default function ChamadosAdminScreen() {
                 </View>
                 <ChevronRight size={18} color={colors.slate300} />
               </Pressable>
-            ))
+              )}
+            />
           )}
         </View>
       </ScrollView>
@@ -161,15 +239,6 @@ const styles = StyleSheet.create({
   },
   flex: { flex: 1, gap: spacing.xs },
 
-  filtros: { flexDirection: 'row', gap: spacing.sm },
-  filtro: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-  },
-  filtroAtivo: { backgroundColor: colors.brand, borderColor: colors.brand },
-  filtroInativo: { backgroundColor: colors.bgSurface, borderColor: colors.border },
 
   item: {
     flexDirection: 'row',

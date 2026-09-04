@@ -4,6 +4,7 @@ import { ClipboardList, MapPinned, QrCode, Settings } from 'lucide-react-native'
 import { StyleSheet, View } from 'react-native';
 
 import { BarraSuperior } from '@/components/BarraSuperior';
+import { RodapeDoSistema } from '@/components/RodapeDoSistema';
 import { MenuLateral, useMenuLateral, type ItemDoMenu } from '@/components/MenuLateral';
 import { reportarMinhaLocalizacao } from '@/services/equipe';
 import { colors, fonts, spacing } from '@/theme/tokens';
@@ -66,6 +67,7 @@ export default function TechnicianLayout() {
       <View style={styles.conteudo}>
         <BarraSuperior />
         <View style={styles.tela}>{abas}</View>
+        <RodapeDoSistema />
       </View>
     </View>
   );

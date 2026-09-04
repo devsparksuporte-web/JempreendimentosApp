@@ -11,6 +11,7 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BarraSuperior } from '@/components/BarraSuperior';
+import { RodapeDoSistema } from '@/components/RodapeDoSistema';
 import { MenuLateral, useMenuLateral, type ItemDoMenu } from '@/components/MenuLateral';
 import { D, elevacaoSuave } from '@/theme/paletaMapa';
 
@@ -110,6 +111,7 @@ export default function AdminLayout() {
       <View style={styles.conteudo}>
         <BarraSuperior />
         <View style={styles.tela}>{abas}</View>
+        <RodapeDoSistema />
       </View>
     </View>
   );
