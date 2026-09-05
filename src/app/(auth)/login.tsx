@@ -118,7 +118,12 @@ export default function LoginScreen() {
       <ScrollView
         contentContainerStyle={[
           styles.pagina,
-          { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xxl },
+          // Em tela dividida o miolo encosta nas bordas: a margem que serve ao
+          // celular é justamente o que fazia as duas colunas parecerem um
+          // cartãozinho no meio de um monitor.
+          emDuasColunas
+            ? styles.paginaLarga
+            : { paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing.xxl },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
@@ -149,6 +154,7 @@ export default function LoginScreen() {
           </View>
         )}
 
+        <View style={emDuasColunas ? styles.metade : undefined}>
         <View style={[styles.conteudo, emDuasColunas && styles.conteudoLado]}>
           {emDuasColunas ? (
             <View style={styles.marcaForm}>
@@ -290,6 +296,7 @@ export default function LoginScreen() {
         </View>
 
         </View>
+        </View>
 
         <View style={[styles.rodape, emDuasColunas && styles.rodapeLargo]}>
           <View style={styles.confianca}>
@@ -350,6 +357,14 @@ const styles = StyleSheet.create({
   floco3: { top: 320, left: 46 },
 
   miolo: { width: '100%', alignItems: 'center', gap: spacing.xl },
+  paginaLarga: { paddingHorizontal: 0, gap: 0 },
+  metade: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xxl,
+    backgroundColor: colors.bgSurface,
+  },
   mioloLargo: {
     flexDirection: 'row',
     // `stretch` para o painel e o formulário terminarem na mesma linha; com
@@ -359,13 +374,13 @@ const styles = StyleSheet.create({
     // as duas colunas na vertical em vez de deixá-las grudadas no topo.
     flexGrow: 1,
     justifyContent: 'center',
-    gap: 56,
-    maxWidth: 1080,
+    gap: 0,
+    width: '100%',
   },
   marca: { alignItems: 'center', gap: spacing.xs },
   marcaForm: { alignItems: 'center', gap: 2, marginBottom: spacing.md },
   logoForm: { width: 84, height: 84, marginBottom: spacing.xs },
-  conteudoLado: { flex: 1, maxWidth: 440, justifyContent: 'center' },
+  conteudoLado: { width: '100%', maxWidth: 420, justifyContent: 'center' },
   ilustracao: { marginTop: spacing.xl },
   logo: { width: 132, height: 132 },
   nome: { marginTop: spacing.sm },

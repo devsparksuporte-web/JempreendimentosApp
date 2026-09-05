@@ -136,17 +136,26 @@ export function PainelDaMarca() {
 
 const styles = StyleSheet.create({
   painel: {
+    // Metade da tela, de ponta a ponta. Sem teto de largura e sem canto
+    // arredondado: o painel é o lado esquerdo da página, não um cartão
+    // apoiado sobre ela.
     flex: 1,
-    maxWidth: 640,
     minHeight: 640,
-    borderRadius: radius.xl,
     overflow: 'hidden',
     backgroundColor: colors.brandStrong,
   },
   foto: { position: 'absolute', inset: 0, width: '100%', height: '100%' },
   veu: { position: 'absolute', inset: 0, backgroundColor: 'rgba(4,18,44,0.90)' },
 
-  conteudo: { flex: 1, padding: spacing.xl, gap: spacing.lg, justifyContent: 'center' },
+  conteudo: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 520,
+    alignSelf: 'center',
+    padding: spacing.xxl,
+    gap: spacing.lg,
+    justifyContent: 'center',
+  },
   marca: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   logo: { width: 46, height: 46 },
 
