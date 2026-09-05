@@ -13,6 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AvisoDeBateria } from '@/components/AvisoDeBateria';
 import { Button } from '@/components/ui/Button';
 import { Text } from '@/components/ui/Text';
 import {
@@ -259,6 +260,8 @@ export default function PermissoesScreen() {
             );
           })}
         </View>
+
+        <AvisoDeBateria />
 
         <Text variant="meta" color={colors.textMuted} style={styles.centro}>
           Nenhuma permissão é obrigatória para entrar. O aplicativo funciona sem elas, com os
