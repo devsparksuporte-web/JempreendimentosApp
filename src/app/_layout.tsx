@@ -10,7 +10,7 @@ import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, Vibration } from 'react-native';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -18,7 +18,7 @@ import { carregarOnboarding, useOnboarding } from '@/lib/onboarding';
 import { carregarAssistentePermissoes, useAssistentePermissoes } from '@/lib/permissoes';
 import { incrementarNaoLidas, recarregarNaoLidas } from '@/lib/naoLidas';
 import { subscribeToNotifications } from '@/services/notifications';
-import { ouvirToqueNoAviso, registrarPush } from '@/services/push';
+import { destinoDoAvisoInicial, ouvirToqueNoAviso, registrarPush } from '@/services/push';
 import { Abertura } from '@/components/Abertura';
 import { colors } from '@/theme/tokens';
 
@@ -47,13 +47,30 @@ function AuthGate() {
    * notificação em tempo real serve a quem está com o app aberto; o push
    * serve a quem não está.
    */
+  // Destino pedido por um toque no aviso. Fica num ref, e não em estado,
+  // porque quem o consome é o portão de rotas logo abaixo: se fosse estado,
+  // limpá-lo dentro daquele efeito seria mexer em estado no meio da
+  // renderização. O contador ao lado existe só para acordar o portão.
+  const avisoPendente = useRef<string | null>(null);
+  const [toques, setToques] = useState(0);
+
+  function pedirDestino(destino: string) {
+    avisoPendente.current = destino;
+    setToques((n) => n + 1);
+  }
+
   useEffect(() => {
     const perfil = session?.user.id;
     if (!perfil) return;
 
     void registrarPush(perfil);
-    return ouvirToqueNoAviso((destino) => router.push(destino as never));
-  }, [session?.user.id, router]);
+    // O aviso que abriu o aplicativo do zero: a resposta já ocorreu antes
+    // de qualquer escuta existir, então ela é lida à parte.
+    void destinoDoAvisoInicial().then((destino) => {
+      if (destino) pedirDestino(destino);
+    });
+    return ouvirToqueNoAviso(pedirDestino);
+  }, [session?.user.id]);
 
   useEffect(() => {
     if (!session?.user.id) return;
@@ -135,6 +152,13 @@ function AuthGate() {
     // caminho depois de concluída, e quem já entrou nunca mais as vê.
     if (inRecuperarSenha) {
       return;
+    } else if (session && avisoPendente.current) {
+      // Quem tocou no aviso quer o chamado, não o painel. Isto vem antes do
+      // resto do portão de propósito: navegar depois do `replace` dele faria
+      // o caminho ser desfeito no mesmo instante.
+      const destino = avisoPendente.current;
+      avisoPendente.current = null;
+      router.push(destino as never);
     } else if (!apresentacaoOk && !inOnboarding) {
       router.replace('/(auth)/onboarding' as never);
     } else if (apresentacaoOk && !permissoesDone && !session && !inPermissoes) {
@@ -157,7 +181,7 @@ function AuthGate() {
     ) {
       router.replace(destination as never);
     }
-  }, [session, initializing, role, segments, router, onboardingReady, onboardingDone, permissoesReady, permissoesDone]);
+  }, [session, initializing, role, segments, router, toques, onboardingReady, onboardingDone, permissoesReady, permissoesDone]);
 
   if (initializing || !onboardingReady || !permissoesReady) return <Abertura />;
 

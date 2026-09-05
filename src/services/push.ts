@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
@@ -118,6 +119,40 @@ export function destinoDoAviso(dados: Record<string, unknown> | undefined): stri
   if (tipo === 'estoque') return '/(admin)/estoque';
   if (tipo === 'pedido') return '/(admin)/recebimento';
   return '/notificacoes';
+}
+
+/**
+ * Destino do aviso que ABRIU o aplicativo.
+ *
+ * `addNotificationResponseReceivedListener` só entrega o toque enquanto o
+ * aplicativo está vivo. Quando o aviso abre o app do zero, a resposta já
+ * aconteceu antes de qualquer escuta existir — e é por isso que tocar na
+ * notificação com o app fechado não levava a lugar nenhum.
+ *
+ * O Android guarda a última resposta e a devolve em toda abertura, inclusive
+ * dias depois. Sem controle, abrir o aplicativo pelo ícone jogaria a pessoa
+ * num chamado antigo toda vez. Por isso o identificador da última resposta
+ * tratada fica gravado: cada toque leva ao chamado uma vez só.
+ */
+const CHAVE_ULTIMO_AVISO = 'jempreendimentos.push.ultimaResposta';
+
+export async function destinoDoAvisoInicial(): Promise<string | null> {
+  if (Platform.OS === 'web') return null;
+  try {
+    const resposta = await Notifications.getLastNotificationResponseAsync();
+    if (!resposta) return null;
+
+    const identificador = resposta.notification.request.identifier;
+    if (await AsyncStorage.getItem(CHAVE_ULTIMO_AVISO) === identificador) return null;
+    await AsyncStorage.setItem(CHAVE_ULTIMO_AVISO, identificador);
+
+    const dados = resposta.notification.request.content.data as Record<string, unknown>;
+    return destinoDoAviso(dados);
+  } catch {
+    // Sem destino o app abre no painel, que é um mau resultado — mas
+    // travar a abertura por causa disso seria pior.
+    return null;
+  }
 }
 
 /** Ouve o toque no aviso. Devolve a função que cancela a escuta. */
