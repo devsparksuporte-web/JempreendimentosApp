@@ -1,0 +1,387 @@
+<!doctype html>
+<!--
+  Proposta comercial de Google Ads.
+
+  Gera PDF com:
+    node proposta/gerar.mjs google-ads
+
+  PREENCHER — procure por [PREENCHER no arquivo:
+    - valor de criação das campanhas
+    - valor da gestão mensal
+    - verba de mídia sugerida
+    - prazo mínimo e aviso prévio
+    - dados de quem propõe e do cliente
+
+  Nenhum número foi inventado e nenhuma promessa de resultado foi feita:
+  garantir posição é proibido pelas políticas do próprio Google.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Proposta — Google Ads · JEmpreendimentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tinta:   #06152E;
+    --tinta-2: #48617D;
+    --tinta-3: #8199B2;
+    --marca:   #006BFF;
+    --escuro:  #06152E;
+    --linha:   #E2ECF9;
+    --fundo:   #F6F9FE;
+    --ok:      #00A878;
+    --alerta:  #C65400;
+  }
+
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--tinta);
+    font-size: 10.5pt;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3 { margin: 0; line-height: 1.2; letter-spacing: -0.02em; }
+  p { margin: 0 0 10px; }
+  strong { font-weight: 700; }
+
+  .pagina { page-break-after: always; }
+  .pagina:last-child { page-break-after: auto; }
+  .evitar-quebra { page-break-inside: avoid; }
+
+  /* ---------- capa ---------- */
+  .capa {
+    background: linear-gradient(160deg, #0B2350, var(--escuro));
+    color: #fff;
+    margin: -16mm -15mm 0;
+    padding: 32mm 15mm 24mm;
+    position: relative;
+    overflow: hidden;
+  }
+  .capa::after {
+    content: ''; position: absolute; right: -60mm; top: -40mm;
+    width: 140mm; height: 140mm; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,107,255,.35), transparent 65%);
+  }
+  .capa > * { position: relative; }
+  .marca-capa { display: flex; align-items: center; gap: 10px; margin-bottom: 28mm; }
+  .marca-selo {
+    width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.14);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px;
+  }
+  .marca-nome { font-weight: 800; font-size: 12pt; letter-spacing: -0.01em; line-height: 1.2; }
+  .marca-nome small { display: block; font-size: 7pt; letter-spacing: .16em; color: #8FB6E8; font-weight: 600; }
+  .capa .rotulo { font-size: 8pt; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #8FE8C8; }
+  .capa h1 { font-size: 30pt; margin: 10px 0 14px; font-weight: 800; }
+  .capa .sub { font-size: 12pt; color: #B9CEEA; max-width: 120mm; }
+  .capa-rodape { margin-top: 24mm; display: flex; gap: 18mm; font-size: 9pt; color: #B9CEEA; }
+  .capa-rodape b { display: block; font-size: 7.5pt; letter-spacing: .14em; text-transform: uppercase; color: #6F8CAF; margin-bottom: 3px; }
+
+  /* ---------- seções ---------- */
+  section { margin-top: 12mm; }
+  .olho { font-size: 8pt; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--marca); }
+  h2 { font-size: 17pt; margin: 6px 0 10px; }
+  h3 { font-size: 11.5pt; margin: 0 0 4px; }
+  .conduz { color: var(--tinta-2); font-size: 11pt; margin-bottom: 8mm; }
+
+  .bloco {
+    border: 1px solid var(--linha); border-radius: 10px;
+    padding: 6mm; background: var(--fundo); margin-bottom: 5mm;
+  }
+  .bloco.destaque { background: #EEF5FF; border-color: #CFE0F4; }
+  .bloco.aviso { background: #FFF6EC; border-color: #FFD9AE; }
+
+  ul { margin: 0; padding-left: 5mm; }
+  li { margin-bottom: 4px; color: var(--tinta-2); }
+  li b { color: var(--tinta); }
+
+  /* ---------- módulos ---------- */
+  .modulos { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .modulo { border: 1px solid var(--linha); border-radius: 10px; padding: 5mm; }
+  .modulo h3 { font-size: 10.5pt; display: flex; align-items: center; gap: 6px; }
+  .modulo .pronto { font-size: 7pt; font-weight: 800; letter-spacing: .08em; padding: 2px 7px; border-radius: 20px; background: #D9F8ED; color: #007A5A; }
+  .modulo p { font-size: 9pt; color: var(--tinta-2); margin: 4px 0 0; }
+
+  /* ---------- tabela ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  th {
+    text-align: left; font-size: 7.5pt; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--tinta-3); padding: 0 0 6px; border-bottom: 1px solid var(--linha);
+  }
+  td { padding: 7px 0; border-bottom: 1px solid var(--linha); vertical-align: top; color: var(--tinta-2); }
+  td:first-child { color: var(--tinta); font-weight: 600; width: 46%; }
+  td:last-child { text-align: right; white-space: nowrap; font-weight: 700; color: var(--tinta); }
+  tr.total td { border-bottom: 0; padding-top: 10px; font-size: 11pt; }
+
+  /* Campo por preencher tem que doer de tão visível: proposta enviada com
+     [PREENCHER] esquecido é pior que proposta sem número. */
+  .preencher {
+    color: var(--alerta); font-weight: 800;
+    background: #FFF0DC; padding: 1px 5px; border-radius: 4px;
+    border: 1px dashed #E9A254;
+  }
+  .capa .preencher {
+    color: #FFD166; background: rgba(255,209,102,.12); border-color: rgba(255,209,102,.5);
+  }
+
+  .assinaturas { display: grid; grid-template-columns: 1fr 1fr; gap: 16mm; margin-top: 22mm; }
+  .assinatura { border-top: 1px solid var(--tinta-3); padding-top: 4px; font-size: 8.5pt; color: var(--tinta-2); }
+
+  .rodape-doc {
+    margin-top: 14mm; padding-top: 4mm; border-top: 1px solid var(--linha);
+    font-size: 8pt; color: var(--tinta-3); display: flex; justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== CAPA ==================== -->
+<div class="pagina">
+  <div class="capa">
+    <div class="marca-capa">
+      <span class="marca-selo">J</span>
+      <span class="marca-nome">JEMPREENDIMENTOS<small>CLIMATIZAÇÃO</small></span>
+    </div>
+
+    <span class="rotulo">Proposta comercial</span>
+    <h1>Google Ads para climatização</h1>
+    <p class="sub">
+      Campanhas de busca para aparecer no momento em que alguém procura
+      instalação, manutenção ou limpeza de ar-condicionado na região atendida.
+    </p>
+
+    <div class="capa-rodape">
+      <div><b>Preparado para</b><span class="preencher">[PREENCHER: cliente]</span></div>
+      <div><b>Preparado por</b><span class="preencher">[PREENCHER: sua razão social]</span></div>
+      <div><b>Data</b>4 de setembro de 2026</div>
+      <div><b>Validade</b>15 dias</div>
+    </div>
+  </div>
+
+  <section>
+    <span class="olho">O que está em jogo</span>
+    <h2>Indicação traz cliente. Ela só não escolhe a hora.</h2>
+    <p class="conduz">
+      Serviço de climatização é procurado com pressa e com endereço. O aparelho
+      pingou, parou de gelar, começou a cheirar — e a pessoa pega o celular e
+      busca ali mesmo.
+    </p>
+
+    <div class="bloco">
+      <ul>
+        <li><b>A busca já acontece hoje.</b> Todo dia alguém na região digita "conserto de ar condicionado perto de mim". A pergunta não é se existe demanda, é para quem ela está indo.</li>
+        <li><b>Quem aparece primeiro é chamado primeiro.</b> Em serviço urgente, a pessoa raramente compara cinco empresas. Ela liga para as duas ou três que apareceram na tela.</li>
+        <li><b>A indicação continua valendo.</b> Isto não substitui o boca a boca — ocupa o espaço onde ele não chega: quem ainda não conhece a empresa e precisa hoje.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== O QUE SERÁ FEITO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Entrega</span>
+    <h2>O que será construído</h2>
+    <p class="conduz">
+      A conta é montada do zero, com a medição funcionando antes do primeiro
+      real investido. Campanha que não mede não se corrige — só gasta.
+    </p>
+
+    <div class="modulos">
+      <div class="modulo evitar-quebra">
+        <h3>Estrutura da conta</h3>
+        <p>Campanhas de Rede de Pesquisa separadas por serviço — instalação, manutenção, limpeza e PMOC —, para que cada uma tenha verba e desempenho próprios, em vez de um bolo único que esconde o que funciona.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Palavras por intenção</h3>
+        <p>Quem digita "instalar ar condicionado" quer orçamento; quem digita "ar condicionado não gela" quer socorro. São anúncios diferentes, e misturar os dois desperdiça os dois.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Palavras negativas</h3>
+        <p>Lista inicial para não pagar por quem procura curso, emprego, manual, peça avulsa ou aluguel de equipamento. É o filtro que mais economiza verba no primeiro mês.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Anúncios e extensões</h3>
+        <p>Textos por serviço, com extensão de chamada, de local e de link. A extensão de chamada permite ligar direto do resultado, sem abrir o site — que é como a pessoa apressada age.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Medição de contato</h3>
+        <p>Ligação, clique no WhatsApp e envio de formulário passam a ser contados como conversão. Sem isso não existe custo por contato — e sem custo por contato não há como saber se vale a pena.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Região e horário</h3>
+        <p>Anúncio apenas para as cidades e bairros atendidos, com ajuste por horário. Não adianta aparecer de madrugada para quem a equipe não consegue atender.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Perfil da Empresa no Google</h3>
+        <p>Vínculo da conta de anúncios com o perfil do Maps, para endereço e avaliações aparecerem junto do anúncio.</p>
+      </div>
+
+      <div class="modulo evitar-quebra">
+        <h3>Relatório mensal</h3>
+        <p>Uma página com o que interessa: quanto foi investido, quantos contatos vieram e quanto custou cada um. Sem jargão e sem gráfico que não muda decisão.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== GESTÃO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Acompanhamento</span>
+    <h2>O que a gestão mensal faz</h2>
+    <p class="conduz">
+      Campanha não é obra entregue e esquecida. É um leilão que muda todo dia,
+      com concorrente entrando, saindo e mudando de lance.
+    </p>
+
+    <div class="bloco">
+      <ul>
+        <li><b>Termos reais de busca.</b> Toda semana aparecem buscas que ninguém previu. As que não servem viram palavras negativas; as que servem viram anúncio próprio.</li>
+        <li><b>Lances e verba.</b> Redistribuição entre campanhas conforme o que está trazendo contato mais barato.</li>
+        <li><b>Novos anúncios.</b> Textos novos rodando contra os antigos, mantendo o que rende mais.</li>
+        <li><b>Regiões.</b> Ajuste de bairros e cidades a partir de onde os contatos realmente aparecem.</li>
+        <li><b>Relatório.</b> Enviado uma vez por mês, em linguagem simples.</li>
+      </ul>
+    </div>
+
+    <h3 style="margin-top:6mm">O que precisa vir do contratante</h3>
+    <div class="bloco">
+      <ul>
+        <li><b>Acessos.</b> Site, Perfil da Empresa no Google e o número de WhatsApp usado no atendimento.</li>
+        <li><b>Alguém para responder.</b> Contato que chega e não é respondido em minutos vira contato perdido. É o que mais derruba resultado, e não depende de anúncio nenhum.</li>
+        <li><b>Verba de mídia.</b> Paga direto ao Google, no cartão do contratante.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== PRÉ-REQUISITO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Antes de ligar as campanhas</span>
+    <h2>O site precisa estar pronto para receber</h2>
+    <p class="conduz">
+      Isto não é ressalva genérica de proposta: é o estado atual do site
+      institucional, conferido no código antes deste documento.
+    </p>
+
+    <div class="bloco aviso evitar-quebra">
+      <ul>
+        <li><b>O botão de WhatsApp não tem número.</b> A variável que guarda o contato está vazia. Hoje, quem clicar não fala com ninguém.</li>
+        <li><b>Doze campos ainda por preencher.</b> Telefone, e-mail, CNPJ, cidades atendidas e depoimentos seguem marcados como pendentes na página.</li>
+      </ul>
+    </div>
+
+    <p style="margin-top:5mm; font-size:9.5pt; color:var(--tinta-2)">
+      Enquanto isso não for resolvido, cada clique pago cai numa página que não
+      tem como converter — e o dinheiro sai do mesmo jeito. É trabalho de poucas
+      horas, e <strong>as campanhas não devem ser ligadas antes disso</strong>.
+    </p>
+
+    <h3 style="margin-top:8mm">O que será medido — e o que não será prometido</h3>
+    <div class="bloco">
+      <ul>
+        <li><b>Medido:</b> cliques, custo por clique, contatos por ligação, WhatsApp e formulário, e o custo de cada contato.</li>
+        <li><b>Não prometido:</b> posição fixa no Google, quantidade de vendas ou "primeiro lugar". Garantir posição é proibido pelas políticas do próprio Google — quem promete isso está vendendo o que não pode entregar.</li>
+        <li><b>O compromisso:</b> campanha no ar, medindo, e ajustada todo mês pelo que os dados mostrarem.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== INVESTIMENTO ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Investimento</span>
+    <h2>Valores</h2>
+
+    <table>
+      <tr><th>Item</th><th style="text-align:right">Valor</th></tr>
+      <tr>
+        <td>Criação das campanhas
+          <div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Estrutura, palavras, anúncios, extensões, medição de contato e vínculo com o Perfil da Empresa</div>
+        </td>
+        <td>R$ 900,00</td>
+      </tr>
+      <tr class="total">
+        <td>Gestão mensal
+          <div style="font-weight:400;font-size:8.5pt;color:var(--tinta-3)">Ajustes, palavras negativas, novos anúncios e relatório</div>
+        </td>
+        <td>R$ 400,00</td>
+      </tr>
+    </table>
+
+    <div class="bloco aviso evitar-quebra" style="margin-top:6mm">
+      <h3 style="font-size:10pt">A verba de mídia é separada, e não passa por quem gerencia</h3>
+      <p style="margin:5px 0 0; font-size:9pt; color:var(--tinta-2)">
+        A conta de anúncios fica <strong>no nome do contratante</strong>, com o
+        cartão dele, e a cobrança do Google vai direto para ele. Os valores
+        acima são de serviço — nenhum centavo de verba passa por terceiro.
+      </p>
+      <p style="margin:5px 0 0; font-size:9pt; color:var(--tinta-2)">
+        Verba mensal sugerida para começar: <strong>R$ 900,00</strong> (cerca de
+        R$ 30 por dia). Ela pode subir ou descer a qualquer momento, e o volume de contatos acompanha. Abaixo de cerca de R$ 30 por dia a campanha junta poucos dados e demora a poder ser ajustada com segurança.
+      </p>
+    </div>
+
+    <h3 style="margin-top:8mm">O que não está incluído</h3>
+    <div class="bloco">
+      <ul>
+        <li><b>Redes sociais.</b> Instagram e Facebook são outro trabalho, com outra lógica de compra.</li>
+        <li><b>Produção de foto e vídeo.</b> As peças usam o material que a empresa já tem.</li>
+        <li><b>SEO.</b> Aparecer sem pagar é outro serviço, de prazo longo.</li>
+        <li><b>Atendimento das mensagens.</b> Quem responde o WhatsApp e o telefone é a equipe do contratante.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<!-- ==================== TERMOS ==================== -->
+<div class="pagina">
+  <section style="margin-top:0">
+    <span class="olho">Condições</span>
+    <h2>Termos</h2>
+    <div class="bloco">
+      <ul>
+        <li><b>Propriedade da conta.</b> A conta do Google Ads é criada <strong>no nome do contratante</strong>, e o acesso administrativo é dele. Encerrado o contrato, a conta, o histórico e o aprendizado das campanhas ficam com ele.</li>
+        <li><b>Verba.</b> Paga diretamente ao Google, no cartão do contratante, que também recebe a nota do investimento em mídia.</li>
+        <li><b>Prazo mínimo de acompanhamento.</b> <strong>3 meses</strong>. Campanha precisa de tempo para juntar dados antes de ser julgada — desligar cedo demais joga fora o que já foi pago em aprendizado.</li>
+        <li><b>Cancelamento.</b> Aviso prévio de <strong>30 dias</strong>, com entrega dos acessos e do último relatório.</li>
+        <li><b>Validade desta proposta.</b> <strong>15 dias</strong> a partir da data de emissão.</li>
+      </ul>
+    </div>
+
+    <div class="assinaturas">
+      <div class="assinatura">
+        <span class="preencher">[PREENCHER: sua razão social]</span><br>
+        CNPJ <span class="preencher">[PREENCHER]</span>
+      </div>
+      <div class="assinatura">
+        <span class="preencher">[PREENCHER: cliente]</span><br>
+        CNPJ <span class="preencher">[PREENCHER]</span>
+      </div>
+    </div>
+
+    <div class="rodape-doc">
+      <span>Proposta — Google Ads · JEmpreendimentos</span>
+      04/09/2026
+    </div>
+  </section>
+</div>
+
+</body>
+</html>

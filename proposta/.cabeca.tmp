@@ -1,0 +1,142 @@
+<!doctype html>
+<!--
+  X.
+
+  Gera PDF com:
+    node proposta/gerar.mjs
+
+  PREENCHER — procure por [PREENCHER no arquivo:
+    - valor de implantação e forma de pagamento
+    - valor da manutenção mensal
+    - dados de quem propõe (razão social, CNPJ, contato)
+    - dados do cliente
+    - prazo e validade
+
+  Nenhum número foi inventado. O que eu não sei está marcado.
+  O inventário do que está pronto foi levantado do próprio código.
+-->
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Proposta — Sistema de Gestão JEmpreendimentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --tinta:   #06152E;
+    --tinta-2: #48617D;
+    --tinta-3: #8199B2;
+    --marca:   #006BFF;
+    --escuro:  #06152E;
+    --linha:   #E2ECF9;
+    --fundo:   #F6F9FE;
+    --ok:      #00A878;
+    --alerta:  #C65400;
+  }
+
+  @page { size: A4; margin: 16mm 15mm 18mm; }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--tinta);
+    font-size: 10.5pt;
+    line-height: 1.6;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3 { margin: 0; line-height: 1.2; letter-spacing: -0.02em; }
+  p { margin: 0 0 10px; }
+  strong { font-weight: 700; }
+
+  .pagina { page-break-after: always; }
+  .pagina:last-child { page-break-after: auto; }
+  .evitar-quebra { page-break-inside: avoid; }
+
+  /* ---------- capa ---------- */
+  .capa {
+    background: linear-gradient(160deg, #0B2350, var(--escuro));
+    color: #fff;
+    margin: -16mm -15mm 0;
+    padding: 32mm 15mm 24mm;
+    position: relative;
+    overflow: hidden;
+  }
+  .capa::after {
+    content: ''; position: absolute; right: -60mm; top: -40mm;
+    width: 140mm; height: 140mm; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,107,255,.35), transparent 65%);
+  }
+  .capa > * { position: relative; }
+  .marca-capa { display: flex; align-items: center; gap: 10px; margin-bottom: 28mm; }
+  .marca-selo {
+    width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.14);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px;
+  }
+  .marca-nome { font-weight: 800; font-size: 12pt; letter-spacing: -0.01em; line-height: 1.2; }
+  .marca-nome small { display: block; font-size: 7pt; letter-spacing: .16em; color: #8FB6E8; font-weight: 600; }
+  .capa .rotulo { font-size: 8pt; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: #8FE8C8; }
+  .capa h1 { font-size: 30pt; margin: 10px 0 14px; font-weight: 800; }
+  .capa .sub { font-size: 12pt; color: #B9CEEA; max-width: 120mm; }
+  .capa-rodape { margin-top: 24mm; display: flex; gap: 18mm; font-size: 9pt; color: #B9CEEA; }
+  .capa-rodape b { display: block; font-size: 7.5pt; letter-spacing: .14em; text-transform: uppercase; color: #6F8CAF; margin-bottom: 3px; }
+
+  /* ---------- seções ---------- */
+  section { margin-top: 12mm; }
+  .olho { font-size: 8pt; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--marca); }
+  h2 { font-size: 17pt; margin: 6px 0 10px; }
+  h3 { font-size: 11.5pt; margin: 0 0 4px; }
+  .conduz { color: var(--tinta-2); font-size: 11pt; margin-bottom: 8mm; }
+
+  .bloco {
+    border: 1px solid var(--linha); border-radius: 10px;
+    padding: 6mm; background: var(--fundo); margin-bottom: 5mm;
+  }
+  .bloco.destaque { background: #EEF5FF; border-color: #CFE0F4; }
+  .bloco.aviso { background: #FFF6EC; border-color: #FFD9AE; }
+
+  ul { margin: 0; padding-left: 5mm; }
+  li { margin-bottom: 4px; color: var(--tinta-2); }
+  li b { color: var(--tinta); }
+
+  /* ---------- módulos ---------- */
+  .modulos { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .modulo { border: 1px solid var(--linha); border-radius: 10px; padding: 5mm; }
+  .modulo h3 { font-size: 10.5pt; display: flex; align-items: center; gap: 6px; }
+  .modulo .pronto { font-size: 7pt; font-weight: 800; letter-spacing: .08em; padding: 2px 7px; border-radius: 20px; background: #D9F8ED; color: #007A5A; }
+  .modulo p { font-size: 9pt; color: var(--tinta-2); margin: 4px 0 0; }
+
+  /* ---------- tabela ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  th {
+    text-align: left; font-size: 7.5pt; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--tinta-3); padding: 0 0 6px; border-bottom: 1px solid var(--linha);
+  }
+  td { padding: 7px 0; border-bottom: 1px solid var(--linha); vertical-align: top; color: var(--tinta-2); }
+  td:first-child { color: var(--tinta); font-weight: 600; width: 46%; }
+  td:last-child { text-align: right; white-space: nowrap; font-weight: 700; color: var(--tinta); }
+  tr.total td { border-bottom: 0; padding-top: 10px; font-size: 11pt; }
+
+  /* Campo por preencher tem que doer de tão visível: proposta enviada com
+     [PREENCHER] esquecido é pior que proposta sem número. */
+  .preencher {
+    color: var(--alerta); font-weight: 800;
+    background: #FFF0DC; padding: 1px 5px; border-radius: 4px;
+    border: 1px dashed #E9A254;
+  }
+  .capa .preencher {
+    color: #FFD166; background: rgba(255,209,102,.12); border-color: rgba(255,209,102,.5);
+  }
+
+  .assinaturas { display: grid; grid-template-columns: 1fr 1fr; gap: 16mm; margin-top: 22mm; }
+  .assinatura { border-top: 1px solid var(--tinta-3); padding-top: 4px; font-size: 8.5pt; color: var(--tinta-2); }
+
+  .rodape-doc {
+    margin-top: 14mm; padding-top: 4mm; border-top: 1px solid var(--linha);
+    font-size: 8pt; color: var(--tinta-3); display: flex; justify-content: space-between;
+  }
+</style>
+</head>

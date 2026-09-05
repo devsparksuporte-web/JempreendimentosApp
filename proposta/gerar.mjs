@@ -37,7 +37,11 @@ async function acharNavegador() {
 
 // Aceita o nome do documento por argumento: `node proposta/gerar.mjs manual`
 const nome = process.argv[2] ?? 'proposta';
-const SAIDAS = { proposta: 'Proposta-JEmpreendimentos.pdf', manual: 'Manual-JEmpreendimentos.pdf' };
+const SAIDAS = {
+  proposta: 'Proposta-JEmpreendimentos.pdf',
+  manual: 'Manual-JEmpreendimentos.pdf',
+  'google-ads': 'Proposta-GoogleAds-JEmpreendimentos.pdf',
+};
 const entrada = resolve(aqui, `${nome}.html`);
 const saida = resolve(aqui, SAIDAS[nome] ?? `${nome}.pdf`);
 const navegador = await acharNavegador();
