@@ -26,7 +26,15 @@ Notifications.setNotificationHandler({
     }) as Notifications.NotificationBehavior,
 });
 
-/** Token deste aparelho, guardado para poder ser removido na saída. */
+/**
+ * Token deste aparelho, guardado para poder ser removido na saída.
+ *
+ * Também vai para o armazenamento local: a variável morre quando o
+ * aplicativo é fechado, e sem ela a saída da conta não teria o que apagar.
+ * Num tablet compartilhado pela equipe isso deixaria os avisos do técnico
+ * anterior continuarem chegando no aparelho depois que ele saiu.
+ */
+const CHAVE_TOKEN = 'jempreendimentos.push.token';
 let tokenAtual: string | null = null;
 
 function idDoProjeto(): string | null {
@@ -68,6 +76,7 @@ export async function registrarPush(profileId: string): Promise<void> {
 
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
     tokenAtual = token;
+    await AsyncStorage.setItem(CHAVE_TOKEN, token);
 
     const { error } = await (supabase as any).from('push_tokens').upsert(
       {
@@ -99,13 +108,30 @@ export async function registrarPush(profileId: string): Promise<void> {
  * seria vazar chamado de um técnico para outro.
  */
 export async function esquecerPush(): Promise<void> {
-  if (!tokenAtual) return;
+  // A variável some quando o app é fechado; o armazenamento não. Sem esta
+  // segunda fonte, sair da conta depois de reabrir o aplicativo não
+  // apagaria nada — e o aparelho seguiria recebendo o que não é mais dele.
+  let alvo = tokenAtual;
+  if (!alvo) {
+    try {
+      alvo = await AsyncStorage.getItem(CHAVE_TOKEN);
+    } catch {
+      alvo = null;
+    }
+  }
+  if (!alvo) return;
+
   try {
-    await (supabase as any).from('push_tokens').delete().eq('token', tokenAtual);
+    await (supabase as any).from('push_tokens').delete().eq('token', alvo);
   } catch {
     // Se falhar, o token some no próximo registro de outro perfil.
   } finally {
     tokenAtual = null;
+    try {
+      await AsyncStorage.removeItem(CHAVE_TOKEN);
+    } catch {
+      // Sem o registro local, a próxima abertura grava outro.
+    }
   }
 }
 
